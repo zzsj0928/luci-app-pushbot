@@ -1,4 +1,4 @@
-  
+
 local nt = require "luci.sys".net
 local fs=require"nixio.fs"
 local e=luci.model.uci.cursor()
@@ -48,11 +48,11 @@ a:value("/usr/bin/pushbot/api/bark.json",translate("Bark"))
 a:value("/usr/bin/pushbot/api/pushplus.json",translate("PushPlus"))
 a:value("/usr/bin/pushbot/api/diy.json",translate("自定义推送"))
 
-a=s:taboption("basic", Value,"dd_webhook",translate('Webhook'), translate("钉钉机器人 Webhook").."<br>调用代码获取<a href='https://developers.dingtalk.com/document/robots/custom-robot-access' target='_blank'>点击这里</a><br><br>")
+a=s:taboption("basic", Value,"dd_webhook",translate('Webhook'), translate("钉钉机器人 Webhook").."，只输入access_token=后面的即可<br>调用代码获取<a href='https://developers.dingtalk.com/document/robots/custom-robot-access' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
 a:depends("jsonpath","/usr/bin/pushbot/api/dingding.json")
 
-a=s:taboption("basic", Value, "we_webhook", translate("Webhook"),translate("企业微信机器人 Webhook").."<br>调用代码获取<a href='https://work.weixin.qq.com/api/doc/90000/90136/91770' target='_blank'>点击这里</a><br><br>")
+a=s:taboption("basic", Value, "we_webhook", translate("Webhook"),translate("企业微信机器人 Webhook").."，只输入key=后面的即可<br>调用代码获取<a href='https://work.weixin.qq.com/api/doc/90000/90136/91770' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
 a:depends("jsonpath","/usr/bin/pushbot/api/ent_wechat.json")
 
@@ -355,8 +355,8 @@ a=s:taboption("crontab", ListValue,"regular_time",translate("发送时间"))
 a.rmempty = true
 for t=0,23 do
 a:value(t,translate("每天"..t.."点"))
-end	
-a.default=8	
+end
+a.default=8
 a.datatype=uinteger
 a:depends("crontab","1")
 
@@ -365,7 +365,7 @@ a.rmempty = true
 a:value("",translate("关闭"))
 for t=0,23 do
 a:value(t,translate("每天"..t.."点"))
-end	
+end
 a.default="关闭"
 a.datatype=uinteger
 a:depends("crontab","1")
@@ -376,7 +376,7 @@ a.rmempty = true
 a:value("",translate("关闭"))
 for t=0,23 do
 a:value(t,translate("每天"..t.."点"))
-end	
+end
 a.default="关闭"
 a.datatype=uinteger
 a:depends("crontab","1")
@@ -406,7 +406,7 @@ a=s:taboption("crontab", Flag,"router_temp",translate("设备温度"))
 a.default=1
 a:depends("crontab","1")
 a:depends("crontab","2")
- 
+
 a=s:taboption("crontab", Flag,"router_wan",translate("WAN信息"))
 a.default=1
 a:depends("crontab","1")
@@ -415,7 +415,14 @@ a:depends("crontab","2")
 a=s:taboption("crontab", Flag,"client_list",translate("客户端列表"))
 a.default=1
 a:depends("crontab","1")
-a:depends("crontab","2") 
+a:depends("crontab","2")
+
+a=s:taboption("crontab", Value,"google_check_timeout",translate("全球互联检测超时时间"))
+a.rmempty = true
+a.optional = false
+a.default = "10"
+a.datatype = "and(uinteger,min(3))"
+a.description = translate("过短的时间可能导致检测不准确")
 
 e=s:taboption("crontab", Button,"_add",translate("手动发送"))
 e.inputtitle=translate("发送")
