@@ -101,6 +101,26 @@ a=s:taboption("basic", Value,"bark_srv",translate('Bark Server'), translate("Bar
 a.rmempty = true
 a:depends("bark_srv_enable","1")
 
+a=s:taboption("basic", Value,"bark_sound",translate('Bark Sound'), translate("Bark 通知声音").."<br>如silence.caf<br>具体设定参见：<a href='https://github.com/Finb/Bark/tree/master/Sounds' target='_blank'>点击这里</a><br><br>")
+a.rmempty = true
+a.default = "silence.caf"
+a:depends("jsonpath","/usr/bin/pushbot/api/bark.json")
+
+a=s:taboption("basic", Flag,"bark_icon_enable",translate(" Bark 通知图标"))
+a.default=0
+a.rmempty = true
+a:depends("jsonpath","/usr/bin/pushbot/api/bark.json")
+
+a=s:taboption("basic", Value,"bark_icon",translate('Bark Icon'), translate("Bark 通知图标").."(仅 iOS15 或以上支持)<br>如http://day.app/assets/images/avatar.jpg<br>具体设定参见：<a href='https://github.com/Finb/Bark#%E5%85%B6%E4%BB%96%E5%8F%82%E6%95%B0' target='_blank'>点击这里</a><br><br>")
+a.rmempty = true
+a.default = "http://day.app/assets/images/avatar.jpg"
+a:depends("bark_icon_enable","1")
+
+a=s:taboption("basic", Value,"bark_level",translate('Bark Level'), translate("Bark 时效性通知").."<br>可选参数值：<br/>active：不设置时的默认值，系统会立即亮屏显示通知。<br/>timeSensitive：时效性通知，可在专注状态下显示通知。<br/>passive：仅将通知添加到通知列表，不会亮屏提醒。")
+a.rmempty = true
+a.default = "active"
+a:depends("jsonpath","/usr/bin/pushbot/api/bark.json")
+
 a=s:taboption("basic", TextValue, "diy_json", translate("自定义推送"))
 a.optional = false
 a.rows = 28
