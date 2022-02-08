@@ -2,7 +2,7 @@
     "_api": "这是 PushDeer推送 api 文件",
     "_api": "【PushDeer推送】",
     
-    "url": "\"https://api2.pushdeer.com/message/push?pushkey=${pushdeer_key}\"",
+    "url": "${pushdeer_srv}/message/push",
     "data": "@${tempjsonpath}",
     "content_type": "Content-Type:application/json",
     "str_title_start": "**【",
@@ -23,8 +23,9 @@
     "boldstar": "**",
     "type":
       {
+	      "pushkey": "\"${pushdeer_key}\"",
 	      "type": "\"markdown\"",
-		    "text": "\"${1}\"",
-		    "desp": "\"${nowtime}${str_linefeed}${2}\""
+	      "text": "\"${1}\"",
+	      "desp": "\"${nowtime}${str_linefeed}${2}\""
       }
 }
