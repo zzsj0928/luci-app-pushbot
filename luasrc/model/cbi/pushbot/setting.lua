@@ -87,12 +87,12 @@ a:depends("pp_topic_enable","1")
 
 a=s:taboption("basic", Value,"pushdeer_key",translate('PushDeer Key'), translate("PushDeer Key").."<br>调用代码获取<a href='http://www.pushdeer.com/' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
-a:depends("jsonpath","/usr/bin/pushbot/api/pushbeer.json")
+a:depends("jsonpath","/usr/bin/pushbot/api/pushdeer.json")
 
 a=s:taboption("basic", Flag,"pushdeer_srv_enable",translate("自建 PushDeer 服务器"))
 a.default=0
 a.rmempty = true
-a:depends("jsonpath","/usr/bin/pushbot/api/pushbeer.json")
+a:depends("jsonpath","/usr/bin/pushbot/api/pushdeer.json")
 
 a=s:taboption("basic", Value,"pushdeer_srv",translate('PushDeer Server'), translate("PushDeer 自建服务器地址").."<br>如https://your.domain:port<br>具体自建服务器设定参见：<a href='http://www.pushdeer.com/selfhosted.html' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
