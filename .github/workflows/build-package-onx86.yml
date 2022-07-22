@@ -22,9 +22,7 @@ on:
 #    - cron: 10 14 * * 5
 
 env:
-  REPO_URL: https://github.com/coolsnowwolf/lede
-  REPO_BRANCH: master
-  model: x86
+  SDK_URL: https://downloads.openwrt.org/releases/22.03.0-rc5/targets/x86/64/openwrt-sdk-22.03.0-rc5-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz
   PackageName: luci-app-pushbot
   PackageSource_URL: https://github.com/zzsj0928/luci-app-pushbot
   UPLOAD_Package: true
@@ -65,7 +63,9 @@ jobs:
       working-directory: /workdir
       run: |
         df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
+        wget $SDK_URL
+        mkdir /workdir/openwrt
+        tar xf openwrt-sdk-* -C /workdir/openwrt --strip-components 1
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
     - name: Update feeds
@@ -73,13 +73,12 @@ jobs:
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
-
+      
     - name: Load custom configuration
       run: |
-        [ -e files ] && mv files openwrt/files
         cd openwrt
-        rm -rf ./feeds/luci/applications/$PackageName
         git clone $PackageSource_URL package/$PackageName
+        make defconfig
         echo "CONFIG_PACKAGE_$PackageName=y" >> ./.config
 
 
@@ -90,20 +89,11 @@ jobs:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
-    - name: Download package
-      id: package
-      run: |
-        cd openwrt
-        make defconfig
-        make download -j8
-        find dl -size -1024c -exec ls -l {} \;
-        find dl -size -1024c -exec rm -f {} \;
-
     - name: Compile the package
       id: compile
       run: |
         send_dingding="curl -s \"https://oapi.dingtalk.com/robot/send?access_token=${whkey}\" -H 'Content-Type: application/json' -d '{\"msgtype\": \"markdown\",\"markdown\": {\"title\":"
-        send_content0="【${model}】正在启动编译！请稍后大约4小时..."
+        send_content0="【${PackageName}】正在启动编译！请稍后大约4小时..."
         markdown_splitline="\n\n---\n\n"
         GITHUB_WORKFLOW_URL=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
         nowtime=`date "+%Y-%m-%d %H:%M:%S"`
@@ -158,8 +148,8 @@ jobs:
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_ZZNAS == 'true' && !cancelled()
       run: |
         send_dingding="curl -s \"https://oapi.dingtalk.com/robot/send?access_token=${whkey}\" -H 'Content-Type: application/json' -d '{\"msgtype\": \"markdown\",\"markdown\": {\"title\":"
-        send_content1="【${model}】编译成功！正在上传固件到NAS..."
-        send_content2="【${model}】编译成功！固件成功上传到NAS。"
+        send_content1="【${PackageName}】编译成功！正在上传固件到NAS..."
+        send_content2="【${PackageName}】编译成功！固件成功上传到NAS。"
         markdown_splitline="\n\n---\n\n"
         GITHUB_WORKFLOW_URL=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
         nowtime=`date "+%Y-%m-%d %H:%M:%S"`
