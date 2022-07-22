@@ -25,9 +25,9 @@ env:
   SDK_URL: https://downloads.openwrt.org/releases/22.03.0-rc5/targets/x86/64/openwrt-sdk-22.03.0-rc5-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz
   PackageName: luci-app-pushbot
   PackageSource_URL: https://github.com/zzsj0928/luci-app-pushbot
-  UPLOAD_Package: true
+  UPLOAD_Package: false
   UPLOAD_COWTRANSFER: false
-  UPLOAD_WETRANSFER: false
+  UPLOAD_WETRANSFER: true
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
   UPLOAD_ZZNAS: false
