@@ -113,8 +113,7 @@ jobs:
       id: organize
       if: env.UPLOAD_Package == 'true' && !cancelled()
       run: |
-        cd openwrt/bin/targets/*/*
-        cd packages
+        cd openwrt/bin/packages/*/base
         echo "PackagePath=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
 
@@ -155,8 +154,7 @@ jobs:
         nowtime=`date "+%Y-%m-%d %H:%M:%S"`
         eval "$send_dingding \"${send_content1}\",\"text\":\"${nowtime} $markdown_splitline #### <font color=#6A65FF>${send_content1}</font>\n\n[点此链接查看](${GITHUB_WORKFLOW_URL})\"}}'"
         
-        cd openwrt/bin/targets/*/*
-        cd packages
+        cd openwrt/bin/packages/*/base
         echo $ftp_psw > /tmp/rsync.psw && chmod 600 /tmp/rsync.psw
         rsync -avrzP $upload_file_1 $ftp_username@$ftp_ip::$TargetPath/$(date +"%Y.%m.%d-%H%M")/ --password-file=/tmp/rsync.psw
         echo "::warning file=zz-nas.com::All Released Files Uploaded to ZZ-NAS"
