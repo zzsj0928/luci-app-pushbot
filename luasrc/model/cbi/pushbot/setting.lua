@@ -43,6 +43,8 @@ a.default="/usr/bin/pushbot/api/dingding.json"
 a.rmempty = true
 a:value("/usr/bin/pushbot/api/dingding.json",translate("钉钉"))
 a:value("/usr/bin/pushbot/api/ent_wechat.json",translate("企业微信"))
+a:value("/usr/bin/pushbot/api/ent_wechat_app_text.json",translate("企业微信应用text"))
+a:value("/usr/bin/pushbot/api/telegram.json", translate("Telegram"))
 a:value("/usr/bin/pushbot/api/feishu.json",translate("飞书"))
 a:value("/usr/bin/pushbot/api/bark.json",translate("Bark"))
 a:value("/usr/bin/pushbot/api/pushplus.json",translate("PushPlus"))
@@ -52,6 +54,49 @@ a:value("/usr/bin/pushbot/api/diy.json",translate("自定义推送"))
 a=s:taboption("basic", Value,"dd_webhook",translate('Webhook'), translate("钉钉机器人 Webhook").."，只输入access_token=后面的即可<br>调用代码获取<a href='https://developers.dingtalk.com/document/robots/custom-robot-access' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
 a:depends("jsonpath","/usr/bin/pushbot/api/dingding.json")
+
+a = s:taboption("basic", Value, "corpid", translate('企业ID(corpid)'), translate("").."获取说明 <a href='https://work.weixin.qq.com/api/doc/10013' target='_blank'>点击这里</a>")
+a.rmempty = true
+a:depends("jsonpath", "/usr/bin/pushbot/api/ent_wechat_app_text.json")
+
+a = s:taboption("basic", Value, "userid", translate('帐号(userid)'))
+a.rmempty = true
+a.description = translate("群发到应用请填入 @all ")
+a:depends("jsonpath", "/usr/bin/pushbot/api/ent_wechat_app_text.json")
+
+a = s:taboption("basic", Value, "agentid", translate('应用id(agentid)'))
+a.rmempty = true
+a:depends("jsonpath", "/usr/bin/pushbot/api/ent_wechat_app_text.json")
+
+a = s:taboption("basic", Value, "corpsecret", translate('应用密钥(Secret)'))
+a.rmempty = true
+a:depends("jsonpath", "/usr/bin/pushbot/api/ent_wechat_app_text.json")
+
+a = s:taboption("basic", ListValue,"push_mode",translate("推送模式"))
+a.default="0"
+a.rmempty = true
+a:value("0",translate("本机推送"))
+a:value("1",translate("ssh推送"))
+a:value("2",translate("代理服务器推送"))
+a.description = translate("2022年6月之后的应用限制IP，需要设置可信IP")
+a:depends("jsonpath", "/usr/bin/pushbot/api/ent_wechat_app_text.json")
+
+a=s:taboption("basic", Value, "push_ip",translate("服务器IP"))
+a.rmempty = true
+a:depends("push_mode", "1")
+
+a = s:taboption("basic", Value, "push_proxy", translate('代理服务器'))
+a.rmempty = true
+a:depends("push_mode", "2")
+a.description = translate("http代理:http://user:passwd@ip:port")
+
+a = s:taboption("basic", Value, "tg_token", translate("TG_token"), translate("").."获取机器人<a href='https://t.me/BotFather' target='_blank'>点击这里</a><br>与创建的机器人发一条消息，开启对话<br>")
+a.rmempty = true
+a:depends("jsonpath", "/usr/bin/pushbot/api/telegram.json")
+
+a = s:taboption("basic", Value, "chat_id", translate('TG_chatid'), translate("").."获取 chat_id <a href='https://t.me/getuserIDbot' target='_blank'>点击这里</a>")
+a.rmempty = true
+a:depends("jsonpath", "/usr/bin/pushbot/api/telegram.json")
 
 a=s:taboption("basic", Value, "we_webhook", translate("Webhook"),translate("企业微信机器人 Webhook").."，只输入key=后面的即可<br>调用代码获取<a href='https://work.weixin.qq.com/api/doc/90000/90136/91770' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
