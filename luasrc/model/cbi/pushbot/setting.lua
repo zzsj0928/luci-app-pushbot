@@ -47,6 +47,7 @@ a:value("/usr/bin/pushbot/api/feishu.json",translate("飞书"))
 a:value("/usr/bin/pushbot/api/bark.json",translate("Bark"))
 a:value("/usr/bin/pushbot/api/pushplus.json",translate("PushPlus"))
 a:value("/usr/bin/pushbot/api/pushdeer.json",translate("PushDeer"))
+a:value("/usr/bin/pushbot/api/gotify.json",translate("Gotify"))
 a:value("/usr/bin/pushbot/api/diy.json",translate("自定义推送"))
 
 a=s:taboption("basic", Value,"dd_webhook",translate('Webhook'), translate("钉钉机器人 Webhook").."，只输入access_token=后面的即可<br>调用代码获取<a href='https://developers.dingtalk.com/document/robots/custom-robot-access' target='_blank'>点击这里</a><br><br>")
@@ -97,6 +98,14 @@ a:depends("jsonpath","/usr/bin/pushbot/api/pushdeer.json")
 a=s:taboption("basic", Value,"pushdeer_srv",translate('PushDeer Server'), translate("PushDeer 自建服务器地址").."<br>如https://your.domain:port<br>具体自建服务器设定参见：<a href='http://www.pushdeer.com/selfhosted.html' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
 a:depends("pushdeer_srv_enable","1")
+
+a=s:taboption("basic", Value,"gotify_token",translate('Gotify Token'), translate("Gotify Token").."<br>调用代码获取<a href='https://gotify.net/' target='_blank'>点击这里</a><br><br>")
+a.rmempty = true
+a:depends("jsonpath","/usr/bin/pushbot/api/gotify.json")
+
+a=s:taboption("basic", Value,"gotify_srv",translate('Gotify Server'), translate("Gotify 自建服务器地址").."<br>如https://your.domain:port<br>具体自建服务器设定参见：<a href='https://gotify.net/' target='_blank'>点击这里</a><br><br>")
+a.rmempty = true
+a:depends("jsonpath","/usr/bin/pushbot/api/gotify.json")
 
 a=s:taboption("basic", Value,"fs_webhook",translate('WebHook'), translate("飞书 WebHook").."<br>调用代码获取<a href='https://www.feishu.cn/hc/zh-CN/articles/360024984973' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
