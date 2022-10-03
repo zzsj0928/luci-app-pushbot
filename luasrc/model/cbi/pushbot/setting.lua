@@ -99,11 +99,11 @@ a=s:taboption("basic", Value,"pushdeer_srv",translate('PushDeer Server'), transl
 a.rmempty = true
 a:depends("pushdeer_srv_enable","1")
 
-a=s:taboption("basic", Value,"gotify_token",translate('Gotify Token'), translate("Gotify Token").."<br>调用代码获取<a href='https://gotify.net/' target='_blank'>点击这里</a><br><br>")
+a=s:taboption("basic", Value,"gotify_token",translate('Gotify Token'), translate("Gotify Token").."<br>调用代码获取<a href='https://gotify.net/api-docs' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
 a:depends("jsonpath","/usr/bin/pushbot/api/gotify.json")
 
-a=s:taboption("basic", Value,"gotify_srv",translate('Gotify Server'), translate("Gotify 自建服务器地址").."<br>如https://your.domain:port<br>具体自建服务器设定参见：<a href='https://gotify.net/' target='_blank'>点击这里</a><br><br>")
+a=s:taboption("basic", Value,"gotify_srv",translate('Gotify Server'), translate("Gotify 自建服务器地址").."<br>如https://your.domain:port<br>注意末尾不要带斜杠<br>具体自建服务器设定参见：<a href='https://gotify.net/' target='_blank'>点击这里</a><br><br>")
 a.rmempty = true
 a:depends("jsonpath","/usr/bin/pushbot/api/gotify.json")
 
