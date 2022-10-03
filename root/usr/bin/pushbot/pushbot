@@ -46,7 +46,6 @@ function read_config(){
 	[ -z "$timeout_retry_count" ] && timeout_retry_count="2";[ "$timeout_retry_count" -eq "0" ] && timeout_retry_count="1"
 	[ ! -z "$bark_token" ] && [ -z "$bark_srv" ] && bark_srv="https://api.day.app"
 	[ ! -z "$pushdeer_key" ] && [ -z "$pushdeer_srv" ] && pushdeer_srv="https://api2.pushdeer.com"
-	[ ! -z "$gotify_token" ] && [ -z "$gotify_srv" ] && gotify_srv="https://gotify1.unifiedpush.org"
 
 	
 # 字符串读取
