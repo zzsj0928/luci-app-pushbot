@@ -103,7 +103,7 @@ a=s:taboption("basic", Value,"gotify_token",translate('Gotify Token'), translate
 a.rmempty = true
 a:depends("jsonpath","/usr/bin/pushbot/api/gotify.json")
 
-a=s:taboption("basic", Value,"gotify_priority",translate('Gotify priority'), translate("Gotify 通知权重").."<br>默认为4<br>")
+a=s:taboption("basic", Value,"gotify_priority",translate('Gotify priority'), translate("Gotify 通知权重").."<br>默认为4，1最低，10最高。<br>")
 a.rmempty = true
 a.default = "4"
 a:depends("jsonpath","/usr/bin/pushbot/api/gotify.json")
