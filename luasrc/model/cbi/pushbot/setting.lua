@@ -124,7 +124,7 @@ a:depends("jsonpath","/usr/bin/pushbot/api/ntfy.json")
 
 a=s:taboption("basic", Value,"ntfy_priority",translate('NTFY priority'), translate("NTFY 通知权重").."<br>默认为3，1最低，5最高。<br>")
 a.rmempty = true
-a.default = 3
+a.default = "3"
 a.datatype="uinteger"
 a:depends("jsonpath","/usr/bin/pushbot/api/ntfy.json")
 
