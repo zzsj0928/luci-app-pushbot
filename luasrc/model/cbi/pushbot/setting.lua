@@ -113,12 +113,12 @@ a.rmempty = true
 a.default = "4"
 a:depends("jsonpath","/usr/bin/pushbot/api/gotify.json")
 
-a=s:taboption("basic", Value,"ntfy_srv",translate('NTFY Server'), translate("NTFY 自建服务器地址").."<br>如https://your.domain:port<br>注意末尾不要带斜杠<br>具体自建服务器设定参见：<a href='https://ntfy.sh/' target='_blank'>点击这里</a><br>")
+a=s:taboption("basic", Value,"ntfy_srv",translate('NTFY Server'), translate("NTFY 自建服务器地址").."<br>默认为<a href='https://ntfy.sh/' target='_blank'>官方服务器</a><br>如https://your.domain:port<br>注意末尾不要带斜杠<br>具体自建服务器设定参见：<a href='https://ntfy.sh/' target='_blank'>点击这里</a><br>")
 a.rmempty = true
 a.default = "https://ntfy.sh"
 a:depends("jsonpath","/usr/bin/pushbot/api/ntfy.json")
 
-a=s:taboption("basic", Value,"ntfy_topic",translate('NTFY Topic'), translate("NTFY 主题").."<br>调用代码获取<a href='https://doc.ntfy.sh/' target='_blank'>点击这里</a>")
+a=s:taboption("basic", Value,"ntfy_topic",translate('NTFY Topic'), translate("NTFY 主题").."<br>调用代码获取<a href='https://docs.ntfy.sh/' target='_blank'>点击这里</a>")
 a.rmempty = true
 a:depends("jsonpath","/usr/bin/pushbot/api/ntfy.json")
 
