@@ -2,7 +2,7 @@
     "_api": "ntfy",
     "_api": "【ntfy】",
 
-    "url": "\"${ntfy_srv}/\"",
+    "url": "${ntfy_srv}/",
     "data": "@${tempjsonpath}",
     "content_type": "Content-Type:application/json",
     "str_title_start": "#### ",
@@ -15,6 +15,6 @@
         "topic": "\"${ntfy_topic}\"",
         "title": "\"${1}\"",
         "message": "\"${2}\"",
-        "priority": "\"${ntfy_priority}\""
+        "priority": "${ntfy_priority}"
     }
 }
