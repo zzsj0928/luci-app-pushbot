@@ -3,7 +3,7 @@
     "_api": "【ntfy】",
 
     "url": "\"${ntfy_srv}/\"",
-    "data": "\"@${tempjsonpath}\"",
+    "data": "@${tempjsonpath}",
     "content_type": "Content-Type:application/json",
     "str_title_start": "#### ",
     "str_title_end": "",
