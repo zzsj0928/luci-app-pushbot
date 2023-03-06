@@ -15,6 +15,6 @@
         "topic": "\"${ntfy_topic}\"",
         "title": "\"${1}\"",
         "message": "\"${2}\"",
-        "priority": "\"${ntfy_priority}\"",
+        "priority": "\"${ntfy_priority}\""
     }
 }
