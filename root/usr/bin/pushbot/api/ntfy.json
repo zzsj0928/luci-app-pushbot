@@ -1,0 +1,20 @@
+{
+    "_api": "ntfy",
+    "_api": "【ntfy】",
+
+    "url": "\"${ntfy_srv}/\"",
+    "data": "\"@${tempjsonpath}\"",
+    "content_type": "Content-Type:application/json",
+    "str_title_start": "#### ",
+    "str_title_end": "",
+    "str_linefeed": "%0D%0A%0D%0A",
+    "str_splitline": "%0D%0A%0D%0A----%0D%0A%0D%0A",
+    "str_space": " ",
+    "str_tab": "    ",
+    "type": {
+        "topic": "\"${ntfy_topic}\"",
+        "title": "\"${1}\"",
+        "message": "\"${2}\"",
+        "priority": "\"${ntfy_priority}\"",
+    }
+}
