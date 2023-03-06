@@ -1,5 +1,4 @@
 {
-    "_api": "ntfy",
     "_api": "【ntfy】",
 
     "url": "${ntfy_srv}/",
