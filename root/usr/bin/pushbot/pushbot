@@ -608,7 +608,7 @@ function unattended(){
 # 检测网络状态
 function rand_geturl(){
 	function getcheck(){
-		local urllist="https://www.163.com https://www.qq.com https://www.baidu.com https://www.qidian.com https://www.douban.com"
+		local urllist="https://www.163.com https://www.qq.com https://www.baidu.com https://www.douban.com"
 		local url_number=`expr $(echo "$urllist"|grep -o ' '|wc -l) + 1`
 		local url_str=`echo "$urllist"|awk -v i=$(rand 1 $url_number) '{print $i}'`
 		echo `curl -k -s -w "%{http_code}" -m 5 ${url_str} -A "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36" -o /dev/null`
