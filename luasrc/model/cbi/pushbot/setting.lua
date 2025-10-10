@@ -20,6 +20,11 @@ s:tab("basic", translate("基本设置"))
 s:tab("content", translate("推送内容"))
 s:tab("crontab", translate("定时推送"))
 s:tab("disturb", translate("免打扰"))
+s:tab("showdoc", translate("ShowDoc"))
+o = s:taboption("showdoc", Flag, "enable_showdoc", translate("启用 ShowDoc 推送"))
+o = s:taboption("showdoc", Value, "showdoc_api_key", translate("API Key"))
+o = s:taboption("showdoc", Value, "showdoc_api_token", translate("API Token"))
+o = s:taboption("showdoc", Value, "showdoc_item_id", translate("文档 ID"))
 s.addremove = false
 s.anonymous = true
 
