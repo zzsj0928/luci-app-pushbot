@@ -1,0 +1,17 @@
+{
+    "_api": "gotify",
+    "_api": "【gotify】",
+    
+    "url": "\"${gotify_srv}/message?token=${gotify_token}\"",
+    "data": "\"title=${1}&message=${nowtime}${str_linefeed}${2}&priority=${gotify_priority}\"",
+    "content_type": "Content-Type:application/x-www-form-urlencoded",
+    "str_title_start": "#### ",
+    "str_title_end": "",
+    "str_linefeed": "%0D%0A%0D%0A",
+    "str_splitline": "%0D%0A%0D%0A----%0D%0A%0D%0A",
+    "str_space": " ",
+    "str_tab": "    ",
+    "type":
+      {
+      }
+}
