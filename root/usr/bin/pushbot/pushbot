@@ -597,7 +597,7 @@ function unattended(){
 	[ -z "$public_ip_today" ] && public_ip_today=`date +"%d"`
 	[ -z "$public_ip_count" ] && public_ip_count="0"
 	[ $public_ip_today -ne `date +"%d"` ] && public_ip_today=`date +"%d"` && public_ip_count=1
-	if [ ! -z "$public_ip_event" ] && [ ! -z "$public_ip_retry_count" ] && [ "$public_ip_count" -le "$public_ip_retry_count" ]; then
+	if [ "$public_ip_event" = "1" ] && [ ! -z "$public_ip_retry_count" ] && [ "$public_ip_count" -lt "$public_ip_retry_count" ]; then
 		public_ip_count=`expr $public_ip_count + 1`
 		local wanIP=`getip wanipv4`
 		local hostIP=`getip hostipv4`
