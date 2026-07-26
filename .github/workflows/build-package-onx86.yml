@@ -147,6 +147,15 @@ jobs:
           mv openwrt/bin/packages/*/luci/${{ matrix.plugin.name }}* openwrt/${{ matrix.plugin.name }}-package || true
           mv openwrt/bin/packages/*/base/${{ matrix.plugin.name }}* openwrt/${{ matrix.plugin.name }}-package || true
           cd openwrt/${{ matrix.plugin.name }}-package
+          # 检测第一个匹配的包文件的扩展名
+          pkg_file=$(ls ${{ matrix.plugin.name }}* 2>/dev/null | head -n1)
+          if [ -n "$pkg_file" ]; then
+            ext="${pkg_file##*.}"
+            # 统一转为大写便于显示
+            echo "PKG_EXT=$(echo $ext | tr '[:lower:]' '[:upper:]')" >> $GITHUB_ENV
+          else
+            echo "PKG_EXT=UNKNOWN" >> $GITHUB_ENV
+          fi
           echo "PACKAGE=$PWD" >> $GITHUB_ENV
           echo "PLUGIN_NAME=${{ matrix.plugin.name }}" >> $GITHUB_ENV
           echo "status=success" >> $GITHUB_OUTPUT
@@ -155,14 +164,14 @@ jobs:
         uses: actions/upload-artifact@main
         if: steps.organize.outputs.status == 'success' && !cancelled()
         with:
-          name: ${{ matrix.plugin.name }}${{ env.FILE_DATE }}
+          name: ${{ matrix.plugin.name }}_${{ env.PKG_EXT }}${{ env.FILE_DATE }}
           path: ${{ env.PACKAGE }}
 
       - name: Generate release tag
         id: tag
         if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
         run: |
-          echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+          echo "release_tag=$(date +"%Y.%m.%d-%H%M")_${{ env.PKG_EXT }}" >> $GITHUB_OUTPUT
           touch release.txt
           echo "status=success" >> $GITHUB_OUTPUT
 
@@ -182,10 +191,10 @@ jobs:
           retain_days: 1
           keep_minimum_runs: 3
 
-      - uses: dev-drprasad/delete-older-releases@master
-        with:
-          keep_latest: 3
-          delete_tags: true
-          delete_tag_pattern: ${{ matrix.plugin.name }}_
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - uses: dev-drprasad/delete-older-releases@master
+#        with:
+#          keep_latest: 3
+#          delete_tags: true
+#          delete_tag_pattern: ${{ matrix.plugin.name }}_
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
