@@ -171,7 +171,7 @@ jobs:
         id: tag
         if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
         run: |
-          echo "release_tag=$(date +"%Y.%m.%d-%H%M")_${{ env.PKG_EXT }}" >> $GITHUB_OUTPUT
+          echo "release_tag=$(date +"%Y.%m.%d-%H%M")_x64_${{ env.PKG_EXT }}" >> $GITHUB_OUTPUT
           touch release.txt
           echo "status=success" >> $GITHUB_OUTPUT
 
@@ -181,7 +181,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ matrix.plugin.name }}_${{ steps.tag.outputs.release_tag }}
+          tag_name: ${{ matrix.plugin.name }}_x64_${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
           files: ${{ env.PACKAGE }}/*
 
