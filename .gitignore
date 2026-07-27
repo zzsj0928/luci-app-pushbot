@@ -1,0 +1,7 @@
+# 忽略指定的隐藏文件夹（末尾加 / 表示仅匹配文件夹）
+.reasonix/
+
+# 忽略 macOS 系统文件
+.DS_Store
+
+reasonix.toml
