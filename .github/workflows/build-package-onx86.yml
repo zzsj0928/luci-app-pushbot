@@ -181,7 +181,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ matrix.plugin.name }}_x64_${{ steps.tag.outputs.release_tag }}
+          tag_name: ${{ matrix.plugin.name }}_${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
           files: ${{ env.PACKAGE }}/*
 
