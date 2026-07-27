@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: OpenWrt-Plugins-Build-x86
+name: OpenWrt-Plugins-Build-MT798x
 
 on:
   repository_dispatch:
@@ -22,7 +22,7 @@ on:
         default: 'false'
       chosen-os:
         required: true
-        default: ubuntu-24.04
+        default: ubuntu-22.04
         type: choice
         options:
           - ubuntu-20.04
@@ -35,7 +35,7 @@ env:
 
 jobs:
   build:
-    runs-on: ${{ inputs.chosen-os || 'ubuntu-24.04'}}
+    runs-on: ${{ inputs.chosen-os || 'ubuntu-22.04'}}
     strategy:
       fail-fast: false
       matrix:
@@ -101,9 +101,9 @@ jobs:
         run: |
           cd openwrt
           git clone ${{ matrix.plugin.repo }} package/${{ matrix.plugin.name }}
-          echo CONFIG_TARGET_x86=y >> .config
-          echo CONFIG_TARGET_x86_64=y >> .config
-          echo CONFIG_TARGET_x86_64_DEVICE_generic=y >> .config
+          echo CONFIG_TARGET_mediatek=y >> .config
+          echo CONFIG_TARGET_mediatek_filogic=y >> .config
+          echo CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_cmcc_rax3000m=y >> .config
           echo CONFIG_PACKAGE_${{ matrix.plugin.name }}=y >> .config
 
       - name: SSH connection to Actions
@@ -171,7 +171,7 @@ jobs:
         id: tag
         if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
         run: |
-          echo "release_tag=$(date +"%Y.%m.%d-%H%M")_x64_${{ env.PKG_EXT }}" >> $GITHUB_OUTPUT
+          echo "release_tag=$(date +"%Y.%m.%d-%H%M")_MT798x_${{ env.PKG_EXT }}" >> $GITHUB_OUTPUT
           touch release.txt
           echo "status=success" >> $GITHUB_OUTPUT
 
@@ -181,7 +181,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ matrix.plugin.name }}_x64_${{ steps.tag.outputs.release_tag }}
+          tag_name: ${{ matrix.plugin.name }}_MT798x_${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
           files: ${{ env.PACKAGE }}/*
 
@@ -196,5 +196,4 @@ jobs:
 #          keep_latest: 3
 #          delete_tags: true
 #          delete_tag_pattern: ${{ matrix.plugin.name }}_
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        
