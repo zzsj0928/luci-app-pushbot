@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: OpenWrt-Plugins-Build-x86
+name: OpenWrt-Plugins-Build-MT798x
 
 on:
   repository_dispatch:
