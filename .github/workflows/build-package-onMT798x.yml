@@ -22,7 +22,7 @@ on:
         default: 'false'
       chosen-os:
         required: true
-        default: ubuntu-22.04
+        default: ubuntu-24.04
         type: choice
         options:
           - ubuntu-20.04
@@ -35,7 +35,7 @@ env:
 
 jobs:
   build:
-    runs-on: ${{ inputs.chosen-os || 'ubuntu-22.04'}}
+    runs-on: ${{ inputs.chosen-os || 'ubuntu-24.04'}}
     strategy:
       fail-fast: false
       matrix:
@@ -181,7 +181,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ matrix.plugin.name }}_MT798x_${{ steps.tag.outputs.release_tag }}
+          tag_name: ${{ matrix.plugin.name }}_${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
           files: ${{ env.PACKAGE }}/*
 
