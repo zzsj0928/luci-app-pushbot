@@ -4,4 +4,5 @@
 # 忽略 macOS 系统文件
 .DS_Store
 
+# Reasonix 本地配置
 reasonix.toml

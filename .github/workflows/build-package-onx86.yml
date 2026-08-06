@@ -105,6 +105,8 @@ jobs:
           echo CONFIG_TARGET_x86_64=y >> .config
           echo CONFIG_TARGET_x86_64_DEVICE_generic=y >> .config
           echo CONFIG_PACKAGE_${{ matrix.plugin.name }}=y >> .config
+          echo CONFIG_PACKAGE_luci-i18n-pushbot-zh-cn=y >> .config
+          echo CONFIG_LUCI_LANG_zh_Hans=y >> .config
 
       - name: SSH connection to Actions
         uses: lhotari/action-upterm@v1
@@ -146,6 +148,8 @@ jobs:
           mkdir openwrt/${{ matrix.plugin.name }}-package
           mv openwrt/bin/packages/*/luci/${{ matrix.plugin.name }}* openwrt/${{ matrix.plugin.name }}-package || true
           mv openwrt/bin/packages/*/base/${{ matrix.plugin.name }}* openwrt/${{ matrix.plugin.name }}-package || true
+          mv openwrt/bin/packages/*/luci/luci-i18n-pushbot-zh-cn* openwrt/${{ matrix.plugin.name }}-package || true
+          mv openwrt/bin/packages/*/base/luci-i18n-pushbot-zh-cn* openwrt/${{ matrix.plugin.name }}-package || true
           cd openwrt/${{ matrix.plugin.name }}-package
           # 检测第一个匹配的包文件的扩展名
           pkg_file=$(ls ${{ matrix.plugin.name }}* 2>/dev/null | head -n1)
