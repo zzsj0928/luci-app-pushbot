@@ -6,3 +6,6 @@
 
 # Reasonix 本地配置
 reasonix.toml
+
+*.ipk
+*.apk
