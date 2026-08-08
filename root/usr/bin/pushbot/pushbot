@@ -1366,6 +1366,29 @@ function send(){
 	deltemp
 }
 
+function send_shell(){
+	## echo "`date "+%Y-%m-%d %H:%M:%S"` 【自定义发送】创建自定义推送任务" >> ${logfile}
+	pushbot_disturb;local send_disturb=$?
+	get_config "send_title" "router_status" "router_temp" "router_wan" "client_list" "google_check_timeout"
+	local send_title="$shell_send_title"
+	[ -z "$send_title" ] && local send_title="$1"
+	[ -z "$send_title" ] && local send_title="默认提示："
+	
+	local send_content="$shell_send_content"
+	[ -z "$send_content" ] && local send_content="$2"
+	
+	
+	[ -z "$google_check_timeout" ] && local google_check_timeout="10"
+	#[ ! -z "$1·" ] && local send_title="发送测试：" && local send_content="${str_splitline}${str_title_start}内容1${str_title_end}${str_linefeed}${str_tab}设备1${str_linefeed}${str_tab}设备2${str_splitline}${str_title_start}内容2${str_title_end}${str_linefeed}${str_tab}设备3${str_linefeed}${str_tab}设备4"
+	[ -z "$1" ] && [ ! -z "$client_list" ] && [ "$client_list" -eq "1" ] && > ${dir}send_enable.lock && pushbot_first &
+
+	[ ! -z "$device_name" ] && local send_title="【$device_name】${send_title}"
+	[ -z "$send_content" ] && local send_content="${str_splitline}${str_title_start} 我遇到了一个难题${str_title_end}${str_linefeed}${str_tab}定时发送选项错误，你没有选择需要发送的项目，该怎么办呢${str_splitline}"
+	[ "$send_disturb" -eq "0" ] && diy_send "${send_title}" "${send_content}" "${jsonpath}" >/dev/null 2>&1
+	[ $? -eq 1 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】自定义推送任务失败，请检查网络或设置信息  推送标题：\"${send_title}\"  推送内容：\"${send_content}\"" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}自定义推送任务完成  推送标题：\"${send_title}\"  推送内容：\"${send_content}\"" >> ${logfile}
+	deltemp
+}
+
 # 初始化
 read_config
 # 供外部查询流量(LuCI 在线设备表格):pushbot usage list / pushbot usage get <mac> [bytes]
@@ -1390,6 +1413,7 @@ unset i
 # 启动参数
 if [ "$1" ] ;then
 	[ $1 == "send" ] && send
+	[ $1 == "send-shell" ] && send_shell $2 $3
 	[ $1 == "soc" ] && echo `soc_temp` > ${dir}soc_tmp
 	[ $1 == "client" ] && get_client
 	[ $1 == "test" ] && send test
