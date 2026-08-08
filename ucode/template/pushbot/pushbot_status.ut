@@ -257,7 +257,7 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 			if (liteVals.indexOf(v) >= 0) makeMultiHidden('lite_enable', v);
 		});
 
-		var extraFlags = ['oui_dir', 'reset_regularly', 'debuglevel'];
+		var extraFlags = ['oui_dir', 'reset_regularly', 'debuglevel', 'table_format'];
 		extraFlags.forEach(function(n) { makeHidden(n, PB_val(n, '0')); });
 
 		var card = document.createElement('div');
@@ -282,6 +282,10 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 				'<button type="button" class="pushbot-choice-button is-off" data-flag="debuglevel">',
 					'<span class="pushbot-choice-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:16px;height:16px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z"/></svg></span>',
 					'<span class="pushbot-choice-label">{{ _('Enable logging') }}</span>',
+				'</button>',
+				'<button type="button" class="pushbot-choice-button is-off" data-flag="table_format" id="table_format_btn">',
+					'<span class="pushbot-choice-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:16px;height:16px"><path d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm2 3v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h10v-2H7z"/></svg></span>',
+					'<span class="pushbot-choice-label">{{ _('Table format') }}</span>',
 				'</button>',
 			'</div>',
 			'<div class="pushbot-card-subtitle">{{ _('Compact Mode') }}</div>',
@@ -500,6 +504,14 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 		};
 
 		function renderModeSettings() {
+			/* 渠道不支持表格化时自动关闭 table_format(目前仅钉钉支持) */
+			var tfh = hiddenBox.querySelector('[name="cbid.pushbot.pushbot.table_format"]');
+			var tfBtn = document.getElementById('table_format_btn');
+			var supported = ['/usr/bin/pushbot/api/dingding.json'];
+			if (tfh && supported.indexOf(modeHidden.value) < 0) {
+				tfh.value = '0';
+				if (tfBtn) tfBtn.className = 'pushbot-choice-button is-off';
+			}
 			var body = document.getElementById('pm_settings_body');
 			body.innerHTML = '';
 			var fields = MODE_FIELD_CFG[modeHidden.value] || [];
@@ -3530,7 +3542,7 @@ if(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches){
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.10-r19</span>
+		<span class="pushbot-version-badge">v5.10-r20</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>

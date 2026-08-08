@@ -956,3 +956,11 @@ msgstr ""
 msgid "Network check retries"
 msgstr ""
 
+
+msgid "Table format"
+msgstr ""
+
+
+msgid "Format notifications as tables"
+msgstr ""
+
