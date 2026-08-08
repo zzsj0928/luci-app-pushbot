@@ -108,9 +108,9 @@ function pushbot_init(){
 # 推送
 function diy_send(){
 	( ! echo "$lite_enable"|grep -q "content" ) && ( ! echo "$lite_enable"|grep -q "nowtime" ) && local nowtime=`date "+%Y-%m-%d %H:%M:%S"`
-	local diyurl=`/usr/bin/jq -r .url ${3}` && local diyurl=`eval echo ${diyurl}`
-	local type=`/usr/bin/jq -r '.type' ${3}` && local type=`eval echo ${type}`
-	local data=`/usr/bin/jq -r '.data' ${3}` && local data=`eval echo ${data}`
+	local diyurl=`/usr/bin/jq -r .url ${3}` && local diyurl=`eval echo ${diyurl} 2>/dev/null`
+	local type=`/usr/bin/jq -r '.type' ${3}` && local type=`eval echo ${type} 2>/dev/null`
+	local data=`/usr/bin/jq -r '.data' ${3}` && local data=`eval echo ${data} 2>/dev/null`
 	local content_type=`/usr/bin/jq -r '.content_type' ${3}`
 	/usr/bin/jq ".type + $type" ${jsonpath} > ${tempjsonpath}
 	/usr/bin/jq -r '.[]' ${tempjsonpath}|grep -w "null" && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】参数值错误，请检查设置项  `/usr/bin/jq -r '.' ${tempjsonpath}|grep "null"`" >> ${logfile} && return 1
@@ -118,7 +118,7 @@ function diy_send(){
 	[ $logrow -eq "0" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】json 文件生成失败，请检查文件格式" >> ${logfile} && return 1
 	/usr/bin/jq -r '.[]' ${tempjsonpath}|grep "null" && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】参数变量生成失败，请检查设置项 `/usr/bin/jq -r '.' ${tempjsonpath}|grep "null"`" >> ${logfile}
 	
-	curl -X POST -H "$content_type" -d "${data}" "${diyurl}"
+	curl -m 15 --fail -X POST -H "$content_type" -d "${data}" "${diyurl}"
 }
 
 # 下载设备MAC厂商信息
@@ -495,7 +495,7 @@ function rand(){
 function pushbot_first(){
 	[ -f "${dir}ipAddress" ] && local IPLIST=`cat ${dir}ipAddress|awk '{print $1}'|grep -v "^$"|sort -u`
 	for ip in $IPLIST; do
-		read -u 5
+		read -t 15 -u 5
 		{
 			down $ip
 			echo "" >&5
@@ -505,7 +505,7 @@ function pushbot_first(){
 	unset ip IPLIST
 	local IPLIST=`cat /proc/net/arp|grep "0x2\|0x6"|awk '{print $1}'|grep -v "^169.254."|grep -v "^$"|sort -u|grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`
 	for ip in $IPLIST; do
-		read -u 5
+		read -t 15 -u 5
 		{
 			up $ip
 			echo "" >&5
@@ -1297,18 +1297,27 @@ function add_ip_black(){
 function send(){
 	echo "`date "+%Y-%m-%d %H:%M:%S"` 【定时数据】创建定时任务" >> ${logfile}
 	pushbot_disturb;local send_disturb=$?
-	get_config "send_title" "router_status" "router_temp" "router_wan" "client_list" "google_check_timeout"
+	get_config "send_title" "router_status" "router_temp" "router_wan" "client_list" "google_check_count"
 
 	[ -z "$send_title" ] && local send_title="路由状态："
-	[ -z "$google_check_timeout" ] && local google_check_timeout="10"
+	[ -z "$google_check_count" ] && local google_check_count="3"
 	[ ! -z "$1" ] && local send_title="发送测试：" && local send_content="${str_splitline}${str_title_start}内容1${str_title_end}${str_linefeed}${str_tab}设备1${str_linefeed}${str_tab}设备2${str_splitline}${str_title_start}内容2${str_title_end}${str_linefeed}${str_tab}设备3${str_linefeed}${str_tab}设备4"
-	[ -z "$1" ] && [ ! -z "$client_list" ] && [ "$client_list" -eq "1" ] && > ${dir}send_enable.lock && pushbot_first &
+	# 在线设备列表已由主进程(pushbot_first)维护, send 直接读取, 避免与主进程并发竞争 FIFO(fd1)导致死锁
+	[ -z "$1" ] && [ ! -z "$client_list" ] && [ "$client_list" -eq "1" ] && > ${dir}send_enable.lock
 
 	if [ -z "$1" ] && [ ! -z "$router_status" ] && [ "$router_status" -eq "1" ]; then
 		local systemload=`cat /proc/loadavg|awk '{print $1" "$2" "$3}'`
 		local cpuload=`getcpu`
 		local ramload=`free -m|sed -n '2p'|awk '{printf "%.2f%%\n",($3/$2)*100}'`
-		local Qwai=`curl -o /dev/null --connect-timeout ${google_check_timeout} -s -w %{http_code} www.google.com`
+		# 全球互联检测: 尝试 google_check_count 次(默认3), 1 次成功即视为连通
+		local Qwai="000"
+		local Qwai_count=${google_check_count:-3}
+		[ "$Qwai_count" -lt "1" ] && local Qwai_count="3"
+		for i in `seq 1 ${Qwai_count}`; do
+			Qwai=`curl -o /dev/null --connect-timeout 3 -m 3 -s -w %{http_code} www.google.com`
+			[ "$Qwai" = "200" ] || [ "$Qwai" = "301" ] || [ "$Qwai" = "302" ] && break
+			[ "$i" -lt "$Qwai_count" ] && sleep 1
+		done
 		if [[ "$Qwai" -eq "200" ]] || [[ "$Qwai" -eq "301" ]] || [[ "$Qwai" -eq "302" ]]; then
 			local Qwai_status="已连通！"
 		else
@@ -1364,8 +1373,12 @@ function send(){
 
 	[ ! -z "$device_name" ] && local send_title="【$device_name】${send_title}"
 	[ -z "$send_content" ] && local send_content="${str_splitline}${str_title_start} 我遇到了一个难题${str_title_end}${str_linefeed}${str_tab}定时发送选项错误，你没有选择需要发送的项目，该怎么办呢${str_splitline}"
+	# 清洗双引号为单引号, 避免 eval echo 展开模板后破坏 JSON(飞书等卡片模板对特殊字符敏感)
+	send_title=`echo "$send_title"|tr '"' "'"`
+	send_content=`echo "$send_content"|tr '"' "'"`
+	device_name=`echo "$device_name"|tr '"' "'"`
 	[ "$send_disturb" -eq "0" ] && diy_send "${send_title}" "${send_content}" "${jsonpath}" >/dev/null 2>&1
-	[ $? -eq 1 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】定时推送失败，请检查网络或设置信息" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}定时推送任务完成" >> ${logfile}
+	[ $? -ne 0 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】定时推送失败，请检查网络或设置信息" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}定时推送任务完成" >> ${logfile}
 	deltemp
 }
 
