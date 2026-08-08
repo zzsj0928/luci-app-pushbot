@@ -1484,7 +1484,7 @@ PB_onReady(function(){ tryContentOnce(); });
 	var router_temp = PB_bool('router_temp');
 	var router_wan = PB_bool('router_wan');
 	var client_list = PB_bool('client_list');
-	var google_check_timeout = PB_val('google_check_timeout', '10');
+	var google_check_count = PB_val('google_check_count', '3');
 
 	var card = document.createElement('div');
 	card.id = 'pushbot_scheduled_card';
@@ -1630,7 +1630,7 @@ PB_onReady(function(){ tryContentOnce(); });
 
 		var gw = document.createElement('div');
 		gw.style.cssText = 'flex:1;min-width:150px';
-		gw.appendChild(mkTxtS('google_check_timeout','{{ _('Global connectivity timeout') }}',google_check_timeout,'{{ _('in seconds') }}'));
+		gw.appendChild(mkTxtS('google_check_count','{{ _('Global connectivity retries') }}',google_check_count,'{{ _('times') }}'));
 		br.appendChild(gw);
 
 		contentBody.appendChild(br);
@@ -2486,7 +2486,7 @@ var PB_LABELS = {
 	crontab:'{{ _('Scheduled tasks') }}', regular_time:'{{ _('Scheduled time') }}', regular_time_2:'{{ _('Scheduled time 2') }}', regular_time_3:'{{ _('Scheduled time 3') }}',
 	interval_time:'{{ _('Interval send') }}', send_title:'{{ _('Push title') }}',
 	router_status:'{{ _('Router status') }}', router_temp:'{{ _('Router temperature') }}', router_wan:'{{ _('WAN status') }}', client_list:'{{ _('Device list') }}',
-	google_check_timeout:'{{ _('Network check timeout') }}',
+	google_check_count:'{{ _('Network check retries') }}',
 	pushbot_up:'{{ _('WAN redial') }}', pushbot_down:'{{ _('WAN offline') }}', cpuload_enable:'{{ _('CPU load') }}', cpuload:'{{ _('CPU threshold') }}',
 	temperature_enable:'{{ _('Temperature monitor') }}', temperature:'{{ _('Temperature threshold') }}',
 	client_usage:'{{ _('Abnormal traffic') }}', client_usage_max:'{{ _('Traffic limit') }}', client_usage_disturb:'{{ _('Traffic DND') }}',
@@ -3530,7 +3530,7 @@ if(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches){
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.10-r16</span>
+		<span class="pushbot-version-badge">v5.10-r19</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
