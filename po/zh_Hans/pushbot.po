@@ -957,3 +957,11 @@ msgstr "次"
 msgid "Network check retries"
 msgstr "网络检测次数"
 
+
+msgid "Table format"
+msgstr "表格化"
+
+
+msgid "Format notifications as tables"
+msgstr "通知以表格形式输出"
+
