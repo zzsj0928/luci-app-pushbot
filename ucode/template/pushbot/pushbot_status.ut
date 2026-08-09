@@ -3516,10 +3516,6 @@ window.addEventListener('DOMContentLoaded', function() {
 	}
 </style>
 <script>
-(function(){
-var b=document.body;if(!b)return;
-var d=document.documentElement;
-/* Check explicit dark indicators on body OR html */
 var PB_THEME_CFG={argon_mode:'{{ pushbot_argon_mode }}',liquid_mode:'{{ pushbot_liquid_mode }}'};
 /* ═══ 主题模式检测（liquid 优先: body[data-liquid-mode] 模式值）═══
  * 1. body[data-liquid-mode]="dark|light|auto"(liquid 实际输出, 最可靠)
@@ -3592,7 +3588,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r18</span>
+		<span class="pushbot-version-badge">v5.11-r19</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
