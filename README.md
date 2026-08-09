@@ -2,7 +2,7 @@
 
 # 🚀 luci-app-pushbot 全能推送
 
-**路由器报警与日志推送工具** — 支持钉钉 · 企业微信 · 飞书 · Bark · PushPlus · PushDeer 多渠道
+**路由器报警与日志推送工具** — 支持钉钉 · 企业微信 · 飞书 · Bark · PushPlus · PushDeer · ntfy 多渠道（Gotify 即将支持）
 
 [![GitHub release](https://img.shields.io/github/v/release/zzsj0928/luci-app-pushbot?style=flat-square&color=blue)](https://github.com/zzsj0928/luci-app-pushbot/releases)
 [![GitHub issues](https://img.shields.io/github/issues/zzsj0928/luci-app-pushbot?style=flat-square&color=orange)](https://github.com/zzsj0928/luci-app-pushbot/issues)
@@ -60,7 +60,7 @@
 | 模块 | 功能 |
 |------|------|
 | 运行控制 | 插件启用/禁用开关、精简模式（精简设备列表 / 当前时间 / 只推送标题） |
-| 推送模式 | 支持 钉钉、企业微信、飞书、Bark、PushPlus、PushDeer、自定义推送 等多种推送渠道 |
+| 推送模式 | 支持 钉钉、企业微信、飞书、Bark、PushPlus（全渠道）、PushDeer、ntfy、自定义推送 等多种推送渠道（Gotify 即将支持） |
 | 终端信息 | MAC 设备信息数据库（简化版 / 完整版 / 网络查询）、设备别名管理 |
 | 免打扰 | 免打扰时段设置（脚本挂起 / 静默模式）、MAC 过滤（白名单 / 黑名单 / 接口过滤、在线 / 离线免打扰） |
 
