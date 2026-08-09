@@ -2344,12 +2344,6 @@ function initModernTabs() {
 	/* tab switching — old tabs remain visible below */
 	var tabs = tabBar.querySelectorAll('.pushbot-tab');
 	tabs.forEach(function(tab) {
-		/* 鼠标追踪动画: 光斑跟随光标 */
-		tab.addEventListener('mousemove', function(ev) {
-			var r = tab.getBoundingClientRect();
-			tab.style.setProperty('--mx', (ev.clientX - r.left) + 'px');
-			tab.style.setProperty('--my', (ev.clientY - r.top) + 'px');
-		});
 		tab.addEventListener('click', function(e) {
 			e.preventDefault();
 			var name = tab.getAttribute('data-tab');
@@ -2367,6 +2361,29 @@ function initModernTabs() {
 		if (name === 'client') loadClients();
 		});
 	});
+
+	/* tab 追踪滑块: 跟随 hover/选中项平滑滑动(liquid 同款) */
+	var tabInd = document.createElement('span');
+	tabInd.className = 'pushbot-tab-indicator';
+	tabBar.appendChild(tabInd);
+	function moveTabInd(el) {
+		if (!el || !tabBar.contains(el)) { tabInd.style.opacity = '0'; return; }
+		var r = el.getBoundingClientRect();
+		var ur = tabBar.getBoundingClientRect();
+		tabInd.style.width = r.width + 'px';
+		tabInd.style.height = r.height + 'px';
+		tabInd.style.transform = 'translate(' + (r.left - ur.left) + 'px, ' + (r.top - ur.top) + 'px)';
+		tabInd.style.opacity = '1';
+	}
+	moveTabInd(tabBar.querySelector('.pushbot-tab.is-active'));
+	tabBar.addEventListener('mouseover', function(e) {
+		var t = e.target.closest ? e.target.closest('.pushbot-tab') : null;
+		if (t && tabBar.contains(t)) moveTabInd(t);
+	});
+	tabBar.addEventListener('mouseleave', function() {
+		moveTabInd(tabBar.querySelector('.pushbot-tab.is-active'));
+	});
+
 	/* ── responsive tab resize handler ── */
 	function _updateTabLayout() {
 		var bw = tabBar.clientWidth;
@@ -3159,6 +3176,21 @@ window.addEventListener('DOMContentLoaded', function() {
 	border-radius: 14px;
 	background: rgba(226, 232, 240, 0.66);
 	border: 1px solid rgba(148, 163, 184, 0.18);
+	position: relative;
+}
+/* tab 追踪滑块: 跟随 hover/选中项平滑滑动(liquid 同款) */
+.pushbot-tab-indicator {
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: rgba(59, 130, 246, 0.14);
+	border-radius: 11px;
+	transition: transform 0.28s cubic-bezier(.22, .9, .3, 1), width 0.28s cubic-bezier(.22, .9, .3, 1), height 0.28s cubic-bezier(.22, .9, .3, 1);
+	pointer-events: none;
+	z-index: 0;
+}
+.pushbot-dk .pushbot-tab-indicator {
+	background: rgba(96, 165, 250, 0.22);
 }
 
 .pushbot-tab {
@@ -3175,22 +3207,7 @@ window.addEventListener('DOMContentLoaded', function() {
 	flex: 0 1 auto;
 	white-space: nowrap;
 	position: relative;
-	overflow: hidden;
-}
-/* 鼠标追踪光斑: 跟随光标移动(radial-gradient at --mx/--my) */
-.pushbot-tab::before {
-	content: '';
-	position: absolute;
-	inset: 0;
-	border-radius: inherit;
-	background: radial-gradient(140px circle at var(--mx, 50%) var(--my, 50%), rgba(59, 130, 246, 0.20), transparent 65%);
-	opacity: 0;
-	transition: opacity 0.25s ease;
-	pointer-events: none;
-}
-.pushbot-tab:hover::before { opacity: 1; }
-.pushbot-dk .pushbot-tab::before {
-	background: radial-gradient(140px circle at var(--mx, 50%) var(--my, 50%), rgba(96, 165, 250, 0.28), transparent 65%);
+	z-index: 1;
 }
 .pushbot-tab .pb-txt {
 	display: inline-flex;
@@ -3666,7 +3683,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.12-r5</span>
+		<span class="pushbot-version-badge">v5.12-r6</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
