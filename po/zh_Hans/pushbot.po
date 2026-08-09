@@ -6,22 +6,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid " d "
+msgid "day"
 msgstr " 天 "
 
-msgid " h"
+msgid "hour"
 msgstr " 小时"
 
-msgid " h "
-msgstr " 小时 "
 
-msgid " min"
+msgid "minute"
 msgstr " 分"
 
-msgid " min "
-msgstr " 分 "
 
-msgid " sec"
+msgid "sec"
 msgstr " 秒"
 
 msgid "(empty)"
@@ -315,7 +311,7 @@ msgstr "飞书Webhook"
 msgid "Full"
 msgstr "完整版"
 
-msgid "Get the code "
+msgid "Get the code"
 msgstr "获取代码 "
 
 msgid "Global connectivity timeout"
@@ -784,7 +780,7 @@ msgstr "时间：            09:28:00"
 msgid "Title color"
 msgstr "主标题颜色"
 
-msgid "Total traffic: "
+msgid "Total traffic:"
 msgstr "总计流量："
 
 msgid "Traffic"

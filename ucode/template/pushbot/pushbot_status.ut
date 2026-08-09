@@ -480,7 +480,7 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 				{ name: 'fs_webhook', type: 'text', label: '{{ _('WebHook') }}', desc: '{{ _('Feishu WebHook<br><a href="https://www.feishu.cn/hc/zh-CN/articles/360024984973" target="_blank">Get the code</a><br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/bark.json': [
-				{ name: 'bark_token', type: 'text', label: '{{ _('Bark Token') }}', desc: '{{ _('Get the code ') }}<a href=\'https://github.com/Finb/Bark\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
+				{ name: 'bark_token', type: 'text', label: '{{ _('Bark Token') }}', desc: '{{ _('Get the code') }} <a href=\'https://github.com/Finb/Bark\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
 				{ name: 'bark_srv_enable', type: 'toggle', label: '{{ _('Self-hosted Bark server') }}' },
 				{ name: 'bark_srv', type: 'text', label: '{{ _('Bark Server') }}', depends: 'bark_srv_enable', desc: '{{ _('Bark self-hosted server address<br>e.g. https://your.domain:port<br>See <a href="http://www.pushdeer.com/selfhosted.html" target="_blank">here</a> for the self-hosting guide<br><br>') }}'},
 				{ name: 'bark_sound', type: 'text', label: '{{ _('Bark Sound') }}', desc: '{{ _('Bark notification sound<br>e.g. silence.caf<br>See <a href="https://github.com/Finb/Bark/tree/master/Sounds" target="_blank">here</a> for details<br><br>') }}'},
@@ -495,14 +495,14 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 				{ name: 'ntfy_priority', type: 'select', label: '{{ _('Priority') }}', choices: [{v:'default',l:'{{ _('default') }}'},{v:'min',l:'{{ _('min') }}'},{v:'low',l:'{{ _('low') }}'},{v:'high',l:'{{ _('high') }}'},{v:'max',l:'{{ _('max') }}'}], desc: '{{ _('ntfy notification priority') }}'},
 			],
 			'/usr/bin/pushbot/api/pushplus.json': [
-				{ name: 'pp_token', type: 'text', label: '{{ _('PushPlus Token') }}', desc: '{{ _('Get the code ') }}<a href=\'http://pushplus.plus/doc/\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
+				{ name: 'pp_token', type: 'text', label: '{{ _('PushPlus Token') }}', desc: '{{ _('Get the code') }} <a href=\'http://pushplus.plus/doc/\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
 				{ name: 'pp_channel', type: 'select', label: '{{ _('PushPlus Channel') }}', choices: [{v:'wechat',l:'{{ _('wechat: WeChat Official Account') }}'},{v:'app',l:'{{ _('app: PushPlus App') }}'},{v:'extension',l:'{{ _('extension: Browser extension / desktop') }}'},{v:'webhook',l:'{{ _('webhook: Third-party webhook') }}'},{v:'clawbot',l:'{{ _('clawbot: WeChat ClawBot') }}'},{v:'cp',l:'{{ _('cp: WeCom app') }}'},{v:'mail',l:'{{ _('mail: Email') }}'},{v:'sms',l:'{{ _('sms: SMS (paid)') }}'},{v:'voice',l:'{{ _('voice: Voice call (paid)') }}'}], desc: '{{ _('wechat/app/extension/clawbot: only token required<br>webhook/cp: also need Channel Code below<br>mail: Channel Code optional (default official email)<br>sms/voice: paid channels (deduct credits)<br>See <a href="http://www.pushplus.plus/doc/channel.html" target="_blank">here</a> for all channels<br><br>') }}'},
 				{ name: 'pp_webhook', type: 'text', label: '{{ _('PushPlus Channel Code') }}', showWhen: { field: 'pp_channel', values: ['webhook', 'cp', 'mail'] }, desc: '{{ _('Channel code configured in PushPlus console<br>webhook: third-party webhook code (WeCom/DingTalk/Feishu...)<br>cp: WeCom app code<br>mail: optional, email sender code (leave empty for official email)<br>See <a href="http://www.pushplus.plus/doc/guide/api.html" target="_blank">here</a> for details<br><br>') }}' },
 				{ name: 'pp_topic_enable', type: 'toggle', label: '{{ _('PushPlus group push') }}' },
 				{ name: 'pp_topic', type: 'text', label: '{{ _('PushPlus Topic') }}', depends: 'pp_topic_enable', desc: '{{ _('PushPlus group code<br>The group code used for group push<br>See <a href="http://www.pushplus.plus/push2.html" target="_blank">here</a> for details<br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/pushdeer.json': [
-				{ name: 'pushdeer_key', type: 'text', label: '{{ _('PushDeer Key') }}', desc: '{{ _('Get the code ') }}<a href=\'http://www.pushdeer.com/\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
+				{ name: 'pushdeer_key', type: 'text', label: '{{ _('PushDeer Key') }}', desc: '{{ _('Get the code') }} <a href=\'http://www.pushdeer.com/\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
 				{ name: 'pushdeer_srv_enable', type: 'toggle', label: '{{ _('Self-hosted PushDeer server') }}' },
 				{ name: 'pushdeer_srv', type: 'text', label: '{{ _('PushDeer Server') }}', depends: 'pushdeer_srv_enable', desc: '{{ _('PushDeer self-hosted server address<br>e.g. https://your.domain:port<br>See <a href="http://www.pushdeer.com/selfhosted.html" target="_blank">here</a> for details<br><br>') }}'},
 			],
@@ -2002,11 +2002,11 @@ function initMonitorCard() {
 			L.push('<div class="pushbot-preview-divider"></div>');
 			L.push('<span style="color:' + c.font_module + ';font-weight:bold">{{ _('3 devices online') }}</span>');
 			L.push('<span style="color:' + c.font_client + '">' + padR('【Zed-PC】', 20) + '</span>192.168.1.2');
-			L.push('{{ _('Total traffic: ') }}' + padR('928bytes', 12) + '{{ _('online 9d 28h') }}');
+			L.push('{{ _('Total traffic:') }} ' + padR('928bytes', 12) + '{{ _('online 9d 28h') }}');
 			L.push('<span style="color:' + c.font_client + '">' + padR('【Zed-iPhone17PM】', 20) + '</span>192.168.1.5');
-			L.push('{{ _('Total traffic: ') }}' + padR('9.28M', 12) + '{{ _('online 1d 9h') }}');
+			L.push('{{ _('Total traffic:') }} ' + padR('9.28M', 12) + '{{ _('online 1d 9h') }}');
 			L.push('<span style="color:' + c.font_client + '">' + padR('【Zed-Mi17PM】', 20) + '</span>192.168.1.7');
-			L.push('{{ _('Total traffic: ') }}' + padR('9.28G', 12) + '{{ _('online 92d 8h') }}');
+			L.push('{{ _('Total traffic:') }} ' + padR('9.28G', 12) + '{{ _('online 92d 8h') }}');
 			L.push('<span style="color:' + c.font_title + '">{{ _('[Zed-OP] Test-OpenWRT status:') }}</span>');
 			return L.join('\n');
 		}
@@ -2404,10 +2404,10 @@ function initModernTabs() {
 	/* client (online devices) viewer */
 	var clientTimer = null;
 	function timeForHumans(seconds) {
-		if (seconds < 60) return seconds + '{{ _(' sec') }}';
-		if (seconds < 3600) return Math.floor(seconds / 60) + '{{ _(' min ') }}' + (seconds % 60) + '{{ _(' sec') }}';
-		if (seconds < 86400) return Math.floor(seconds / 3600) + '{{ _(' h ') }}' + Math.floor((seconds % 3600) / 60) + '{{ _(' min') }}';
-		return Math.floor(seconds / 86400) + '{{ _(' d ') }}' + Math.floor((seconds % 86400) / 3600) + '{{ _(' h') }}';
+		if (seconds < 60) return seconds + '{{ _('sec') }}';
+		if (seconds < 3600) return Math.floor(seconds / 60) + '{{ _('minute') }}' + (seconds % 60) + '{{ _('sec') }}';
+		if (seconds < 86400) return Math.floor(seconds / 3600) + '{{ _('hour') }}' + Math.floor((seconds % 3600) / 60) + '{{ _('minute') }}';
+		return Math.floor(seconds / 86400) + '{{ _('day') }}' + Math.floor((seconds % 86400) / 3600) + '{{ _('hour') }}';
 	}
 	function loadClients() {
 		var container = document.getElementById('pushbot_client_content');

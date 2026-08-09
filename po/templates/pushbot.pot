@@ -5,22 +5,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid " d "
+msgid "day"
 msgstr ""
 
-msgid " h"
+msgid "hour"
 msgstr ""
 
-msgid " h "
+
+msgid "minute"
 msgstr ""
 
-msgid " min"
-msgstr ""
 
-msgid " min "
-msgstr ""
-
-msgid " sec"
+msgid "sec"
 msgstr ""
 
 msgid "(empty)"
@@ -314,7 +310,7 @@ msgstr ""
 msgid "Full"
 msgstr ""
 
-msgid "Get the code "
+msgid "Get the code"
 msgstr ""
 
 msgid "Global connectivity timeout"
@@ -783,7 +779,7 @@ msgstr ""
 msgid "Title color"
 msgstr ""
 
-msgid "Total traffic: "
+msgid "Total traffic:"
 msgstr ""
 
 msgid "Traffic"
