@@ -708,6 +708,9 @@ msgstr ""
 msgid "Self-hosted PushDeer server"
 msgstr ""
 
+msgid "Self-hosted ntfy server"
+msgstr ""
+
 msgid "Send interval"
 msgstr ""
 

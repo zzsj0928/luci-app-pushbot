@@ -489,7 +489,8 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 				{ name: 'bark_level', type: 'select', label: '{{ _('Bark Level') }}', choices: [{v:'active',l:'{{ _('active: Default') }}'},{v:'timeSensitive',l:'{{ _('timeSensitive: Time-sensitive') }}'},{v:'passive',l:'{{ _('passive: Add to list only') }}'}], desc: '{{ _('Bark time-sensitive notification<br>Optional values:<br/>active: default, the system shows the notification immediately on the lock screen.<br/>timeSensitive: time-sensitive, can be shown in Focus mode.<br/>passive: only added to the notification list, no screen wake.') }}'},
 			],
 			'/usr/bin/pushbot/api/ntfy.json': [
-				{ name: 'ntfy_server', type: 'text', label: '{{ _('Server') }}', desc: '{{ _('ntfy server address<br>default https://ntfy.sh, or your self-hosted server') }}'},
+				{ name: 'ntfy_srv_enable', type: 'toggle', label: '{{ _('Self-hosted ntfy server') }}' },
+				{ name: 'ntfy_server', type: 'text', label: '{{ _('Server') }}', depends: 'ntfy_srv_enable', desc: '{{ _('ntfy server address<br>default https://ntfy.sh, or your self-hosted server') }}'},
 				{ name: 'ntfy_token', type: 'text', label: '{{ _('Token') }}', desc: '{{ _('ntfy access token (optional, for protected topics)<br>The topic is fixed to the device name') }}'},
 				{ name: 'ntfy_priority', type: 'select', label: '{{ _('Priority') }}', choices: [{v:'default',l:'{{ _('default') }}'},{v:'min',l:'{{ _('min') }}'},{v:'low',l:'{{ _('low') }}'},{v:'high',l:'{{ _('high') }}'},{v:'max',l:'{{ _('max') }}'}], desc: '{{ _('ntfy notification priority') }}'},
 			],
@@ -3550,7 +3551,7 @@ if(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches){
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r3</span>
+		<span class="pushbot-version-badge">v5.11-r4</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>

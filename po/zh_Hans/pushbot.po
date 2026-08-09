@@ -709,6 +709,9 @@ msgstr "自建PushDeer"
 msgid "Self-hosted PushDeer server"
 msgstr "自建 PushDeer 服务器"
 
+msgid "Self-hosted ntfy server"
+msgstr "自建 ntfy 服务器"
+
 msgid "Send interval"
 msgstr "发送间隔"
 
