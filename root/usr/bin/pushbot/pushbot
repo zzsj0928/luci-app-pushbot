@@ -20,7 +20,7 @@ function read_config(){
 	"pushbot_sheep" "starttime" "endtime" "pushbot_whitelist" "pushbot_blacklist" "pushbot_interface" "MAC_online_list" "MAC_offline_list" \
 	"up_timeout" "down_timeout" "timeout_retry_count" "thread_num" "soc_code" "pve_host" "pve_port"\
 	"err_enable" "err_sheep_enable" "err_device_aliases" "network_err_event" "system_time_event" "autoreboot_time" "network_restart_time" "public_ip_event" "public_ip_retry_count" \
-	"jsonpath" "dd_webhook" "we_webhook" "pp_token" "pp_channel" "pp_webhook" "pp_topic_enable" "pp_topic" "fs_webhook" "pushdeer_key" "pushdeer_srv_enable" "pushdeer_srv" "bark_srv_enable" "bark_srv" "bark_token" "bark_sound" "bark_icon" "bark_icon_enable" "bark_level" "ntfy_srv_enable" "ntfy_server" "ntfy_topic" "ntfy_token_enable" "ntfy_token" "ntfy_priority" \
+	"jsonpath" "dd_webhook" "we_webhook" "pp_token" "pp_channel" "pp_webhook" "pp_topic_enable" "pp_topic" "fs_webhook" "pushdeer_key" "pushdeer_srv_enable" "pushdeer_srv" "bark_srv_enable" "bark_srv" "bark_token" "bark_sound" "bark_icon" "bark_icon_enable" "bark_level" "ntfy_srv_enable" "ntfy_server" "ntfy_topic" "ntfy_token_enable" "ntfy_token" "ntfy_priority" "gotify_server" "gotify_token" "gotify_priority" \
 	"font_title" "font_success" "font_fail" "font_client" "font_module"
 	
 	for str_version in "wrtbwmon" "iputils-arping" "curl" "iw"; do
@@ -130,6 +130,16 @@ function diy_send(){
 		[ ! -z "$ntfy_token" ] && local ntfy_extra="-H \"Authorization: Bearer ${ntfy_token}\""
 		[ ! -z "$ntfy_priority" ] && [ "$ntfy_priority" != "default" ] && local ntfy_extra="${ntfy_extra} -H \"Priority: ${ntfy_priority}\""
 		curl -s -m 15 --fail -H "Title: ${1}" -H "Content-Type: ${ntfy_ct}" ${ntfy_extra} -d "${ntfy_msg}" "${ntfy_url}"
+		return $?
+	fi
+	# gotify: 自建服务器推送(调试中), X-Gotify-Key 认证 + JSON body
+	if ( echo "${3}"|grep -q "gotify" ); then
+		local gotify_url=`/usr/bin/jq -r '.url' ${3}` && local gotify_url=`eval echo ${gotify_url} 2>/dev/null`
+		[ -z "$gotify_url" ] && return 1
+		local gotify_msg=`echo "$2"|sed 's/\*\*//g; s/<font[^>]*>//g; s/<\/font>//g'`
+		local gotify_title=`echo "$1"|sed 's/\*\*//g; s/<font[^>]*>//g; s/<\/font>//g'`
+		[ -z "$gotify_priority" ] && local gotify_priority="5"
+		curl -s -m 15 --fail -H "X-Gotify-Key: ${gotify_token}" -H "Content-Type: application/json" -d "{\"title\":\"${gotify_title}\",\"message\":\"${gotify_msg}\",\"priority\":${gotify_priority}}" "${gotify_url}"
 		return $?
 	fi
 	( ! echo "$lite_enable"|grep -q "content" ) && ( ! echo "$lite_enable"|grep -q "nowtime" ) && local nowtime=`date "+%Y-%m-%d %H:%M:%S"`

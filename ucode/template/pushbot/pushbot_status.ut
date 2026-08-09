@@ -431,6 +431,7 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 			'{{ _('Feishu') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.5 6h3c.83 0 1.5.67 1.5 1.5v1c0 .83-.67 1.5-1.5 1.5h-3A1.5 1.5 0 0 1 9 10.5v-1c0-.83.67-1.5 1.5-1.5zm0 4h5c.83 0 1.5.67 1.5 1.5v1c0 .83-.67 1.5-1.5 1.5h-5A1.5 1.5 0 0 1 9 13v-1c0-.83.67-1.5 1.5-1.5z"/></svg>',
 			'Bark': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
 			'ntfy': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
+			'{{ _('Gotify (debug)') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
 			'PushPlus': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5h-2v5l4 2.4 1-1.6-3-1.8V7z"/></svg>',
 			'PushDeer': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 16a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/></svg>',
 			'{{ _('Custom push') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1 14H9v-2h2v2zm0-4H9V8h2v4z"/></svg>'
@@ -441,6 +442,7 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 			{ v: '/usr/bin/pushbot/api/feishu.json', l: '{{ _('Feishu') }}' },
 			{ v: '/usr/bin/pushbot/api/bark.json', l: '{{ _('Bark') }}' },
 			{ v: '/usr/bin/pushbot/api/ntfy.json', l: '{{ _('ntfy') }}' },
+			{ v: '/usr/bin/pushbot/api/gotify.json', l: '{{ _('Gotify (debug)') }}' },
 			{ v: '/usr/bin/pushbot/api/pushplus.json', l: '{{ _('PushPlus') }}' },
 			{ v: '/usr/bin/pushbot/api/pushdeer.json', l: '{{ _('PushDeer') }}' },
 			{ v: '/usr/bin/pushbot/api/diy.json', l: '{{ _('Custom push') }}' }
@@ -497,6 +499,11 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 				{ name: 'ntfy_token_enable', type: 'toggle', label: '{{ _('Access token') }}' },
 				{ name: 'ntfy_token', type: 'text', label: '{{ _('Token') }}', depends: 'ntfy_token_enable', desc: '{{ _('ntfy access token (optional, for protected topics)<br>The topic is fixed to the device name') }}'},
 				{ name: 'ntfy_priority', type: 'select', label: '{{ _('Priority') }}', choices: [{v:'default',l:'{{ _('default') }}'},{v:'min',l:'{{ _('min') }}'},{v:'low',l:'{{ _('low') }}'},{v:'high',l:'{{ _('high') }}'},{v:'max',l:'{{ _('max') }}'}], desc: '{{ _('ntfy notification priority') }}'},
+			],
+			'/usr/bin/pushbot/api/gotify.json': [
+				{ name: 'gotify_server', type: 'text', label: '{{ _('Server') }}', desc: '{{ _('Gotify self-hosted server address (debug)<br>e.g. https://gotify.example.com') }}'},
+				{ name: 'gotify_token', type: 'text', label: '{{ _('Token') }}', desc: '{{ _('Gotify app token (debug)') }}'},
+				{ name: 'gotify_priority', type: 'select', label: '{{ _('Priority') }}', choices: [{v:'0',l:'0'},{v:'1',l:'1'},{v:'2',l:'2'},{v:'3',l:'3'},{v:'4',l:'4'},{v:'5',l:'5 ({{ _('default') }})'},{v:'6',l:'6'},{v:'7',l:'7'},{v:'8',l:'8'},{v:'9',l:'9'},{v:'10',l:'10'}], desc: '{{ _('Gotify message priority 0-10 (debug)') }}'},
 			],
 			'/usr/bin/pushbot/api/pushplus.json': [
 				{ name: 'pp_token', type: 'text', label: '{{ _('PushPlus Token') }}', desc: '{{ _('Get the code') }} <a href=\'http://pushplus.plus/doc/\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
@@ -3614,7 +3621,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r21</span>
+		<span class="pushbot-version-badge">v5.12-r1</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
