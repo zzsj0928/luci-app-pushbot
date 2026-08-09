@@ -54,8 +54,11 @@ function read_config(){
 # 字符串读取
 	str_title_start=`/usr/bin/jq -r '.str_title_start' ${jsonpath}`
 	str_title_end=`/usr/bin/jq -r '.str_title_end' ${jsonpath}`
-	str_linefeed=`/usr/bin/jq -r '.str_linefeed' ${jsonpath}`
-	str_splitline=`/usr/bin/jq -r '.str_splitline' ${jsonpath}`
+	# 命令替换会剥离尾随换行; json 值为纯换行(如 ntfy 的 "\n")时会被剥成空, 加哨兵 X 保护
+	str_linefeed=`/usr/bin/jq -r '.str_linefeed' ${jsonpath}; printf X`
+	str_splitline=`/usr/bin/jq -r '.str_splitline' ${jsonpath}; printf X`
+	str_linefeed="${str_linefeed%X}"
+	str_splitline="${str_splitline%X}"
 	str_space=`/usr/bin/jq -r '.str_space' ${jsonpath}`
 	str_tab=`/usr/bin/jq -r '.str_tab' ${jsonpath}`
 	# 颜色:预设取自 json 中的完整 <font color=...> 标签(缺失/空则保持无色);
