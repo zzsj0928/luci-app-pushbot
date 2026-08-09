@@ -120,7 +120,7 @@ function diy_send(){
 		local ntfy_topic="$device_name"
 		local ntfy_url=`/usr/bin/jq -r '.url' ${3}` && local ntfy_url=`eval echo ${ntfy_url} 2>/dev/null`
 		[ -z "$ntfy_url" ] && return 1
-		local ntfy_msg=`echo "$2"|sed 's/\*\*//g; s/<font[^>]*>//g; s/<\/font>//g'`
+		local ntfy_msg=`echo "$2"|sed 's/<font[^>]*>//g; s/<\/font>//g'`
 		local ntfy_extra=""
 		[ ! -z "$ntfy_token" ] && local ntfy_extra="-H \"Authorization: Bearer ${ntfy_token}\""
 		[ ! -z "$ntfy_priority" ] && [ "$ntfy_priority" != "default" ] && local ntfy_extra="${ntfy_extra} -H \"Priority: ${ntfy_priority}\""

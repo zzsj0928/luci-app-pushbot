@@ -1085,3 +1085,16 @@ msgstr ""
 msgid "Webhook"
 msgstr ""
 
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Basic Settings"
+msgstr ""
+
+msgid "Online Devices"
+msgstr ""
+
+msgid "Push Content"
+msgstr ""
+

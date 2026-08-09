@@ -1086,3 +1086,16 @@ msgstr "Webhook 地址"
 msgid "Webhook"
 msgstr "Webhook 地址"
 
+
+msgid "Advanced Settings"
+msgstr "高级设置"
+
+msgid "Basic Settings"
+msgstr "基本设置"
+
+msgid "Online Devices"
+msgstr "在线设备"
+
+msgid "Push Content"
+msgstr "推送内容"
+

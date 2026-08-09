@@ -2221,12 +2221,12 @@ function initModernTabs() {
 	tabBar.id = 'pushbot_modern_tabs';
 	tabBar.className = 'pushbot-tab-bar';
 	tabBar.innerHTML =
-		'<button type="button" class="pushbot-tab is-active" data-tab="basic"><span class="pb-txt"><span>{{ _('Basic') }}</span><span>{{ _('Settings') }}</span></span></button>' +
-		'<button type="button" class="pushbot-tab" data-tab="content"><span class="pb-txt"><span>{{ _('Push') }}</span><span>{{ _('Content') }}</span></span></button>' +
-		'<button type="button" class="pushbot-tab" data-tab="scheduled"><span class="pb-txt"><span>{{ _('Scheduled') }}</span><span>{{ _('Push') }}</span></span></button>' +
-		'<button type="button" class="pushbot-tab" data-tab="monitor"><span class="pb-txt"><span>{{ _('Advanced') }}</span><span>{{ _('Settings') }}</span></span></button>' +
-		'<button type="button" class="pushbot-tab" data-tab="client"><span class="pb-txt"><span>{{ _('Online') }}</span><span>{{ _('Devices') }}</span></span></button>' +
-		'<button type="button" class="pushbot-tab" data-tab="log"><span class="pb-txt"><span>{{ _('Log') }}</span></span></button>';
+		'<button type="button" class="pushbot-tab is-active" data-tab="basic" title="{{ _('Basic Settings') }}"><span class="pb-txt"><span>{{ _('Basic') }}</span><span>{{ _('Settings') }}</span></span></button>' +
+		'<button type="button" class="pushbot-tab" data-tab="content" title="{{ _('Push Content') }}"><span class="pb-txt"><span>{{ _('Push') }}</span><span>{{ _('Content') }}</span></span></button>' +
+		'<button type="button" class="pushbot-tab" data-tab="scheduled" title="{{ _('Scheduled Push') }}"><span class="pb-txt"><span>{{ _('Scheduled') }}</span><span>{{ _('Push') }}</span></span></button>' +
+		'<button type="button" class="pushbot-tab" data-tab="monitor" title="{{ _('Advanced Settings') }}"><span class="pb-txt"><span>{{ _('Advanced') }}</span><span>{{ _('Settings') }}</span></span></button>' +
+		'<button type="button" class="pushbot-tab" data-tab="client" title="{{ _('Online Devices') }}"><span class="pb-txt"><span>{{ _('Online') }}</span><span>{{ _('Devices') }}</span></span></button>' +
+		'<button type="button" class="pushbot-tab" data-tab="log" title="{{ _('Log') }}"><span class="pb-txt"><span>{{ _('Log') }}</span></span></button>';
 
 	headerCard.parentNode.insertBefore(tabBar, headerCard.nextSibling);
 
@@ -3152,7 +3152,9 @@ window.addEventListener('DOMContentLoaded', function() {
 }
 .pushbot-tab:hover:not(.is-active) {
 	color: #1e293b;
-	background: rgba(255, 255, 255, 0.40);
+	background: rgba(255, 255, 255, 0.65);
+	box-shadow: 0 3px 10px rgba(15, 23, 42, 0.10);
+	transform: translateY(-1px);
 }
 
 .pushbot-tab-pane {
@@ -3551,7 +3553,7 @@ if(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches){
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r7</span>
+		<span class="pushbot-version-badge">v5.11-r8</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
