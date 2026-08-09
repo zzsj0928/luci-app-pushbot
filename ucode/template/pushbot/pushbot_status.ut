@@ -3539,17 +3539,27 @@ function themeMode(){
 	if(hlm==='dark'||hlm==='light'||hlm==='auto')return hlm;
 	return null;
 }
-/* argon/zargon: 服务端内联 style 含 body{background:#1e1e1e} 等暗色, 色值 < #888888 判暗黑 */
+/* argon/zargon: 服务端内联 style 判定(无正则, indexOf 定位)
+ * 强制暗黑: body{background:#1e1e1e} 顶层 → 色值 < #888888 判暗黑
+ * 自动: 暗黑背景在 @media (prefers-color-scheme: dark) 内 → 跟随系统(auto) */
 function styleBodyBg(){
+	var isHex=function(c){return (c>='0'&&c<='9')||(c>='a'&&c<='f')||(c>='A'&&c<='F');};
 	var styles=document.querySelectorAll('style');
 	for(var i=0;i<styles.length;i++){
 		var t=styles[i].textContent||'';
-		var m=t.match(/body\s*\{[^}]*?background[:\s]+#([0-9a-fA-F]{3,6})/);
-		if(m){
-			var h=m[1];
-			if(h.length===3){h=h.charAt(0)+h.charAt(0)+h.charAt(1)+h.charAt(1)+h.charAt(2)+h.charAt(2);}
-			return parseInt(h,16) < 0x888888 ? 'dark' : 'light';
-		}
+		var bi=t.indexOf('background: #');
+		if(bi<0){bi=t.indexOf('background:#');}
+		if(bi<0){continue;}
+		var hs=t.indexOf('#',bi);
+		if(hs<0){continue;}
+		var hx='';var p=hs+1;
+		while(p<t.length&&isHex(t.charAt(p))){hx+=t.charAt(p);p++;}
+		if(hx.length<3){continue;}
+		var mi=t.indexOf('@media (prefers-color-scheme: dark)');
+		if(mi>=0&&bi>mi){return 'auto';}
+		var h=hx;
+		if(h.length===3){h=h.charAt(0)+h.charAt(0)+h.charAt(1)+h.charAt(1)+h.charAt(2)+h.charAt(2);}
+		return parseInt(h,16) < 0x888888 ? 'dark' : 'light';
 	}
 	return null;
 }
@@ -3561,6 +3571,7 @@ function compute(){
 	var sbg=styleBodyBg();
 	if(sbg==='dark')return true;
 	if(sbg==='light')return false;
+	if(sbg==='auto')return !!(mq&&mq.matches);
 	var lm=PB_THEME_CFG.liquid_mode;
 	if(lm==='dark')return true;
 	if(lm==='light')return false;
@@ -3603,7 +3614,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r20</span>
+		<span class="pushbot-version-badge">v5.11-r21</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
