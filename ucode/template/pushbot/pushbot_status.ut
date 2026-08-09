@@ -439,11 +439,11 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 		var modeOpts = [
 			{ v: '/usr/bin/pushbot/api/dingding.json', l: '{{ _('DingTalk') }}' },
 			{ v: '/usr/bin/pushbot/api/ent_wechat.json', l: '{{ _('WeCom') }}' },
-			{ v: '/usr/bin/pushbot/api/feishu.json', l: '{{ _('Feishu') }}' },
-			{ v: '/usr/bin/pushbot/api/bark.json', l: '{{ _('Bark') }}' },
-			{ v: '/usr/bin/pushbot/api/ntfy.json', l: '{{ _('ntfy') }}' },
-			{ v: '/usr/bin/pushbot/api/gotify.json', l: '{{ _('Gotify (debug)') }}' },
 			{ v: '/usr/bin/pushbot/api/pushplus.json', l: '{{ _('PushPlus') }}' },
+			{ v: '/usr/bin/pushbot/api/feishu.json', l: '{{ _('Feishu') }}' },
+			{ v: '/usr/bin/pushbot/api/gotify.json', l: '{{ _('Gotify (debug)') }}' },
+			{ v: '/usr/bin/pushbot/api/ntfy.json', l: '{{ _('ntfy') }}' },
+			{ v: '/usr/bin/pushbot/api/bark.json', l: '{{ _('Bark') }}' },
 			{ v: '/usr/bin/pushbot/api/pushdeer.json', l: '{{ _('PushDeer') }}' },
 			{ v: '/usr/bin/pushbot/api/diy.json', l: '{{ _('Custom push') }}' }
 		];
@@ -3621,7 +3621,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.12-r1</span>
+		<span class="pushbot-version-badge">v5.12-r2</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
