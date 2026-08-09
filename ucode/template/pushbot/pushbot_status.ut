@@ -491,7 +491,8 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 			'/usr/bin/pushbot/api/ntfy.json': [
 				{ name: 'ntfy_srv_enable', type: 'toggle', label: '{{ _('Self-hosted ntfy server') }}' },
 				{ name: 'ntfy_server', type: 'text', label: '{{ _('Server') }}', depends: 'ntfy_srv_enable', desc: '{{ _('ntfy server address<br>default https://ntfy.sh, or your self-hosted server') }}'},
-				{ name: 'ntfy_token', type: 'text', label: '{{ _('Token') }}', desc: '{{ _('ntfy access token (optional, for protected topics)<br>The topic is fixed to the device name') }}'},
+				{ name: 'ntfy_token_enable', type: 'toggle', label: '{{ _('Access token') }}' },
+				{ name: 'ntfy_token', type: 'text', label: '{{ _('Token') }}', depends: 'ntfy_token_enable', desc: '{{ _('ntfy access token (optional, for protected topics)<br>The topic is fixed to the device name') }}'},
 				{ name: 'ntfy_priority', type: 'select', label: '{{ _('Priority') }}', choices: [{v:'default',l:'{{ _('default') }}'},{v:'min',l:'{{ _('min') }}'},{v:'low',l:'{{ _('low') }}'},{v:'high',l:'{{ _('high') }}'},{v:'max',l:'{{ _('max') }}'}], desc: '{{ _('ntfy notification priority') }}'},
 			],
 			'/usr/bin/pushbot/api/pushplus.json': [
@@ -3605,7 +3606,7 @@ try{
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r9</span>
+		<span class="pushbot-version-badge">v5.11-r10</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
