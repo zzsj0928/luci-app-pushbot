@@ -205,7 +205,7 @@ return {
 
 		/* network interfaces */
 		let ifaces = [];
-		let pf = popen("timeout 3 ls /sys/class/net 2>/dev/null", "r");
+		let pf = popen("ls /sys/class/net 2>/dev/null", "r");
 		if (pf) {
 			for (let line = pf.read("line"); line; line = pf.read("line")) {
 				let n = replace(line, /\s+/, "");
@@ -218,7 +218,7 @@ return {
 
 		/* IP hints from arp */
 		let ip_hints = [];
-		let arpf = popen("timeout 3 grep -E '^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+' /proc/net/arp 2>/dev/null", "r");
+		let arpf = popen("grep -E '^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+' /proc/net/arp 2>/dev/null", "r");
 		if (arpf) {
 			for (let line = arpf.read("line"); line; line = arpf.read("line")) {
 				let m = match(line, /^(\d+\.\d+\.\d+\.\d+)/);
@@ -241,7 +241,7 @@ return {
 			lf.close();
 		}
 		/* also try arp for additional MACs */
-		let arpf2 = popen("timeout 3 grep -E '^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+' /proc/net/arp 2>/dev/null", "r");
+		let arpf2 = popen("grep -E '^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+' /proc/net/arp 2>/dev/null", "r");
 		if (arpf2) {
 			for (let line = arpf2.read("line"); line; line = arpf2.read("line")) {
 				let m = match(line, /^(\d+\.\d+\.\d+\.\d+)\s+\S+\s+\S+\s+(\S+)/);
