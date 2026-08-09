@@ -2344,6 +2344,12 @@ function initModernTabs() {
 	/* tab switching — old tabs remain visible below */
 	var tabs = tabBar.querySelectorAll('.pushbot-tab');
 	tabs.forEach(function(tab) {
+		/* 鼠标追踪动画: 光斑跟随光标 */
+		tab.addEventListener('mousemove', function(ev) {
+			var r = tab.getBoundingClientRect();
+			tab.style.setProperty('--mx', (ev.clientX - r.left) + 'px');
+			tab.style.setProperty('--my', (ev.clientY - r.top) + 'px');
+		});
 		tab.addEventListener('click', function(e) {
 			e.preventDefault();
 			var name = tab.getAttribute('data-tab');
@@ -3163,6 +3169,23 @@ window.addEventListener('DOMContentLoaded', function() {
 	transition: all 0.2s ease;
 	flex: 0 1 auto;
 	white-space: nowrap;
+	position: relative;
+	overflow: hidden;
+}
+/* 鼠标追踪光斑: 跟随光标移动(radial-gradient at --mx/--my) */
+.pushbot-tab::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: radial-gradient(140px circle at var(--mx, 50%) var(--my, 50%), rgba(59, 130, 246, 0.20), transparent 65%);
+	opacity: 0;
+	transition: opacity 0.25s ease;
+	pointer-events: none;
+}
+.pushbot-tab:hover::before { opacity: 1; }
+.pushbot-dk .pushbot-tab::before {
+	background: radial-gradient(140px circle at var(--mx, 50%) var(--my, 50%), rgba(96, 165, 250, 0.28), transparent 65%);
 }
 .pushbot-tab .pb-txt {
 	display: inline-flex;
@@ -3637,7 +3660,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.12-r3</span>
+		<span class="pushbot-version-badge">v5.12-r4</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
