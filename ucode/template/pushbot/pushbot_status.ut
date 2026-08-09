@@ -1822,22 +1822,15 @@ function initMonitorCard() {
 	c1.innerHTML = '<div class="pushbot-card-top"><span class="pushbot-card-title">{{ _('Device Monitor') }}</span></div>';
 	var b1 = document.createElement('div'); b1.style.cssText = 'margin-top:6px';
 	var r1 = document.createElement('div'); r1.style.cssText = 'display:flex;gap:12px';
-	var c1a = document.createElement('div'); c1a.style.cssText = 'flex:1;min-width:0';
-	c1a.appendChild(mkText('up_timeout', '{{ _('Device online timeout (s)') }}', ADV_UP_TIMEOUT));
-	r1.appendChild(c1a);
-	var c1b = document.createElement('div'); c1b.style.cssText = 'flex:1;min-width:0';
-	c1b.appendChild(mkText('thread_num', '{{ _('Max concurrent processes') }}', ADV_THREAD_NUM));
-	r1.appendChild(c1b);
-	b1.appendChild(r1);
-	var r2 = document.createElement('div'); r2.style.cssText = 'display:flex;gap:12px';
-	var c2a = document.createElement('div'); c2a.style.cssText = 'flex:1;min-width:0';
-	c2a.appendChild(mkText('down_timeout', '{{ _('Device offline timeout (s)') }}', ADV_DOWN_TIMEOUT));
-	r2.appendChild(c2a);
-	var c2b = document.createElement('div'); c2b.style.cssText = 'flex:1;min-width:0';
-	c2b.appendChild(mkText('timeout_retry_count', '{{ _('Offline detection count') }}', ADV_TIMEOUT_RETRY,
-		'{{ _('No second-level router, good signal strength: you can reduce the above values<br/>As WiFi sleep at night is unpredictable, please adjust parameters yourself if devices frequently disconnect<br/>..(╰_╯)..') }}'));
-	r2.appendChild(c2b);
-	b1.appendChild(r2); c1.appendChild(b1); container.appendChild(c1);
+	[['up_timeout', '{{ _('Device online timeout (s)') }}', ADV_UP_TIMEOUT, null],
+	 ['thread_num', '{{ _('Max concurrent processes') }}', ADV_THREAD_NUM, null],
+	 ['down_timeout', '{{ _('Device offline timeout (s)') }}', ADV_DOWN_TIMEOUT, null],
+	 ['timeout_retry_count', '{{ _('Offline detection count') }}', ADV_TIMEOUT_RETRY, '{{ _('No second-level router, good signal strength: you can reduce the above values<br/>As WiFi sleep at night is unpredictable, please adjust parameters yourself if devices frequently disconnect<br/>..(╰_╯)..') }}']].forEach(function(f) {
+		var cc = document.createElement('div'); cc.style.cssText = 'flex:1;min-width:0';
+		cc.appendChild(mkText(f[0], f[1], f[2], f[3]));
+		r1.appendChild(cc);
+	});
+	b1.appendChild(r1); c1.appendChild(b1); container.appendChild(c1);
 
 	/* CARD 2: Temperature Monitor */
 	var c2 = document.createElement('div'); c2.className = 'pushbot-mode-card';
@@ -3683,7 +3676,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.12-r6</span>
+		<span class="pushbot-version-badge">v5.12-r7</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
