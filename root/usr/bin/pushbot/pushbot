@@ -20,7 +20,7 @@ function read_config(){
 	"pushbot_sheep" "starttime" "endtime" "pushbot_whitelist" "pushbot_blacklist" "pushbot_interface" "MAC_online_list" "MAC_offline_list" \
 	"up_timeout" "down_timeout" "timeout_retry_count" "thread_num" "soc_code" "pve_host" "pve_port"\
 	"err_enable" "err_sheep_enable" "err_device_aliases" "network_err_event" "system_time_event" "autoreboot_time" "network_restart_time" "public_ip_event" "public_ip_retry_count" \
-	"jsonpath" "dd_webhook" "we_webhook" "pp_token" "pp_channel" "pp_webhook" "pp_topic_enable" "pp_topic" "fs_webhook" "pushdeer_key" "pushdeer_srv_enable" "pushdeer_srv" "bark_srv_enable" "bark_srv" "bark_token" "bark_sound" "bark_icon" "bark_icon_enable" "bark_level" \
+	"jsonpath" "dd_webhook" "we_webhook" "pp_token" "pp_channel" "pp_webhook" "pp_topic_enable" "pp_topic" "fs_webhook" "pushdeer_key" "pushdeer_srv_enable" "pushdeer_srv" "bark_srv_enable" "bark_srv" "bark_token" "bark_sound" "bark_icon" "bark_icon_enable" "bark_level" "ntfy_server" "ntfy_topic" "ntfy_token" "ntfy_priority" \
 	"font_title" "font_success" "font_fail" "font_client" "font_module"
 	
 	for str_version in "wrtbwmon" "iputils-arping" "curl" "iw"; do
@@ -80,6 +80,8 @@ function read_config(){
 	table_tab=`/usr/bin/jq -r '.tabletab' ${jsonpath}`
 	table_enable=`/usr/bin/jq -r '.table_enable' ${jsonpath}` 2>/dev/null; [ "$table_enable" = "null" ] && table_enable=""
 	get_config "table_format"; [ "$table_format" = "0" ] && table_enable=""
+	# ntfy 纯文本: 不支持表格/markdown, 强制非表格
+	( echo "${jsonpath}"|grep -q "ntfy" ) && table_enable=""
 	( echo "$lite_enable"|grep -q "content" ) && str_title_start="" && str_title_end="" && str_splitline="" && str_linefeed="" && str_tab=""
 }
 	
@@ -109,6 +111,19 @@ function pushbot_init(){
 
 # 推送
 function diy_send(){
+	# ntfy: 纯文本消息(body=内容) + Title/Priority/Token headers(移动端不渲染 markdown, 用纯文本)
+	if ( echo "${3}"|grep -q "ntfy" ); then
+		# topic 固定使用设备名称(device_name)
+		local ntfy_topic="$device_name"
+		local ntfy_url=`/usr/bin/jq -r '.url' ${3}` && local ntfy_url=`eval echo ${ntfy_url} 2>/dev/null`
+		[ -z "$ntfy_url" ] && return 1
+		local ntfy_msg=`echo "$2"|sed 's/\*\*//g; s/<font[^>]*>//g; s/<\/font>//g'`
+		local ntfy_extra=""
+		[ ! -z "$ntfy_token" ] && local ntfy_extra="-H \"Authorization: Bearer ${ntfy_token}\""
+		[ ! -z "$ntfy_priority" ] && [ "$ntfy_priority" != "default" ] && local ntfy_extra="${ntfy_extra} -H \"Priority: ${ntfy_priority}\""
+		curl -s -m 15 --fail -H "Title: ${1}" ${ntfy_extra} -d "${ntfy_msg}" "${ntfy_url}"
+		return $?
+	fi
 	( ! echo "$lite_enable"|grep -q "content" ) && ( ! echo "$lite_enable"|grep -q "nowtime" ) && local nowtime=`date "+%Y-%m-%d %H:%M:%S"`
 	local diyurl=`/usr/bin/jq -r .url ${3}` && local diyurl=`eval echo ${diyurl} 2>/dev/null`
 	local type=`/usr/bin/jq -r '.type' ${3}` && local type=`eval echo ${type} 2>/dev/null`

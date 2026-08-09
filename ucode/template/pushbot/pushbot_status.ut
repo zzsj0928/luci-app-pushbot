@@ -427,6 +427,7 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 			'{{ _('WeCom') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM8.5 6.5h7c.83 0 1.5.67 1.5 1.5v2c0 .83-.67 1.5-1.5 1.5h-7A1.5 1.5 0 0 1 7 10V8c0-.83.67-1.5 1.5-1.5zm0 6h4c.83 0 1.5.67 1.5 1.5v2c0 .83-.67 1.5-1.5 1.5h-4A1.5 1.5 0 0 1 7 16v-2c0-.83.67-1.5 1.5-1.5z"/></svg>',
 			'{{ _('Feishu') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.5 6h3c.83 0 1.5.67 1.5 1.5v1c0 .83-.67 1.5-1.5 1.5h-3A1.5 1.5 0 0 1 9 10.5v-1c0-.83.67-1.5 1.5-1.5zm0 4h5c.83 0 1.5.67 1.5 1.5v1c0 .83-.67 1.5-1.5 1.5h-5A1.5 1.5 0 0 1 9 13v-1c0-.83.67-1.5 1.5-1.5z"/></svg>',
 			'Bark': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
+			'ntfy': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
 			'PushPlus': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5h-2v5l4 2.4 1-1.6-3-1.8V7z"/></svg>',
 			'PushDeer': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 16a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/></svg>',
 			'{{ _('Custom push') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1 14H9v-2h2v2zm0-4H9V8h2v4z"/></svg>'
@@ -435,9 +436,10 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 			{ v: '/usr/bin/pushbot/api/dingding.json', l: '{{ _('DingTalk') }}' },
 			{ v: '/usr/bin/pushbot/api/ent_wechat.json', l: '{{ _('WeCom') }}' },
 			{ v: '/usr/bin/pushbot/api/feishu.json', l: '{{ _('Feishu') }}' },
-			{ v: '/usr/bin/pushbot/api/bark.json', l: 'Bark' },
-			{ v: '/usr/bin/pushbot/api/pushplus.json', l: 'PushPlus' },
-			{ v: '/usr/bin/pushbot/api/pushdeer.json', l: 'PushDeer' },
+			{ v: '/usr/bin/pushbot/api/bark.json', l: '{{ _('Bark') }}' },
+			{ v: '/usr/bin/pushbot/api/ntfy.json', l: '{{ _('ntfy') }}' },
+			{ v: '/usr/bin/pushbot/api/pushplus.json', l: '{{ _('PushPlus') }}' },
+			{ v: '/usr/bin/pushbot/api/pushdeer.json', l: '{{ _('PushDeer') }}' },
 			{ v: '/usr/bin/pushbot/api/diy.json', l: '{{ _('Custom push') }}' }
 		];
 		var modeBtns = [];
@@ -469,34 +471,39 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 		/* ── mode-field map with full field configs ── */
 		var MODE_FIELD_CFG = {
 			'/usr/bin/pushbot/api/dingding.json': [
-				{ name: 'dd_webhook', type: 'text', label: 'Webhook', desc: '{{ _('DingTalk bot Webhook, enter only the part after access_token=<br><a href="https://developers.dingtalk.com/document/robots/custom-robot-access" target="_blank">Get the code</a><br><br>') }}' },
+				{ name: 'dd_webhook', type: 'text', label: '{{ _('Webhook') }}', desc: '{{ _('DingTalk bot Webhook, enter only the part after access_token=<br><a href="https://developers.dingtalk.com/document/robots/custom-robot-access" target="_blank">Get the code</a><br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/ent_wechat.json': [
-				{ name: 'we_webhook', type: 'text', label: 'Webhook', desc: '{{ _('WeCom bot Webhook, enter only the part after key=<br><a href="https://work.weixin.qq.com/api/doc/90000/90136/91770" target="_blank">Get the code</a><br><br>') }}' },
+				{ name: 'we_webhook', type: 'text', label: '{{ _('Webhook') }}', desc: '{{ _('WeCom bot Webhook, enter only the part after key=<br><a href="https://work.weixin.qq.com/api/doc/90000/90136/91770" target="_blank">Get the code</a><br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/feishu.json': [
-				{ name: 'fs_webhook', type: 'text', label: 'WebHook', desc: '{{ _('Feishu WebHook<br><a href="https://www.feishu.cn/hc/zh-CN/articles/360024984973" target="_blank">Get the code</a><br><br>') }}' },
+				{ name: 'fs_webhook', type: 'text', label: '{{ _('WebHook') }}', desc: '{{ _('Feishu WebHook<br><a href="https://www.feishu.cn/hc/zh-CN/articles/360024984973" target="_blank">Get the code</a><br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/bark.json': [
-				{ name: 'bark_token', type: 'text', label: 'Bark Token', desc: 'Bark Token<br>{{ _('Get the code ') }}<a href=\'https://github.com/Finb/Bark\' target=\'_blank\'>{{ _('here') }}</a><br><br>' },
+				{ name: 'bark_token', type: 'text', label: '{{ _('Bark Token') }}', desc: 'Bark Token<br>{{ _('Get the code ') }}<a href=\'https://github.com/Finb/Bark\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
 				{ name: 'bark_srv_enable', type: 'toggle', label: '{{ _('Self-hosted Bark server') }}' },
-				{ name: 'bark_srv', type: 'text', label: 'Bark Server', desc: '{{ _('Bark self-hosted server address<br>e.g. https://your.domain:port<br>See <a href="http://www.pushdeer.com/selfhosted.html" target="_blank">here</a> for the self-hosting guide<br><br>') }}' },
-				{ name: 'bark_sound', type: 'text', label: 'Bark Sound', desc: '{{ _('Bark notification sound<br>e.g. silence.caf<br>See <a href="https://github.com/Finb/Bark/tree/master/Sounds" target="_blank">here</a> for details<br><br>') }}' },
+				{ name: 'bark_srv', type: 'text', label: '{{ _('Bark Server') }}', depends: 'bark_srv_enable', desc: '{{ _('Bark self-hosted server address<br>e.g. https://your.domain:port<br>See <a href="http://www.pushdeer.com/selfhosted.html" target="_blank">here</a> for the self-hosting guide<br><br>') }}'},
+				{ name: 'bark_sound', type: 'text', label: '{{ _('Bark Sound') }}', desc: '{{ _('Bark notification sound<br>e.g. silence.caf<br>See <a href="https://github.com/Finb/Bark/tree/master/Sounds" target="_blank">here</a> for details<br><br>') }}'},
 				{ name: 'bark_icon_enable', type: 'toggle', label: '{{ _('Bark notification icon') }}' },
-				{ name: 'bark_icon', type: 'text', label: 'Bark Icon', desc: '{{ _('Bark notification icon (iOS 15 or above)<br>e.g. http://day.app/assets/images/avatar.jpg<br>See <a href="https://github.com/Finb/Bark#%E5%85%B6%E4%BB%96%E5%8F%82%E6%95%B0" target="_blank">here</a> for details<br><br>') }}' },
-				{ name: 'bark_level', type: 'select', label: 'Bark Level', choices: [{v:'active',l:'{{ _('active: Default') }}'},{v:'timeSensitive',l:'{{ _('timeSensitive: Time-sensitive') }}'},{v:'passive',l:'{{ _('passive: Add to list only') }}'}], desc: '{{ _('Bark time-sensitive notification<br>Optional values:<br/>active: default, the system shows the notification immediately on the lock screen.<br/>timeSensitive: time-sensitive, can be shown in Focus mode.<br/>passive: only added to the notification list, no screen wake.') }}' },
+				{ name: 'bark_icon', type: 'text', label: '{{ _('Bark Icon') }}', depends: 'bark_icon_enable', desc: '{{ _('Bark notification icon (iOS 15 or above)<br>e.g. http://day.app/assets/images/avatar.jpg<br>See <a href="https://github.com/Finb/Bark#%E5%85%B6%E4%BB%96%E5%8F%82%E6%95%B0" target="_blank">here</a> for details<br><br>') }}'},
+				{ name: 'bark_level', type: 'select', label: '{{ _('Bark Level') }}', choices: [{v:'active',l:'{{ _('active: Default') }}'},{v:'timeSensitive',l:'{{ _('timeSensitive: Time-sensitive') }}'},{v:'passive',l:'{{ _('passive: Add to list only') }}'}], desc: '{{ _('Bark time-sensitive notification<br>Optional values:<br/>active: default, the system shows the notification immediately on the lock screen.<br/>timeSensitive: time-sensitive, can be shown in Focus mode.<br/>passive: only added to the notification list, no screen wake.') }}'},
+			],
+			'/usr/bin/pushbot/api/ntfy.json': [
+				{ name: 'ntfy_server', type: 'text', label: '{{ _('Server') }}', desc: '{{ _('ntfy server address<br>default https://ntfy.sh, or your self-hosted server') }}'},
+				{ name: 'ntfy_token', type: 'text', label: '{{ _('Token') }}', desc: '{{ _('ntfy access token (optional, for protected topics)<br>The topic is fixed to the device name') }}'},
+				{ name: 'ntfy_priority', type: 'select', label: '{{ _('Priority') }}', choices: [{v:'default',l:'{{ _('default') }}'},{v:'min',l:'{{ _('min') }}'},{v:'low',l:'{{ _('low') }}'},{v:'high',l:'{{ _('high') }}'},{v:'max',l:'{{ _('max') }}'}], desc: '{{ _('ntfy notification priority') }}'},
 			],
 			'/usr/bin/pushbot/api/pushplus.json': [
-				{ name: 'pp_token', type: 'text', label: 'PushPlus Token', desc: 'PushPlus Token<br>{{ _('Get the code ') }}<a href=\'http://pushplus.plus/doc/\' target=\'_blank\'>{{ _('here') }}</a><br><br>' },
-				{ name: 'pp_channel', type: 'select', label: 'PushPlus Channel', choices: [{v:'wechat',l:'{{ _('wechat: PushPlus WeChat Official Account') }}'},{v:'cp',l:'{{ _('cp: WeCom app') }}'},{v:'webhook',l:'{{ _('webhook: Third-party webhook') }}'},{v:'sms',l:'{{ _('sms: SMS') }}'},{v:'mail',l:'{{ _('mail: Email') }}'}], desc: '{{ _('Third-party webhook: WeCom, DingTalk, Feishu, ServerChan<br>sms/mail: not yet available on PushPlus<br>See <a href="http://pushplus.plus/doc/extend/webhook.html" target="_blank">here</a> for channel settings<br><br>') }}' },
-				{ name: 'pp_webhook', type: 'text', label: 'PushPlus Custom Webhook', desc: '{{ _('PushPlus custom Webhook<br>For third-party webhook or WeCom calls<br>See <a href="http://pushplus.plus/doc/extend/webhook.html" target="_blank">here</a> for details<br><br>') }}' },
+				{ name: 'pp_token', type: 'text', label: '{{ _('PushPlus Token') }}', desc: 'PushPlus Token<br>{{ _('Get the code ') }}<a href=\'http://pushplus.plus/doc/\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
+				{ name: 'pp_channel', type: 'select', label: '{{ _('PushPlus Channel') }}', choices: [{v:'wechat',l:'{{ _('wechat: WeChat Official Account') }}'},{v:'app',l:'{{ _('app: PushPlus App') }}'},{v:'extension',l:'{{ _('extension: Browser extension / desktop') }}'},{v:'webhook',l:'{{ _('webhook: Third-party webhook') }}'},{v:'clawbot',l:'{{ _('clawbot: WeChat ClawBot') }}'},{v:'cp',l:'{{ _('cp: WeCom app') }}'},{v:'mail',l:'{{ _('mail: Email') }}'},{v:'sms',l:'{{ _('sms: SMS (paid)') }}'},{v:'voice',l:'{{ _('voice: Voice call (paid)') }}'}], desc: '{{ _('wechat/app/extension/clawbot: only token required<br>webhook/cp: also need Channel Code below<br>mail: Channel Code optional (default official email)<br>sms/voice: paid channels (deduct credits)<br>See <a href="http://www.pushplus.plus/doc/channel.html" target="_blank">here</a> for all channels<br><br>') }}'},
+				{ name: 'pp_webhook', type: 'text', label: '{{ _('PushPlus Channel Code') }}', showWhen: { field: 'pp_channel', values: ['webhook', 'cp', 'mail'] }, desc: '{{ _('Channel code configured in PushPlus console<br>webhook: third-party webhook code (WeCom/DingTalk/Feishu...)<br>cp: WeCom app code<br>mail: optional, email sender code (leave empty for official email)<br>See <a href="http://www.pushplus.plus/doc/guide/api.html" target="_blank">here</a> for details<br><br>') }}' },
 				{ name: 'pp_topic_enable', type: 'toggle', label: '{{ _('PushPlus group push') }}' },
-				{ name: 'pp_topic', type: 'text', label: 'PushPlus Topic', desc: '{{ _('PushPlus group code<br>The group code used for group push<br>See <a href="http://www.pushplus.plus/push2.html" target="_blank">here</a> for details<br><br>') }}' },
+				{ name: 'pp_topic', type: 'text', label: '{{ _('PushPlus Topic') }}', depends: 'pp_topic_enable', desc: '{{ _('PushPlus group code<br>The group code used for group push<br>See <a href="http://www.pushplus.plus/push2.html" target="_blank">here</a> for details<br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/pushdeer.json': [
-				{ name: 'pushdeer_key', type: 'text', label: 'PushDeer Key', desc: 'PushDeer Key<br>{{ _('Get the code ') }}<a href=\'http://www.pushdeer.com/\' target=\'_blank\'>{{ _('here') }}</a><br><br>' },
+				{ name: 'pushdeer_key', type: 'text', label: '{{ _('PushDeer Key') }}', desc: 'PushDeer Key<br>{{ _('Get the code ') }}<a href=\'http://www.pushdeer.com/\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
 				{ name: 'pushdeer_srv_enable', type: 'toggle', label: '{{ _('Self-hosted PushDeer server') }}' },
-				{ name: 'pushdeer_srv', type: 'text', label: 'PushDeer Server', desc: '{{ _('PushDeer self-hosted server address<br>e.g. https://your.domain:port<br>See <a href="http://www.pushdeer.com/selfhosted.html" target="_blank">here</a> for details<br><br>') }}' },
+				{ name: 'pushdeer_srv', type: 'text', label: '{{ _('PushDeer Server') }}', depends: 'pushdeer_srv_enable', desc: '{{ _('PushDeer self-hosted server address<br>e.g. https://your.domain:port<br>See <a href="http://www.pushdeer.com/selfhosted.html" target="_blank">here</a> for details<br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/diy.json': [
 				{ name: 'diy_json', type: 'textarea', label: '{{ _('Custom push') }}', desc: '', rows: 28, file: true }
@@ -558,7 +565,8 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 					body.appendChild(showWrap);
 					var toggleSw = function() {
 						if (selHidden) {
-							showWrap.style.display = cfg.showWhen.values.indexOf(selHidden.value) >= 0 ? '' : 'none';
+							var vals = cfg.showWhen.values || (cfg.showWhen.value != null ? [cfg.showWhen.value] : []);
+							showWrap.style.display = vals.indexOf(selHidden.value) >= 0 ? '' : 'none';
 						}
 					};
 					if (selHidden) {
@@ -592,14 +600,14 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 		/* ── test button ── */
 		var tc = document.createElement('button');
 		tc.type = 'button';
-		tc.textContent = '{{ _('Send test') }}';
+		tc.textContent = '{{ _('Test Channel') }}';
 		tc.className = 'pushbot-sendtest-btn';
 		tc.addEventListener('click', function(e) {
 			e.preventDefault();
 			tc.disabled = true;
 			tc.textContent = '{{ _('Sending...') }}';
 			XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'send_test') }}', null,
-				function() { tc.disabled = false; tc.textContent = '{{ _('Send test') }}'; });
+				function() { tc.disabled = false; tc.textContent = '{{ _('Test Channel') }}'; });
 		});
 		document.getElementById('pm_col_test').appendChild(tc);
 
@@ -1651,7 +1659,7 @@ PB_onReady(function(){ tryContentOnce(); });
 		var sr = document.createElement('div');
 		sr.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px';
 		var sb = document.createElement('button');
-		sb.type = 'button'; sb.textContent = '{{ _('Send now') }}';
+		sb.type = 'button'; sb.textContent = '{{ _('Test Schedule') }}';
 		sb.className = 'pushbot-sendtest-btn';
 		sb.addEventListener('click', function(e) {
 			e.preventDefault(); sb.disabled = true; sb.textContent = '{{ _('Sending...') }}';
@@ -1662,11 +1670,11 @@ PB_onReady(function(){ tryContentOnce(); });
 			x.onload = function() {
 				var y = new XMLHttpRequest();
 				y.open('GET', '{{ dispatcher.build_url('admin', 'services', 'pushbot', 'send_manual') }}', true);
-				y.onload = function() { sb.disabled = false; sb.textContent = '{{ _('Send now') }}'; };
-				y.onerror = function() { sb.disabled = false; sb.textContent = '{{ _('Send now') }}'; };
+				y.onload = function() { sb.disabled = false; sb.textContent = '{{ _('Test Schedule') }}'; };
+				y.onerror = function() { sb.disabled = false; sb.textContent = '{{ _('Test Schedule') }}'; };
 				y.send();
 			};
-			x.onerror = function() { sb.disabled = false; sb.textContent = '{{ _('Send now') }}'; };
+			x.onerror = function() { sb.disabled = false; sb.textContent = '{{ _('Test Schedule') }}'; };
 			x.send(JSON.stringify(data));
 		});
 		sr.appendChild(sb);
@@ -3542,7 +3550,7 @@ if(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches){
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.10-r20</span>
+		<span class="pushbot-version-badge">v5.11-r1</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
