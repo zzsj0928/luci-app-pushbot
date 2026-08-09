@@ -3521,25 +3521,27 @@ var b=document.body;if(!b)return;
 var d=document.documentElement;
 /* Check explicit dark indicators on body OR html */
 var PB_THEME_CFG={argon_mode:'{{ pushbot_argon_mode }}',liquid_mode:'{{ pushbot_liquid_mode }}'};
-/* ═══ 主题模式检测（统一前端标准 + 服务端 config fallback）═══
- * 优先: <html data-theme-mode="dark|light|auto">（主题输出标准, liquid/argon/zargon 均可实现）
- * 兼容: liquid 的 data-darkmode/data-liquid-mode
- * fallback: 服务端 uci config(argon.@global[0].mode / liquid.theme.mode, 渲染时读一次)
- * 最后: 渲染背景亮度 + prefers-color-scheme
- * 监听: 系统模式变化 + data-theme-mode/data-darkmode 属性变化(MutationObserver) */
+/* ═══ 主题模式检测（liquid 优先: body[data-liquid-mode] 模式值）═══
+ * 1. body[data-liquid-mode]="dark|light|auto"(liquid 实际输出, 最可靠)
+ * 2. html[data-theme-mode](统一标准) > html[data-darkmode](liquid 有效状态) > html[data-liquid-mode]
+ * 3. fallback: 服务端 uci config(argon/liquid mode, 渲染时读一次)
+ * 4. 最后: 渲染背景亮度 + prefers-color-scheme
+ * 监听: 系统模式变化 + MutationObserver(html/body 属性) + load 事件兜底重检(不轮询) */
 (function(){
 var b=document.body;if(!b)return;
 var d=document.documentElement;
 var mq=(typeof window.matchMedia=='function')?window.matchMedia('(prefers-color-scheme: dark)'):null;
 function apply(dark){ d.classList.toggle('pushbot-dk', !!dark); }
 function themeMode(){
+	var blm=b&&b.getAttribute('data-liquid-mode');
+	if(blm==='dark'||blm==='light'||blm==='auto')return blm;
 	var tm=d.getAttribute('data-theme-mode');
 	if(tm==='dark'||tm==='light'||tm==='auto')return tm;
 	var v=d.getAttribute('data-darkmode');
 	if(v==='true')return 'dark';
 	if(v==='false')return 'light';
-	var lm=(b&&b.getAttribute('data-liquid-mode'))||d.getAttribute('data-liquid-mode');
-	if(lm==='dark'||lm==='light'||lm==='auto')return lm;
+	var hlm=d.getAttribute('data-liquid-mode');
+	if(hlm==='dark'||hlm==='light'||hlm==='auto')return hlm;
 	return null;
 }
 function compute(){
@@ -3572,8 +3574,10 @@ if(mq&&mq.addEventListener){mq.addEventListener('change',function(){apply(comput
 try{
 	var obs=new MutationObserver(function(){apply(compute());});
 	obs.observe(d,{attributes:true,attributeFilter:['data-theme-mode','data-darkmode','data-liquid-mode','class']});
-	if(b){obs.observe(b,{attributes:true,attributeFilter:['data-liquid-mode','class']});}
+	if(b){obs.observe(b,{attributes:true});}
 }catch(e){}
+/* load 事件兜底: liquid 等主题脚本可能 defer 执行, 页面完全加载后重检一次(不轮询) */
+window.addEventListener('load',function(){apply(compute());});
 })();
 </script>
 <div class="pushbot-body">
@@ -3588,7 +3592,7 @@ try{
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r17</span>
+		<span class="pushbot-version-badge">v5.11-r18</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
