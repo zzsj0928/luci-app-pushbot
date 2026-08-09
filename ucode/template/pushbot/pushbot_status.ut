@@ -1,3 +1,6 @@
+{% import { cursor } from 'uci' %}
+{% let pushbot_argon_mode = cursor().get_first('argon', 'global', 'mode') ?? '' %}
+{% let pushbot_liquid_mode = cursor().get_first('liquid', 'theme', 'mode') ?? '' %}
 {% include('header') %}
 <script type="text/javascript">//<![CDATA[
 if (typeof XHR === 'undefined') {
@@ -3517,11 +3520,13 @@ window.addEventListener('DOMContentLoaded', function() {
 var b=document.body;if(!b)return;
 var d=document.documentElement;
 /* Check explicit dark indicators on body OR html */
+var PB_THEME_CFG={argon_mode:'{{ pushbot_argon_mode }}',liquid_mode:'{{ pushbot_liquid_mode }}'};
 /* ═══ 主题模式检测（兼容 argon / zargon / liquid / 系统）═══
- * liquid: html[data-darkmode] / html|body[data-liquid-mode] / localStorage(liquid-theme-mode)
- *          dark→强制暗黑; light→强制明亮; auto→跟随系统
- * argon/zargon/系统: 渲染背景亮度 + 显式标记 + prefers-color-scheme
- * 监听: 系统模式变化 + liquid 属性变化(MutationObserver) + 轮询兜底(覆盖加载顺序) */
+ * 1. liquid: 服务端 uci config(liquid.theme.mode) + DOM 实时特征(data-darkmode/data-liquid-mode)
+ * 2. argon/zargon: 服务端 uci config(argon.@global[0].mode)
+ * 3. 系统/fallback: 渲染背景亮度 + prefers-color-scheme
+ * mode: dark→强制暗黑; light→强制明亮; auto→跟随系统
+ * 监听: 系统模式变化 + liquid DOM 属性变化(MutationObserver) */
 (function(){
 var b=document.body;if(!b)return;
 var d=document.documentElement;
@@ -3535,20 +3540,23 @@ function modeFromLiquid(){
 	if(lm==='dark')return 'dark';
 	if(lm==='light')return 'light';
 	if(lm==='auto')return 'auto';
-	try{
-		var m=localStorage.getItem('liquid-theme-mode');
-		if(m==='dark')return 'dark';
-		if(m==='light')return 'light';
-		if(m==='auto')return 'auto';
-	}catch(e){}
 	return null;
 }
 function compute(){
-	var mode=modeFromLiquid();
-	if(mode==='dark')return true;
-	if(mode==='light')return false;
-	if(mode==='auto')return !!(mq&&mq.matches);
-	/* 非 liquid: 渲染背景亮度(argon/zargon/系统) */
+	/* 1. liquid DOM 实时特征(前端切换即时生效) */
+	var m=modeFromLiquid();
+	if(m==='dark')return true;
+	if(m==='light')return false;
+	if(m==='auto')return !!(mq&&mq.matches);
+	/* 2. liquid/argon 服务端 config */
+	var lm=PB_THEME_CFG.liquid_mode;
+	if(lm==='dark')return true;
+	if(lm==='light')return false;
+	if(lm==='auto')return !!(mq&&mq.matches);
+	var am=PB_THEME_CFG.argon_mode;
+	if(am==='dark')return true;
+	if(am==='light')return false;
+	/* 3. 渲染背景亮度(argon/zargon/系统) */
 	var bg=getComputedStyle(b).backgroundColor||'';
 	var rgb=bg.match(/\d+/g);
 	if(rgb&&rgb.length>=3){
@@ -3556,7 +3564,7 @@ function compute(){
 		if(avg<128)return true;
 		if(avg>=180)return false;
 	}
-	/* 显式暗黑标记(其他主题) */
+	/* 4. 显式标记 + 系统 */
 	if(b.matches('body.dark, body[data-theme="dark"], body[data-theme="black"]')
 		||b.classList.contains('dark')||d.classList.contains('dark')
 		||d.matches('html[data-theme="dark"], html[data-theme="black"]')
@@ -3564,16 +3572,12 @@ function compute(){
 	return !!(mq&&mq.matches);
 }
 apply(compute());
-/* 监听系统模式变化 */
 if(mq&&mq.addEventListener){mq.addEventListener('change',function(){apply(compute());});}
-/* 监听 liquid 属性/主题类变化 */
 try{
 	var obs=new MutationObserver(function(){apply(compute());});
 	obs.observe(d,{attributes:true,attributeFilter:['data-darkmode','data-liquid-mode','class']});
 	if(b){obs.observe(b,{attributes:true,attributeFilter:['data-liquid-mode','class']});}
 }catch(e){}
-/* 轮询兜底: 覆盖脚本加载顺序/第三方覆写, 确保与主题最终状态联动 */
-setInterval(function(){apply(compute());},1500);
 })();
 </script>
 <div class="pushbot-body">
@@ -3588,7 +3592,7 @@ setInterval(function(){apply(compute());},1500);
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r14</span>
+		<span class="pushbot-version-badge">v5.11-r15</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
