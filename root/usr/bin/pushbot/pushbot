@@ -121,11 +121,12 @@ function diy_send(){
 		local ntfy_topic="$device_name"
 		local ntfy_url=`/usr/bin/jq -r '.url' ${3}` && local ntfy_url=`eval echo ${ntfy_url} 2>/dev/null`
 		[ -z "$ntfy_url" ] && return 1
-		local ntfy_msg=`echo "$2"|sed 's/<font[^>]*>//g; s/<\/font>//g'`
+		local ntfy_msg=`echo "$2"|sed 's/\*\*//g; s/<font[^>]*>//g; s/<\/font>//g'`
+		local ntfy_ct=`/usr/bin/jq -r '.content_type' ${3}` 2>/dev/null; [ -z "$ntfy_ct" ] && local ntfy_ct="text/plain"
 		local ntfy_extra=""
 		[ ! -z "$ntfy_token" ] && local ntfy_extra="-H \"Authorization: Bearer ${ntfy_token}\""
 		[ ! -z "$ntfy_priority" ] && [ "$ntfy_priority" != "default" ] && local ntfy_extra="${ntfy_extra} -H \"Priority: ${ntfy_priority}\""
-		curl -s -m 15 --fail -H "Title: ${1}" ${ntfy_extra} -d "${ntfy_msg}" "${ntfy_url}"
+		curl -s -m 15 --fail -H "Title: ${1}" -H "Content-Type: ${ntfy_ct}" ${ntfy_extra} -d "${ntfy_msg}" "${ntfy_url}"
 		return $?
 	fi
 	( ! echo "$lite_enable"|grep -q "content" ) && ( ! echo "$lite_enable"|grep -q "nowtime" ) && local nowtime=`date "+%Y-%m-%d %H:%M:%S"`
