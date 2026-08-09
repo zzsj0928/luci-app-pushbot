@@ -2693,9 +2693,14 @@ window.addEventListener('DOMContentLoaded', function() {
 .pushbot-pushmode-action-column {
 	flex: 0 1 180px;
 	display: flex;
-	align-items: flex-end;
+	flex-direction: column;
+	align-items: center;
 	justify-content: flex-end;
 	padding-bottom: 4px;
+}
+.pushbot-pushmode-action-column .pushbot-inline-description {
+	text-align: center;
+	margin-top: 6px;
 }
 
 .pushbot-inline-field {
@@ -3354,6 +3359,7 @@ window.addEventListener('DOMContentLoaded', function() {
 	align-items: center;
 	justify-content: center;
 	padding: 9px 22px;
+	white-space: nowrap;
 	border: 1px solid transparent;
 	border-radius: 999px;
 	font-size: 13px;
@@ -3660,7 +3666,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.12-r4</span>
+		<span class="pushbot-version-badge">v5.12-r5</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
