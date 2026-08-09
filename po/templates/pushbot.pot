@@ -1099,6 +1099,23 @@ msgid "Push Content"
 msgstr ""
 
 
+msgid "Gotify (debug)"
+msgstr ""
+
+msgid "Gotify app token (debug)"
+msgstr ""
+
+msgid "Gotify message priority 0-10 (debug)"
+msgstr ""
+
+msgid "Gotify self-hosted server address (debug)<br>e.g. https://gotify.example.com"
+msgstr ""
+
+
+msgid "Clicking the test button will save the current settings first"
+msgstr ""
+
+
 msgid "Access token"
 msgstr ""
 

@@ -431,6 +431,7 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 			'{{ _('Feishu') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.5 6h3c.83 0 1.5.67 1.5 1.5v1c0 .83-.67 1.5-1.5 1.5h-3A1.5 1.5 0 0 1 9 10.5v-1c0-.83.67-1.5 1.5-1.5zm0 4h5c.83 0 1.5.67 1.5 1.5v1c0 .83-.67 1.5-1.5 1.5h-5A1.5 1.5 0 0 1 9 13v-1c0-.83.67-1.5 1.5-1.5z"/></svg>',
 			'Bark': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
 			'ntfy': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
+			'{{ _('Gotify (debug)') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
 			'PushPlus': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5h-2v5l4 2.4 1-1.6-3-1.8V7z"/></svg>',
 			'PushDeer': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 16a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/></svg>',
 			'{{ _('Custom push') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1 14H9v-2h2v2zm0-4H9V8h2v4z"/></svg>'
@@ -438,10 +439,11 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 		var modeOpts = [
 			{ v: '/usr/bin/pushbot/api/dingding.json', l: '{{ _('DingTalk') }}' },
 			{ v: '/usr/bin/pushbot/api/ent_wechat.json', l: '{{ _('WeCom') }}' },
-			{ v: '/usr/bin/pushbot/api/feishu.json', l: '{{ _('Feishu') }}' },
-			{ v: '/usr/bin/pushbot/api/bark.json', l: '{{ _('Bark') }}' },
-			{ v: '/usr/bin/pushbot/api/ntfy.json', l: '{{ _('ntfy') }}' },
 			{ v: '/usr/bin/pushbot/api/pushplus.json', l: '{{ _('PushPlus') }}' },
+			{ v: '/usr/bin/pushbot/api/feishu.json', l: '{{ _('Feishu') }}' },
+			{ v: '/usr/bin/pushbot/api/gotify.json', l: '{{ _('Gotify (debug)') }}' },
+			{ v: '/usr/bin/pushbot/api/ntfy.json', l: '{{ _('ntfy') }}' },
+			{ v: '/usr/bin/pushbot/api/bark.json', l: '{{ _('Bark') }}' },
 			{ v: '/usr/bin/pushbot/api/pushdeer.json', l: '{{ _('PushDeer') }}' },
 			{ v: '/usr/bin/pushbot/api/diy.json', l: '{{ _('Custom push') }}' }
 		];
@@ -497,6 +499,11 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 				{ name: 'ntfy_token_enable', type: 'toggle', label: '{{ _('Access token') }}' },
 				{ name: 'ntfy_token', type: 'text', label: '{{ _('Token') }}', depends: 'ntfy_token_enable', desc: '{{ _('ntfy access token (optional, for protected topics)<br>The topic is fixed to the device name') }}'},
 				{ name: 'ntfy_priority', type: 'select', label: '{{ _('Priority') }}', choices: [{v:'default',l:'{{ _('default') }}'},{v:'min',l:'{{ _('min') }}'},{v:'low',l:'{{ _('low') }}'},{v:'high',l:'{{ _('high') }}'},{v:'max',l:'{{ _('max') }}'}], desc: '{{ _('ntfy notification priority') }}'},
+			],
+			'/usr/bin/pushbot/api/gotify.json': [
+				{ name: 'gotify_server', type: 'text', label: '{{ _('Server') }}', desc: '{{ _('Gotify self-hosted server address (debug)<br>e.g. https://gotify.example.com') }}'},
+				{ name: 'gotify_token', type: 'text', label: '{{ _('Token') }}', desc: '{{ _('Gotify app token (debug)') }}'},
+				{ name: 'gotify_priority', type: 'select', label: '{{ _('Priority') }}', choices: [{v:'0',l:'0'},{v:'1',l:'1'},{v:'2',l:'2'},{v:'3',l:'3'},{v:'4',l:'4'},{v:'5',l:'5 ({{ _('default') }})'},{v:'6',l:'6'},{v:'7',l:'7'},{v:'8',l:'8'},{v:'9',l:'9'},{v:'10',l:'10'}], desc: '{{ _('Gotify message priority 0-10 (debug)') }}'},
 			],
 			'/usr/bin/pushbot/api/pushplus.json': [
 				{ name: 'pp_token', type: 'text', label: '{{ _('PushPlus Token') }}', desc: '{{ _('Get the code') }} <a href=\'http://pushplus.plus/doc/\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
@@ -602,7 +609,7 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 			});
 		}
 
-		/* ── test button ── */
+		/* ── test button (保存并执行原动作) ── */
 		var tc = document.createElement('button');
 		tc.type = 'button';
 		tc.textContent = '{{ _('Test Channel') }}';
@@ -610,11 +617,27 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 		tc.addEventListener('click', function(e) {
 			e.preventDefault();
 			tc.disabled = true;
-			tc.textContent = '{{ _('Sending...') }}';
-			XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'send_test') }}', null,
-				function() { tc.disabled = false; tc.textContent = '{{ _('Test Channel') }}'; });
+			tc.textContent = '{{ _('Saving...') }}';
+			var data = window.__pbCollectData ? __pbCollectData() : {};
+			var x = new XMLHttpRequest();
+			x.open('POST', '{{ dispatcher.build_url('admin', 'services', 'pushbot', 'save_config') }}', true);
+			x.setRequestHeader('Content-Type', 'application/json');
+			x.onload = function() {
+				tc.textContent = '{{ _('Sending...') }}';
+				var y = new XMLHttpRequest();
+				y.open('GET', '{{ dispatcher.build_url('admin', 'services', 'pushbot', 'send_test') }}', true);
+				y.onload = function() { tc.disabled = false; tc.textContent = '{{ _('Test Channel') }}'; };
+				y.onerror = function() { tc.disabled = false; tc.textContent = '{{ _('Test Channel') }}'; };
+				y.send();
+			};
+			x.onerror = function() { tc.disabled = false; tc.textContent = '{{ _('Test Channel') }}'; };
+			x.send(JSON.stringify(data));
 		});
+		var tcDesc = document.createElement('div');
+		tcDesc.className = 'pushbot-inline-description';
+		tcDesc.textContent = '{{ _('Clicking the test button will save the current settings first') }}';
 		document.getElementById('pm_col_test').appendChild(tc);
+		document.getElementById('pm_col_test').appendChild(tcDesc);
 
 		syncModeBtns();
 		renderModeSettings();
@@ -1799,22 +1822,15 @@ function initMonitorCard() {
 	c1.innerHTML = '<div class="pushbot-card-top"><span class="pushbot-card-title">{{ _('Device Monitor') }}</span></div>';
 	var b1 = document.createElement('div'); b1.style.cssText = 'margin-top:6px';
 	var r1 = document.createElement('div'); r1.style.cssText = 'display:flex;gap:12px';
-	var c1a = document.createElement('div'); c1a.style.cssText = 'flex:1;min-width:0';
-	c1a.appendChild(mkText('up_timeout', '{{ _('Device online timeout (s)') }}', ADV_UP_TIMEOUT));
-	r1.appendChild(c1a);
-	var c1b = document.createElement('div'); c1b.style.cssText = 'flex:1;min-width:0';
-	c1b.appendChild(mkText('thread_num', '{{ _('Max concurrent processes') }}', ADV_THREAD_NUM));
-	r1.appendChild(c1b);
-	b1.appendChild(r1);
-	var r2 = document.createElement('div'); r2.style.cssText = 'display:flex;gap:12px';
-	var c2a = document.createElement('div'); c2a.style.cssText = 'flex:1;min-width:0';
-	c2a.appendChild(mkText('down_timeout', '{{ _('Device offline timeout (s)') }}', ADV_DOWN_TIMEOUT));
-	r2.appendChild(c2a);
-	var c2b = document.createElement('div'); c2b.style.cssText = 'flex:1;min-width:0';
-	c2b.appendChild(mkText('timeout_retry_count', '{{ _('Offline detection count') }}', ADV_TIMEOUT_RETRY,
-		'{{ _('No second-level router, good signal strength: you can reduce the above values<br/>As WiFi sleep at night is unpredictable, please adjust parameters yourself if devices frequently disconnect<br/>..(╰_╯)..') }}'));
-	r2.appendChild(c2b);
-	b1.appendChild(r2); c1.appendChild(b1); container.appendChild(c1);
+	[['up_timeout', '{{ _('Device online timeout (s)') }}', ADV_UP_TIMEOUT, null],
+	 ['thread_num', '{{ _('Max concurrent processes') }}', ADV_THREAD_NUM, null],
+	 ['down_timeout', '{{ _('Device offline timeout (s)') }}', ADV_DOWN_TIMEOUT, null],
+	 ['timeout_retry_count', '{{ _('Offline detection count') }}', ADV_TIMEOUT_RETRY, '{{ _('No second-level router, good signal strength: you can reduce the above values<br/>As WiFi sleep at night is unpredictable, please adjust parameters yourself if devices frequently disconnect<br/>..(╰_╯)..') }}']].forEach(function(f) {
+		var cc = document.createElement('div'); cc.style.cssText = 'flex:1;min-width:0';
+		cc.appendChild(mkText(f[0], f[1], f[2], f[3]));
+		r1.appendChild(cc);
+	});
+	b1.appendChild(r1); c1.appendChild(b1); container.appendChild(c1);
 
 	/* CARD 2: Temperature Monitor */
 	var c2 = document.createElement('div'); c2.className = 'pushbot-mode-card';
@@ -2338,6 +2354,29 @@ function initModernTabs() {
 		if (name === 'client') loadClients();
 		});
 	});
+
+	/* tab 追踪滑块: 跟随 hover/选中项平滑滑动(liquid 同款) */
+	var tabInd = document.createElement('span');
+	tabInd.className = 'pushbot-tab-indicator';
+	tabBar.appendChild(tabInd);
+	function moveTabInd(el) {
+		if (!el || !tabBar.contains(el)) { tabInd.style.opacity = '0'; return; }
+		var r = el.getBoundingClientRect();
+		var ur = tabBar.getBoundingClientRect();
+		tabInd.style.width = r.width + 'px';
+		tabInd.style.height = r.height + 'px';
+		tabInd.style.transform = 'translate(' + (r.left - ur.left) + 'px, ' + (r.top - ur.top) + 'px)';
+		tabInd.style.opacity = '1';
+	}
+	moveTabInd(tabBar.querySelector('.pushbot-tab.is-active'));
+	tabBar.addEventListener('mouseover', function(e) {
+		var t = e.target.closest ? e.target.closest('.pushbot-tab') : null;
+		if (t && tabBar.contains(t)) moveTabInd(t);
+	});
+	tabBar.addEventListener('mouseleave', function() {
+		moveTabInd(tabBar.querySelector('.pushbot-tab.is-active'));
+	});
+
 	/* ── responsive tab resize handler ── */
 	function _updateTabLayout() {
 		var bw = tabBar.clientWidth;
@@ -2664,9 +2703,14 @@ window.addEventListener('DOMContentLoaded', function() {
 .pushbot-pushmode-action-column {
 	flex: 0 1 180px;
 	display: flex;
-	align-items: flex-end;
+	flex-direction: column;
+	align-items: center;
 	justify-content: flex-end;
 	padding-bottom: 4px;
+}
+.pushbot-pushmode-action-column .pushbot-inline-description {
+	text-align: center;
+	margin-top: 6px;
 }
 
 .pushbot-inline-field {
@@ -3125,6 +3169,21 @@ window.addEventListener('DOMContentLoaded', function() {
 	border-radius: 14px;
 	background: rgba(226, 232, 240, 0.66);
 	border: 1px solid rgba(148, 163, 184, 0.18);
+	position: relative;
+}
+/* tab 追踪滑块: 跟随 hover/选中项平滑滑动(liquid 同款) */
+.pushbot-tab-indicator {
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: rgba(59, 130, 246, 0.14);
+	border-radius: 11px;
+	transition: transform 0.28s cubic-bezier(.22, .9, .3, 1), width 0.28s cubic-bezier(.22, .9, .3, 1), height 0.28s cubic-bezier(.22, .9, .3, 1);
+	pointer-events: none;
+	z-index: 0;
+}
+.pushbot-dk .pushbot-tab-indicator {
+	background: rgba(96, 165, 250, 0.22);
 }
 
 .pushbot-tab {
@@ -3140,6 +3199,8 @@ window.addEventListener('DOMContentLoaded', function() {
 	transition: all 0.2s ease;
 	flex: 0 1 auto;
 	white-space: nowrap;
+	position: relative;
+	z-index: 1;
 }
 .pushbot-tab .pb-txt {
 	display: inline-flex;
@@ -3308,6 +3369,7 @@ window.addEventListener('DOMContentLoaded', function() {
 	align-items: center;
 	justify-content: center;
 	padding: 9px 22px;
+	white-space: nowrap;
 	border: 1px solid transparent;
 	border-radius: 999px;
 	font-size: 13px;
@@ -3614,7 +3676,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r21</span>
+		<span class="pushbot-version-badge">v5.12-r7</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>

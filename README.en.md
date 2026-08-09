@@ -2,7 +2,7 @@
 
 # 🚀 luci-app-pushbot PushBot
 
-**Router alert & log push tool** — DingTalk · WeCom · Feishu · Bark · PushPlus · PushDeer · ntfy (Gotify coming soon)
+**Router alert & log push tool** — DingTalk · WeCom · Feishu · Bark · PushPlus · PushDeer · ntfy · Gotify (debug)
 
 [![GitHub release](https://img.shields.io/github/v/release/zzsj0928/luci-app-pushbot?style=flat-square&color=blue)](https://github.com/zzsj0928/luci-app-pushbot/releases)
 [![GitHub issues](https://img.shields.io/github/issues/zzsj0928/luci-app-pushbot?style=flat-square&color=orange)](https://github.com/zzsj0928/luci-app-pushbot/issues)
@@ -24,6 +24,7 @@
 
 # 📝 Changelog
 
+- **2026-08-09** (v5.12): Added Gotify channel support (debug), main version 5.11 → 5.12
 - **2026-08-09** (v5.11): Multiple fixes & enhancements
   - Theme adaptation: auto-follow argon / zargon / liquid / system light/dark mode
   - ntfy: fixed line-break display; Token & self-hosted server toggles
@@ -53,7 +54,7 @@
 | Module | Description |
 |--------|-------------|
 | Run Control | Enable/disable switch, compact mode (compact device list / current time / push title only) |
-| Push Mode | DingTalk, WeCom, Feishu, Bark, PushPlus (all channels), PushDeer, ntfy, custom push (Gotify coming soon) |
+| Push Mode | DingTalk, WeCom, Feishu, Bark, PushPlus (all channels), PushDeer, ntfy, Gotify (debug), custom push |
 | Terminal Info | MAC device database (compact / full / network lookup), device aliases |
 | Do Not Disturb | DND hours (pause script / silent mode), MAC filter (whitelist / blacklist / interface filter, online / offline DND) |
 

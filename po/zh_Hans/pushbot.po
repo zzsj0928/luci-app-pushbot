@@ -1100,6 +1100,23 @@ msgid "Push Content"
 msgstr "推送内容"
 
 
+msgid "Gotify (debug)"
+msgstr "Gotify（调试中）"
+
+msgid "Gotify app token (debug)"
+msgstr "Gotify 应用令牌（调试中）"
+
+msgid "Gotify message priority 0-10 (debug)"
+msgstr "Gotify 消息优先级 0-10（调试中）"
+
+msgid "Gotify self-hosted server address (debug)<br>e.g. https://gotify.example.com"
+msgstr "Gotify 自建服务器地址（调试中）<br>例如 https://gotify.example.com"
+
+
+msgid "Clicking the test button will save the current settings first"
+msgstr "点击测试按钮将执行保存"
+
+
 msgid "Access token"
 msgstr "访问令牌"
 
