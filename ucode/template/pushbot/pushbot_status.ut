@@ -3518,19 +3518,32 @@ var b=document.body;if(!b)return;
 var d=document.documentElement;
 /* Check explicit dark indicators on body OR html */
 /* ═══ 主题模式检测（兼容 argon / zargon / liquid / 系统）═══
- * 1. liquid: 读 <html data-darkmode>（liquid 已按 auto/light/dark 解析有效模式），
- *    fallback 读 localStorage "liquid-theme-mode"（light/dark/auto）
- * 2. argon/zargon: 无 body.dark 类，暗黑由渲染后背景色体现 → 背景亮度检测，
- *    无标记则跟随系统（argon 的 prefers-color-scheme）
- * 3. 系统(bootstrap/默认): 跟随客户端 prefers-color-scheme
- * 主题模式: auto → 跟随系统; light → 强制明亮; dark → 强制暗黑 */
+ * 优先级:
+ *  1. <html data-darkmode>（liquid 设置——有效模式, 无条件优先, 与脚本顺序无关）
+ *  2. localStorage "liquid-theme-mode"（liquid 的 light/dark/auto）
+ *  3. 当前主题检测(link[href]) + 渲染背景亮度(argon/zargon/系统)
+ *  4. 系统 prefers-color-scheme
+ * 模式: auto→跟随系统; light→强制明亮; dark→强制暗黑 */
 (function(){
 var b=document.body;if(!b)return;
 var d=document.documentElement;
 var mq=(typeof window.matchMedia=='function')?window.matchMedia('(prefers-color-scheme: dark)'):null;
 function apply(dark){ d.classList.toggle('pushbot-dk', !!dark); }
+function darkFromDD(){ var v=d.getAttribute('data-darkmode'); return (v==='true'||v==='false') ? (v==='true') : null; }
 
-/* 1. 检测当前启用主题（link[href] 的静态路径） */
+var dark=null;
+/* 1. liquid: html[data-darkmode] 无条件优先（liquid 已按 auto/light/dark 解析有效模式） */
+dark=darkFromDD();
+/* 2. fallback: localStorage liquid-theme-mode */
+if(dark===null){
+	try{
+		var m=localStorage.getItem('liquid-theme-mode');
+		if(m==='dark'){dark=true;}
+		else if(m==='light'){dark=false;}
+		else if(m==='auto'){dark=!!(mq&&mq.matches);}
+	}catch(e){}
+}
+/* 3. 当前主题检测(link[href]) */
 var theme='system', links=document.querySelectorAll('link[rel="stylesheet"]');
 for(var i=0;i<links.length;i++){
 	var h=links[i].href||'';
@@ -3538,21 +3551,7 @@ for(var i=0;i<links.length;i++){
 	if(/\/argon/.test(h)){theme='argon';break;}
 	if(/\/zargon/.test(h)){theme='zargon';break;}
 }
-
-var dark=null;
-/* 2. liquid: 读当前模式 */
-if(theme==='liquid'){
-	var dm=d.getAttribute('data-darkmode');
-	if(dm==='true'){dark=true;}
-	else if(dm==='false'){dark=false;}
-	if(dark===null){
-		try{
-			var m=localStorage.getItem('liquid-theme-mode')||'auto';
-			dark=(m==='dark')||(m==='auto'&&!!(mq&&mq.matches));
-		}catch(e){dark=null;}
-	}
-}
-/* 3. argon/zargon/系统: 渲染背景亮度检测（argon 的 mode/dark.css 生效后背景即暗） */
+/* 4. argon/zargon/系统: 渲染背景亮度（argon 的暗黑由 dark.css 生效后背景体现） */
 if(dark===null){
 	var bg=getComputedStyle(b).backgroundColor||'';
 	var rgb=bg.match(/\d+/g);
@@ -3562,34 +3561,24 @@ if(dark===null){
 		else if(avg>=180){dark=false;}
 	}
 }
-/* 显式暗黑标记（兼容其他主题：body.dark / [data-theme] 等） */
+/* 5. 显式暗黑标记（其他主题: body.dark / [data-theme] 等） */
 if(dark===null){
 	if(b.matches('body.dark, body[data-theme="dark"], body[data-theme="black"]')
 		||b.classList.contains('dark')||d.classList.contains('dark')
 		||d.matches('html[data-theme="dark"], html[data-theme="black"]')
 		||d.getAttribute('data-bs-theme')==='dark'){dark=true;}
 }
-/* 4. 系统模式（auto / 默认） */
+/* 6. 系统模式（auto/默认） */
 if(dark===null){dark=!!(mq&&mq.matches);}
 apply(dark);
 
-/* 自动模式：监听系统变化 + liquid 模式切换（data-darkmode）即时生效 */
-function onThemeChange(){
-	if(theme==='liquid'){
-		var dm2=d.getAttribute('data-darkmode');
-		if(dm2==='true'||dm2==='false'){apply(dm2==='true');return;}
-	}
-	if(theme==='system'||theme==='liquid'){
-		apply(!!(mq&&mq.matches));return;
-	}
-}
+/* 自动模式: 监听系统变化 + liquid data-darkmode 变化(无条件即时生效) */
+function onThemeChange(){ apply(!!(mq&&mq.matches)); }
 if(mq&&mq.addEventListener){mq.addEventListener('change',onThemeChange);}
 try{
 	new MutationObserver(function(){
-		if(theme==='liquid'){
-			var dm3=d.getAttribute('data-darkmode');
-			if(dm3==='true'||dm3==='false'){apply(dm3==='true');}
-		}
+		var v=darkFromDD();
+		if(v!==null){apply(v);}
 	}).observe(d,{attributes:true,attributeFilter:['data-darkmode']});
 }catch(e){}
 })();
@@ -3606,7 +3595,7 @@ try{
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r11</span>
+		<span class="pushbot-version-badge">v5.11-r12</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
