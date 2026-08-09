@@ -3518,69 +3518,62 @@ var b=document.body;if(!b)return;
 var d=document.documentElement;
 /* Check explicit dark indicators on body OR html */
 /* ═══ 主题模式检测（兼容 argon / zargon / liquid / 系统）═══
- * 优先级:
- *  1. <html data-darkmode>（liquid 设置——有效模式, 无条件优先, 与脚本顺序无关）
- *  2. localStorage "liquid-theme-mode"（liquid 的 light/dark/auto）
- *  3. 当前主题检测(link[href]) + 渲染背景亮度(argon/zargon/系统)
- *  4. 系统 prefers-color-scheme
- * 模式: auto→跟随系统; light→强制明亮; dark→强制暗黑 */
+ * liquid: html[data-darkmode] / html|body[data-liquid-mode] / localStorage(liquid-theme-mode)
+ *          dark→强制暗黑; light→强制明亮; auto→跟随系统
+ * argon/zargon/系统: 渲染背景亮度 + 显式标记 + prefers-color-scheme
+ * 监听: 系统模式变化 + liquid 属性变化(MutationObserver) + 轮询兜底(覆盖加载顺序) */
 (function(){
 var b=document.body;if(!b)return;
 var d=document.documentElement;
 var mq=(typeof window.matchMedia=='function')?window.matchMedia('(prefers-color-scheme: dark)'):null;
 function apply(dark){ d.classList.toggle('pushbot-dk', !!dark); }
-function darkFromDD(){ var v=d.getAttribute('data-darkmode'); return (v==='true'||v==='false') ? (v==='true') : null; }
-
-var dark=null;
-/* 1. liquid: html[data-darkmode] 无条件优先（liquid 已按 auto/light/dark 解析有效模式） */
-dark=darkFromDD();
-/* 2. fallback: localStorage liquid-theme-mode */
-if(dark===null){
+function modeFromLiquid(){
+	var v=d.getAttribute('data-darkmode');
+	if(v==='true')return 'dark';
+	if(v==='false')return 'light';
+	var lm=(b&&b.getAttribute('data-liquid-mode'))||d.getAttribute('data-liquid-mode');
+	if(lm==='dark')return 'dark';
+	if(lm==='light')return 'light';
+	if(lm==='auto')return 'auto';
 	try{
 		var m=localStorage.getItem('liquid-theme-mode');
-		if(m==='dark'){dark=true;}
-		else if(m==='light'){dark=false;}
-		else if(m==='auto'){dark=!!(mq&&mq.matches);}
+		if(m==='dark')return 'dark';
+		if(m==='light')return 'light';
+		if(m==='auto')return 'auto';
 	}catch(e){}
+	return null;
 }
-/* 3. 当前主题检测(link[href]) */
-var theme='system', links=document.querySelectorAll('link[rel="stylesheet"]');
-for(var i=0;i<links.length;i++){
-	var h=links[i].href||'';
-	if(/\/liquid/.test(h)){theme='liquid';break;}
-	if(/\/argon/.test(h)){theme='argon';break;}
-	if(/\/zargon/.test(h)){theme='zargon';break;}
-}
-/* 4. argon/zargon/系统: 渲染背景亮度（argon 的暗黑由 dark.css 生效后背景体现） */
-if(dark===null){
+function compute(){
+	var mode=modeFromLiquid();
+	if(mode==='dark')return true;
+	if(mode==='light')return false;
+	if(mode==='auto')return !!(mq&&mq.matches);
+	/* 非 liquid: 渲染背景亮度(argon/zargon/系统) */
 	var bg=getComputedStyle(b).backgroundColor||'';
 	var rgb=bg.match(/\d+/g);
 	if(rgb&&rgb.length>=3){
 		var avg=(+rgb[0]+ +rgb[1]+ +rgb[2])/3;
-		if(avg<128){dark=true;}
-		else if(avg>=180){dark=false;}
+		if(avg<128)return true;
+		if(avg>=180)return false;
 	}
-}
-/* 5. 显式暗黑标记（其他主题: body.dark / [data-theme] 等） */
-if(dark===null){
+	/* 显式暗黑标记(其他主题) */
 	if(b.matches('body.dark, body[data-theme="dark"], body[data-theme="black"]')
 		||b.classList.contains('dark')||d.classList.contains('dark')
 		||d.matches('html[data-theme="dark"], html[data-theme="black"]')
-		||d.getAttribute('data-bs-theme')==='dark'){dark=true;}
+		||d.getAttribute('data-bs-theme')==='dark')return true;
+	return !!(mq&&mq.matches);
 }
-/* 6. 系统模式（auto/默认） */
-if(dark===null){dark=!!(mq&&mq.matches);}
-apply(dark);
-
-/* 自动模式: 监听系统变化 + liquid data-darkmode 变化(无条件即时生效) */
-function onThemeChange(){ apply(!!(mq&&mq.matches)); }
-if(mq&&mq.addEventListener){mq.addEventListener('change',onThemeChange);}
+apply(compute());
+/* 监听系统模式变化 */
+if(mq&&mq.addEventListener){mq.addEventListener('change',function(){apply(compute());});}
+/* 监听 liquid 属性/主题类变化 */
 try{
-	new MutationObserver(function(){
-		var v=darkFromDD();
-		if(v!==null){apply(v);}
-	}).observe(d,{attributes:true,attributeFilter:['data-darkmode']});
+	var obs=new MutationObserver(function(){apply(compute());});
+	obs.observe(d,{attributes:true,attributeFilter:['data-darkmode','data-liquid-mode','class']});
+	if(b){obs.observe(b,{attributes:true,attributeFilter:['data-liquid-mode','class']});}
 }catch(e){}
+/* 轮询兜底: 覆盖脚本加载顺序/第三方覆写, 确保与主题最终状态联动 */
+setInterval(function(){apply(compute());},1500);
 })();
 </script>
 <div class="pushbot-body">
@@ -3595,7 +3588,7 @@ try{
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.11-r13</span>
+		<span class="pushbot-version-badge">v5.11-r14</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
