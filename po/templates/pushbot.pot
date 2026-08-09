@@ -1112,6 +1112,10 @@ msgid "Gotify self-hosted server address (debug)<br>e.g. https://gotify.example.
 msgstr ""
 
 
+msgid "Clicking the test button will save the current settings first"
+msgstr ""
+
+
 msgid "Access token"
 msgstr ""
 

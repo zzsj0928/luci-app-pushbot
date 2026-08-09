@@ -1113,6 +1113,10 @@ msgid "Gotify self-hosted server address (debug)<br>e.g. https://gotify.example.
 msgstr "Gotify 自建服务器地址（调试中）<br>例如 https://gotify.example.com"
 
 
+msgid "Clicking the test button will save the current settings first"
+msgstr "点击测试按钮将执行保存"
+
+
 msgid "Access token"
 msgstr "访问令牌"
 

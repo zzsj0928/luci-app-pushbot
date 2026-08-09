@@ -609,7 +609,7 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 			});
 		}
 
-		/* ── test button ── */
+		/* ── test button (保存并执行原动作) ── */
 		var tc = document.createElement('button');
 		tc.type = 'button';
 		tc.textContent = '{{ _('Test Channel') }}';
@@ -617,11 +617,27 @@ XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'get_config') }
 		tc.addEventListener('click', function(e) {
 			e.preventDefault();
 			tc.disabled = true;
-			tc.textContent = '{{ _('Sending...') }}';
-			XHR.get('{{ dispatcher.build_url('admin', 'services', 'pushbot', 'send_test') }}', null,
-				function() { tc.disabled = false; tc.textContent = '{{ _('Test Channel') }}'; });
+			tc.textContent = '{{ _('Saving...') }}';
+			var data = window.__pbCollectData ? __pbCollectData() : {};
+			var x = new XMLHttpRequest();
+			x.open('POST', '{{ dispatcher.build_url('admin', 'services', 'pushbot', 'save_config') }}', true);
+			x.setRequestHeader('Content-Type', 'application/json');
+			x.onload = function() {
+				tc.textContent = '{{ _('Sending...') }}';
+				var y = new XMLHttpRequest();
+				y.open('GET', '{{ dispatcher.build_url('admin', 'services', 'pushbot', 'send_test') }}', true);
+				y.onload = function() { tc.disabled = false; tc.textContent = '{{ _('Test Channel') }}'; };
+				y.onerror = function() { tc.disabled = false; tc.textContent = '{{ _('Test Channel') }}'; };
+				y.send();
+			};
+			x.onerror = function() { tc.disabled = false; tc.textContent = '{{ _('Test Channel') }}'; };
+			x.send(JSON.stringify(data));
 		});
+		var tcDesc = document.createElement('div');
+		tcDesc.className = 'pushbot-inline-description';
+		tcDesc.textContent = '{{ _('Clicking the test button will save the current settings first') }}';
 		document.getElementById('pm_col_test').appendChild(tc);
+		document.getElementById('pm_col_test').appendChild(tcDesc);
 
 		syncModeBtns();
 		renderModeSettings();
@@ -3621,7 +3637,7 @@ window.addEventListener('load',function(){apply(compute());});
 				</div>
 			</div>
 		</div>
-		<span class="pushbot-version-badge">v5.12-r2</span>
+		<span class="pushbot-version-badge">v5.12-r3</span>
 		<div id="pushbot_status_badge" class="pushbot-status-badge is-stopped" role="status" aria-live="polite">
 			<span class="pushbot-status-dot"></span>
 			<span id="pushbot_status_text">{{ _('NOT RUNNING') }}</span>
