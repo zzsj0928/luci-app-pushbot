@@ -316,7 +316,7 @@ msgid "Full"
 msgstr "完整版"
 
 msgid "Get the code "
-msgstr "调用代码获取"
+msgstr "获取代码 "
 
 msgid "Global connectivity timeout"
 msgstr "全球互联检测超时时间"
