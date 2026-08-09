@@ -1455,7 +1455,7 @@ function add_ip_black(){
 
 # 发送定时数据
 function send(){
-	echo "`date "+%Y-%m-%d %H:%M:%S"` 【定时数据】创建定时任务" >> ${logfile}
+	[ ! -z "$1" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【测试】开始测试渠道" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` 【定时数据】创建定时任务" >> ${logfile}
 	pushbot_disturb;local send_disturb=$?
 	get_config "send_title" "router_status" "router_temp" "router_wan" "client_list" "google_check_count"
 
@@ -1578,7 +1578,12 @@ function send(){
 	send_content=`echo "$send_content"|tr '"' "'"`
 	device_name=`echo "$device_name"|tr '"' "'"`
 	[ "$send_disturb" -eq "0" ] && diy_send "${send_title}" "${send_content}" "${jsonpath}" >/dev/null 2>&1
-	[ $? -ne 0 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】定时推送失败，请检查网络或设置信息" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}定时推送任务完成" >> ${logfile}
+	local send_rc=$?
+	if [ ! -z "$1" ]; then
+		[ $send_rc -ne 0 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】渠道测试失败，请检查网络或设置信息" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}渠道测试完成" >> ${logfile}
+	else
+		[ $send_rc -ne 0 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】定时推送失败，请检查网络或设置信息" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}定时推送任务完成" >> ${logfile}
+	fi
 	deltemp
 }
 
