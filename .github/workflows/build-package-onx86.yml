@@ -16,6 +16,11 @@ on:
       - cron: "0 0 1 * *"
   workflow_dispatch:
     inputs:
+      use_cache:
+        description: '使用 OpenWrt 源码/工具链缓存加速编译（默认开启；关闭则全新构建）'
+        required: false
+        default: true
+        type: boolean
       ssh:
         description: 'SSH connection to Actions'
         required: false
@@ -86,7 +91,20 @@ jobs:
           sudo -E apt -qq install $(curl -fsSL https://raw.githubusercontent.com/zouyq/openwrt-build-action/main/dep/${CHOSEN_OS}) -y
           sudo timedatectl set-timezone "$TZ"
 
+      - name: Restore OpenWrt cache
+        id: cache
+        uses: actions/cache/restore@v4
+        if: inputs.use_cache == true
+        with:
+          # 缓存整个 openwrt/（源码 + dl 下载 + staging_dir 工具链 +
+          # build_dir 编译缓存），命中后跳过 clone，直接增量编译
+          path: openwrt
+          key: pushbot-openwrt-${{ matrix.plugin.op_branch }}-${{ runner.os }}
+          restore-keys: |
+            pushbot-openwrt-${{ matrix.plugin.op_branch }}-
+
       - name: Clone source code
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           pwd && df -hT $PWD
           git clone ${{ matrix.plugin.op_repo }} -b ${{ matrix.plugin.op_branch }} openwrt
@@ -100,6 +118,9 @@ jobs:
       - name: Load custom configuration
         run: |
           cd openwrt
+          # 缓存命中时 .config / package 源码为上次残留，先清空再写入当前包
+          rm -f .config
+          rm -rf package/${{ matrix.plugin.name }}
           git clone ${{ matrix.plugin.repo }} package/${{ matrix.plugin.name }}
           echo CONFIG_TARGET_x86=y >> .config
           echo CONFIG_TARGET_x86_64=y >> .config
@@ -140,6 +161,15 @@ jobs:
           echo "=============================================================================="
           df -hT
           echo "=============================================================================="
+
+      - name: Save OpenWrt cache
+        uses: actions/cache/save@v4
+        if: inputs.use_cache == true && success() && steps.cache.outputs.cache-hit != 'true'
+        with:
+          # 首次（缓存未命中）编译成功后保存；之后命中固定 key 不再覆盖，
+          # 工具链/源码随 op_branch 固定复用
+          path: openwrt
+          key: pushbot-openwrt-${{ matrix.plugin.op_branch }}-${{ runner.os }}
 
       - name: Organize files
         id: organize
