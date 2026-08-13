@@ -1537,10 +1537,12 @@ function add_ip_black(){
 	
 	if $use_nft; then
 		if [ $ip_count -le "0" ]; then
-			local del_rule_handle=$(nft -a list chain inet fw4 input 2>/dev/null | grep "@pushbot_blacklist" | grep -o "handle [0-9]*" | head -1 | cut -d' ' -f2)
-			if [ -n "$del_rule_handle" ]; then
-				nft delete rule inet fw4 input handle $del_rule_handle 2>/dev/null || true
-			fi
+			# 删除所有引用黑名单 set 的规则（v4/v6 各一条，必须全部删除，
+			# 否则残留规则引用 set → nft delete set 报 in-use 失败 → 拉黑不解除）
+			local del_rule_handles=$(nft -a list chain inet fw4 input 2>/dev/null | grep "@pushbot_blacklist" | grep -o "handle [0-9]*" | cut -d' ' -f2)
+			for del_h in $del_rule_handles; do
+				nft delete rule inet fw4 input handle $del_h 2>/dev/null || true
+			done
 			nft delete set inet fw4 pushbot_blacklist 2>/dev/null || true
 			nft delete set inet fw4 pushbot_blacklist6 2>/dev/null || true
 			echo "`date \"+%Y-%m-%d %H:%M:%S\"` 【防火墙】黑名单列表为空，清空 nftables 防火墙拉黑策略" >> ${logfile}
