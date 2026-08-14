@@ -1,0 +1,66 @@
+name: "🐛 Bug 报告"
+description: "插件功能异常、崩溃或行为不符合预期"
+title: "[Bug] 简短的缺陷描述"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🌐 **中英双语提交均可** — Issues and communication in both Chinese and English are welcome.
+        感谢你花时间报告这个 Bug！请尽量填写完整以下信息，方便快速定位。
+  - type: input
+    id: openwrt_version
+    attributes:
+      label: "🖥️ OpenWrt 版本号"
+      description: "固件版本，如 R2026-08-08 / 23.05.5 / snapshot（不确定填『未知』）"
+      placeholder: "例如：R2026-08-08 或 23.05.5 或 未知"
+    validations:
+      required: true
+  - type: input
+    id: luci_version
+    attributes:
+      label: "🧩 LuCI 版本号"
+      description: "LuCI 版本（可在 系统→软件包 或页面页脚看到；不确定填『未知』）"
+      placeholder: "例如：git-25.123.45678-abcdefg 或 未知"
+    validations:
+      required: true
+  - type: input
+    id: firmware_source
+    attributes:
+      label: "📦 固件仓库来源（可选）"
+      description: "固件是从哪个源构建/下载的，如 OpenWrt 官方、immortalwrt、自编译"
+      placeholder: "例如：immortalwrt 24.10 或 自编译"
+    validations:
+      required: false
+  - type: input
+    id: plugin_version
+    attributes:
+      label: "🔌 插件版本"
+      description: "当前安装的 pushbot 版本号（页脚角标可见，如 v5.13-r3）"
+      placeholder: "例如：v5.13-r3"
+    validations:
+      required: true
+  - type: textarea
+    id: problem_description
+    attributes:
+      label: "📝 问题描述"
+      description: "发生了什么？期望是什么行为？实际是什么行为？"
+      placeholder: "描述问题的具体表现、触发步骤、影响范围…"
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "📷 图片/截图"
+      description: "请提供截图或录屏（问题界面、日志、配置等），图片能帮助快速判断"
+      placeholder: "拖拽图片到此处，或粘贴截图链接"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: "🔍 日志（可选）"
+      description: "相关日志：系统日志、pushbot 日志（/tmp/pushbot/pushbot.log，需开启调试）"
+      placeholder: "粘贴日志内容…"
+    validations:
+      required: false
