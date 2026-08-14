@@ -28,15 +28,15 @@ body:
     id: firmware_source
     attributes:
       label: "📦 固件仓库来源（可选）"
-      description: "固件来源"
-      placeholder: "例如：OpenWrt 官方 / immortalwrt / 自编译"
+      description: "固件来源：官方发行版填版本（如 OpenWrt 23.05 / immortalwrt 24.10）；自编译请填 OpenWrt 源码仓库（如 github.com/coolsnowwolf/lede）"
+      placeholder: "例如：immortalwrt 24.10 或 源码仓库 https://github.com/xxx/op"
     validations:
       required: false
   - type: input
     id: plugin_version
     attributes:
       label: "🔌 插件版本"
-      description: "当前 pushbot 版本（页脚角标可见）"
+      description: "当前 pushbot 版本（标题卡片角标可见）"
       placeholder: "例如：v5.13-r3"
     validations:
       required: true
