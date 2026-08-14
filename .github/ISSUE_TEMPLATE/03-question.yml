@@ -1,0 +1,58 @@
+name: "❓ 使用咨询"
+description: "配置、部署、功能使用问题"
+title: "[Question] 简短的问题描述"
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🌐 **中英双语提交均可** — Issues and communication in both Chinese and English are welcome.
+        使用过程中遇到问题？请先查看 README 更新日志与常见配置说明，再描述你的问题。
+  - type: input
+    id: openwrt_version
+    attributes:
+      label: "🖥️ OpenWrt 版本号"
+      description: "固件版本（不确定填『未知』）"
+      placeholder: "例如：R2026-08-08 或 未知"
+    validations:
+      required: true
+  - type: input
+    id: luci_version
+    attributes:
+      label: "🧩 LuCI 版本号"
+      description: "LuCI 版本（不确定填『未知』）"
+      placeholder: "例如：git-25.123.45678-abcdefg 或 未知"
+    validations:
+      required: true
+  - type: input
+    id: firmware_source
+    attributes:
+      label: "📦 固件仓库来源（可选）"
+      description: "固件来源"
+      placeholder: "例如：OpenWrt 官方 / immortalwrt / 自编译"
+    validations:
+      required: false
+  - type: input
+    id: plugin_version
+    attributes:
+      label: "🔌 插件版本"
+      description: "当前 pushbot 版本（页脚角标可见）"
+      placeholder: "例如：v5.13-r3"
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: "❔ 问题描述"
+      description: "详细描述你的问题、已尝试的步骤"
+      placeholder: "描述问题…"
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "📷 图片/截图（可选）"
+      description: "配置界面、报错界面截图"
+      placeholder: "拖拽图片或粘贴链接…"
+    validations:
+      required: false
