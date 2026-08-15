@@ -237,8 +237,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # 获取当前仓库所有 release，按创建时间倒序，删除第 21 个及之后
+          # 显式指定 --repo（runner 工作目录可能不是 git 仓库根，gh 无法自动推断）
           echo "=== 列出所有 releases ==="
-          gh release list --limit 100 --json tagName,createdAt --jq '.[] | "\(.createdAt) \(.tagName)"' > /tmp/releases.txt
+          gh release list --repo "${{ github.repository }}" --limit 100 --json tagName,createdAt --jq '.[] | "\(.createdAt) \(.tagName)"' > /tmp/releases.txt
           total=$(wc -l < /tmp/releases.txt)
           echo "当前 release 数: $total"
           if [ "$total" -gt 20 ]; then
@@ -246,7 +247,7 @@ jobs:
             tail -n +21 /tmp/releases.txt | while read -r line; do
               tag=$(echo "$line" | cut -d' ' -f2-)
               echo "删除旧 release: $tag"
-              gh release delete "$tag" --yes --cleanup-tag || echo "跳过删除失败: $tag"
+              gh release delete --repo "${{ github.repository }}" "$tag" --yes --cleanup-tag || echo "跳过删除失败: $tag"
             done
           else
             echo "release 数量未超过 20，无需清理"
