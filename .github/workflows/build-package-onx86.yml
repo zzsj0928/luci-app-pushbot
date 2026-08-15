@@ -33,6 +33,11 @@ on:
           - ubuntu-20.04
           - ubuntu-22.04
           - ubuntu-24.04
+permissions:
+  contents: write
+  # 删除 workflow runs 需要 actions: write（GitRML/delete-workflow-runs 依赖）
+  actions: write
+
 env:
   UPLOAD_PACKAGE: true
   UPLOAD_RELEASE: true
@@ -220,15 +225,39 @@ jobs:
           files: ${{ env.PACKAGE }}/*
 
       # ── 清理：编译成功后执行 ──────────────────────────
-      # 删除超过 8 个 或 超过 180 天的 workflow run 记录
+      # 删除 workflow run 记录（OR 语义）：
+      #   - 总数超过 8 个：删除最旧的（保留最新 8 个）
+      #   - 或 超过 180 天：删除
+      # （GitRML/delete-workflow-runs 是 AND 语义 —— 只删"既超过
+      #   180天又不在最新8个内"的，无法满足"超过8个就删"，故用脚本）
       - name: Delete workflow runs
-        uses: GitRML/delete-workflow-runs@main
         if: steps.tag.outputs.status == 'success' && !cancelled()
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          retain_days: 180
-          keep_minimum_runs: 8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          repo="${{ github.repository }}"
+          now=$(date +%s)
+          curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$repo/actions/runs?per_page=100&status=completed" \
+            > /tmp/runs.json
+          total=$(jq '.workflow_runs | length' /tmp/runs.json)
+          echo "completed runs: $total"
+          self="${{ github.run_id }}"
+          # 跳过自己；索引>=8（最新8个之外）或 年龄>180天 则删
+          jq -r --argjson now "$now" --arg self "$self" '
+            .workflow_runs | to_entries[] |
+            select(.value.id != ($self|tonumber)) |
+            .key as $i |
+            .value.id as $id |
+            (.value.created_at | fromdateiso8601) as $ct |
+            (($now - $ct) / 86400 > 180 or $i >= 8) as $del |
+            if $del then "\($id)" else empty end
+          ' /tmp/runs.json | while read -r rid; do
+            echo "删除 run: $rid"
+            curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$repo/actions/runs/$rid" \
+              -o /dev/null -w "%{http_code}\n"
+          done
 
       # 删除超过 20 个的 release（保留最新 20 个）
       - name: Clean old releases
