@@ -1,6 +1,9 @@
 {% import { cursor } from 'uci' %}
+{% import { readfile } from 'fs' %}
 {% let pushbot_argon_mode = cursor().get_first('argon', 'global', 'mode') ?? '' %}
 {% let pushbot_liquid_mode = cursor().get_first('liquid', 'theme', 'mode') ?? '' %}
+{% let pushbot_def_ipv4 = readfile('/usr/bin/pushbot/api/ipv4.list') ?? '' %}
+{% let pushbot_def_ipv6 = readfile('/usr/bin/pushbot/api/ipv6.list') ?? '' %}
 {% include('header') %}
 <script type="text/javascript">//<![CDATA[
 if (typeof XHR === 'undefined') {
@@ -1398,8 +1401,20 @@ function initContentCard() {
 	iv4Ta.addEventListener('input',function(){iv4UrlHi.value=this.value;});
 	iv4Ta.addEventListener('blur',function(){if(iv4Sub2.style.display!=='none')iv4Fetch('2');});
 	iv4Sub2.appendChild(iv4Ta);
+	/* 恢复插件默认按钮 */
+	var iv4Rst=document.createElement('div');iv4Rst.style.cssText='display:flex;justify-content:flex-end;margin-top:6px';
+	var iv4RstBtn=document.createElement('button');iv4RstBtn.type='button';iv4RstBtn.className='cbi-button cbi-input-action';
+	iv4RstBtn.style.cssText='padding:4px 12px;font-size:12px;border-radius:6px';
+	iv4RstBtn.textContent='{{ _('Restore plugin default') }}';
+	iv4RstBtn.addEventListener('click',function(){
+		iv4Ta.value=iv4DefList;iv4UrlHi.value=iv4DefList;
+		if(iv4Sub2.style.display!=='none')iv4Fetch('2');
+	});
+	iv4Rst.appendChild(iv4RstBtn);iv4Sub2.appendChild(iv4Rst);
 	iv4Sub.appendChild(iv4Sub2);
 	b1.appendChild(iv4Sub);
+	/* 插件默认预置列表（与包内 api/ipv4.list 一致），供恢复默认按钮使用 */
+	var iv4DefList={{ sprintf("%J", pushbot_def_ipv4) }};
 	function toggleIPv4(v){
 		iv4Sub.style.display=(v==='1'||v==='2')?'block':'none';
 		iv4Sub1.style.display=(v==='1')?'block':'none';
@@ -1486,8 +1501,20 @@ function initContentCard() {
 	iv6Ta.addEventListener('input',function(){iv6UrlHi.value=this.value;});
 	iv6Ta.addEventListener('blur',function(){if(iv6Sub2.style.display!=='none')iv6Fetch('2');});
 	iv6Sub2.appendChild(iv6Ta);
+	/* 恢复插件默认按钮 */
+	var iv6Rst=document.createElement('div');iv6Rst.style.cssText='display:flex;justify-content:flex-end;margin-top:6px';
+	var iv6RstBtn=document.createElement('button');iv6RstBtn.type='button';iv6RstBtn.className='cbi-button cbi-input-action';
+	iv6RstBtn.style.cssText='padding:4px 12px;font-size:12px;border-radius:6px';
+	iv6RstBtn.textContent='{{ _('Restore plugin default') }}';
+	iv6RstBtn.addEventListener('click',function(){
+		iv6Ta.value=iv6DefList;iv6UrlHi.value=iv6DefList;
+		if(iv6Sub2.style.display!=='none')iv6Fetch('2');
+	});
+	iv6Rst.appendChild(iv6RstBtn);iv6Sub2.appendChild(iv6Rst);
 	iv6Sub.appendChild(iv6Sub2);
 	b1.appendChild(iv6Sub);
+	/* 插件默认预置列表（与包内 api/ipv6.list 一致），供恢复默认按钮使用 */
+	var iv6DefList={{ sprintf("%J", pushbot_def_ipv6) }};
 	function toggleIPv6(v){
 		iv6Sub.style.display=(v==='1'||v==='2')?'block':'none';
 		iv6Sub1.style.display=(v==='1')?'block':'none';

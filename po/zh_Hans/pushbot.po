@@ -994,6 +994,9 @@ msgstr "点击重启 pushbot 服务"
 msgid "Restarting..."
 msgstr "重启中..."
 
+msgid "Restore plugin default"
+msgstr "恢复插件默认"
+
 
 
 msgid "PushBot - push router alerts and logs to DingTalk, WeCom and PushPlus."

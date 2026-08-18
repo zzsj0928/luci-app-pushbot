@@ -992,6 +992,9 @@ msgstr ""
 msgid "Restarting..."
 msgstr ""
 
+msgid "Restore plugin default"
+msgstr ""
+
 
 
 msgid "PushBot - push router alerts and logs to DingTalk, WeCom and PushPlus."
