@@ -1563,7 +1563,7 @@ function add_ip_black(){
 	
 	local prev_file="${bl_state}.prev"
 	if ! $need_update && [ -f "$prev_file" ]; then
-		diff -q "$prev_file" "${ip_blacklist_path}" >/dev/null 2>&1 || need_update=true
+		cmp -s "$prev_file" "${ip_blacklist_path}" || need_update=true
 	fi
 	cp "${ip_blacklist_path}" "$prev_file" 2>/dev/null || true
 	
