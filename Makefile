@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-pushbot
 PKG_VERSION:=5.13
-PKG_RELEASE:=15
+PKG_RELEASE:=16
 
 PKG_MAINTAINER:=tty228 <tty228@yeah.net>  zzsj0928
 
@@ -17,9 +17,9 @@ override VERSION:=$(if $(PKG_RELEASE),$(PKG_VERSION)-r$(PKG_RELEASE),$(PKG_VERSI
 
 LUCI_TITLE:=LuCI support for Pushbot
 LUCI_PKGARCH:=all
-# 核心依赖：luci-base（界面）、curl/jq（推送 JSON 解析）、iputils-arping（在线检测）、iw（无线检测）
-# wrtbwmon/nlbwmon（流量统计）为可选回落数据源，缺失时降级，不强制
-LUCI_DEPENDS:=+luci-base +iputils-arping +curl +jq +iw
+# 核心依赖：luci-base（界面）、curl/jq（推送 JSON 解析）、iputils-arping（在线检测）
+# iw（无线检测）、wrtbwmon/nlbwmon（流量统计）为可选功能，x86 上用户可选择不使用，不强制
+LUCI_DEPENDS:=+luci-base +iputils-arping +curl +jq
 
 # 汉化包（luci-i18n-*) 版本与主包保持同步
 PKG_PO_VERSION:=$(PKG_VERSION)-r$(PKG_RELEASE)
