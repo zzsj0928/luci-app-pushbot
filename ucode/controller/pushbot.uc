@@ -457,8 +457,10 @@ return {
 						if (length(content) > 0)
 							content += "\n";
 					}
+					/* 非黑名单文件（diy.json / ipv4.list / ipv6.list）直接写原始值；
+					   黑名单分支已构造规范化 content，两者共用此行 */
 					let f = open(path, "w");
-					if (f) { f.write(content); f.close(); }
+					if (f) { f.write(content ?? val); f.close(); }
 				}
 				else {
 					let f = open(path, "w");
