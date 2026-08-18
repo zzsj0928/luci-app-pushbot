@@ -1590,6 +1590,7 @@ function add_ip_black(){
 	# 如编辑界面追加新 IP；反向同步用 set 覆盖会误抹掉它）。
 	# 注意：用户若明知某 IP 已到期仍想重新拉黑，需通过带参调用（界面"拉黑"按钮），
 	# 或等残留被清后再次添加；纯文本编辑无法区分"残留"与"主动重拉"，以 prev_file 快照判定。
+	local prev_file="${bl_state}.prev"
 	if $fw_changed; then
 		# 记录用户本次新增（当前文件 - prev_file）
 		local user_added=""
@@ -1611,7 +1612,6 @@ function add_ip_black(){
 	fi
 	rm -f ${ip_blacklist_path}.setcur
 	
-	local prev_file="${bl_state}.prev"
 	if ! $need_update && [ -f "$prev_file" ]; then
 		cmp -s "$prev_file" "${ip_blacklist_path}" || need_update=true
 	fi
