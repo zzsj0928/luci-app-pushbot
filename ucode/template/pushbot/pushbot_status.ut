@@ -1393,6 +1393,11 @@ function initContentCard() {
 	iv4Ta.addEventListener('input',function(){iv4UrlHi.value=this.value;});
 	iv4Ta.addEventListener('blur',function(){if(iv4Sub2.style.display!=='none')iv4Fetch('2');});
 	iv4Sub2.appendChild(iv4Ta);
+	/* API 列表下方提示 */
+	var iv4UrlNote=document.createElement('div');iv4UrlNote.className='pushbot-inline-description';
+	iv4UrlNote.style.cssText='margin:6px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
+	iv4UrlNote.textContent='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]') }}';
+	iv4Sub2.appendChild(iv4UrlNote);
 	iv4Sub.appendChild(iv4Sub2);
 	b1.appendChild(iv4Sub);
 	function toggleIPv4(v){
@@ -1476,6 +1481,11 @@ function initContentCard() {
 	iv6Ta.addEventListener('input',function(){iv6UrlHi.value=this.value;});
 	iv6Ta.addEventListener('blur',function(){if(iv6Sub2.style.display!=='none')iv6Fetch('2');});
 	iv6Sub2.appendChild(iv6Ta);
+	/* API 列表下方提示 */
+	var iv6UrlNote=document.createElement('div');iv6UrlNote.className='pushbot-inline-description';
+	iv6UrlNote.style.cssText='margin:6px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
+	iv6UrlNote.textContent='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]') }}';
+	iv6Sub2.appendChild(iv6UrlNote);
 	iv6Sub.appendChild(iv6Sub2);
 	b1.appendChild(iv6Sub);
 	function toggleIPv6(v){

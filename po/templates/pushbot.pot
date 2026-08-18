@@ -907,6 +907,9 @@ msgstr ""
 msgid "[Zed-OP] Test-OpenWRT status:"
 msgstr ""
 
+msgid "[ Note: If you use a \"Global Interconnect\" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]"
+msgstr ""
+
 msgid "active: Default"
 msgstr ""
 
