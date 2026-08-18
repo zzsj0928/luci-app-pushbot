@@ -1372,7 +1372,7 @@ function initContentCard() {
 	var iv4Row=document.createElement('div');iv4Row.style.cssText='display:flex;align-items:center;gap:12px;flex-wrap:wrap';
 	iv4Row.appendChild(iv4Choices);
 	var iv4Rl=document.createElement('span');iv4Rl.style.cssText='font-size:13px;font-weight:600';iv4Rl.textContent='{{ _('IPv4 result:') }}';iv4Row.appendChild(iv4Rl);
-	var iv4Ro=document.createElement('span');iv4Ro.style.cssText='padding:4px 10px;background:rgba(148,163,184,0.08);border-radius:6px;font-family:Menlo,Consolas,monospace;font-size:12px';iv4Ro.textContent='--';iv4Row.appendChild(iv4Ro);
+	var iv4Ro=document.createElement('span');iv4Ro.className='pushbot-ip-result';iv4Ro.style.cssText='padding:4px 10px;background:rgba(148,163,184,0.08);border-radius:6px;font-family:Menlo,Consolas,monospace;font-size:12px';iv4Ro.textContent='--';iv4Row.appendChild(iv4Ro);
 	b1.appendChild(iv4Row);
 	var iv4Sub = document.createElement('div'); iv4Sub.id='ct_ipv4_extra'; iv4Sub.style.cssText='margin-top:6px;display:none';
 	/* interface selector */
@@ -1400,6 +1400,22 @@ function initContentCard() {
 		iv4Sub1.style.display=(v==='1')?'block':'none';
 		iv4Sub2.style.display=(v==='2')?'block':'none';
 	}
+	function ipResultStyle(ro, text, isErr) {
+		/* 与检查更新一致的配色：公网=绿 / 非公网=橙 / 失败=红 */
+		ro.classList.remove('is-ok','is-warn','is-err');
+		if (isErr) { ro.classList.add('is-err'); return; }
+		var t = text || '';
+		if (t.indexOf('(') >= 0 || t.indexOf('Not a public') >= 0 || t.indexOf('非公网') >= 0) {
+			ro.classList.add('is-warn');
+		}
+		else if (t.indexOf('Failed to obtain') >= 0 || t.indexOf('获取失败') >= 0 ||
+		         t.indexOf('No output') >= 0 || t.indexOf('无输出') >= 0 || t == '') {
+			ro.classList.add('is-err');
+		}
+		else {
+			ro.classList.add('is-ok');
+		}
+	}
 	function iv4Fetch(v){
 		if(v!=='1'&&v!=='2'){iv4Ro.textContent='--';return;}
 		var base='{{ dispatcher.build_url('admin','services','pushbot','get_ip') }}';
@@ -1409,7 +1425,7 @@ function initContentCard() {
 			var dd=iv4Sub1.querySelector('.cbi-dropdown');
 			var iface=dd?dd.value:(iv4Sub1.querySelector('select')||{}).value;
 			if(iface==null)iface=CT_IPV4_IFACE;
-			if(!iface){iv4Ro.textContent='{{ _('Select an interface first') }}';return;}
+			if(!iface){iv4Ro.textContent='{{ _('Select an interface first') }}';iv4Ro.classList.remove('is-ok','is-warn');iv4Ro.classList.add('is-err');return;}
 			q+='&iface='+encodeURIComponent(iface);
 		}else{
 			/* URL 模式：带配置的接口出口，适配多 WAN */
@@ -1419,10 +1435,11 @@ function initContentCard() {
 		/* 打断：每次新触发使旧请求 token 失效（含重试中的请求） */
 		var myTok=++iv4Tok;
 		iv4Ro.textContent='{{ _('Loading...') }}';
+		iv4Ro.classList.remove('is-ok','is-warn','is-err');
 		var x=new XMLHttpRequest();
 		x.open('GET',base+'?_='+Date.now()+'&'+q,true);
-		x.onload=function(){if(myTok!==iv4Tok)return;iv4Ro.textContent=x.responseText||'{{ _('No output') }}';};
-		x.onerror=function(){if(myTok!==iv4Tok)return;iv4Ro.textContent='{{ _('No output') }}';};
+		x.onload=function(){if(myTok!==iv4Tok)return;iv4Ro.textContent=x.responseText||'{{ _('No output') }}';ipResultStyle(iv4Ro,x.responseText,false);};
+		x.onerror=function(){if(myTok!==iv4Tok)return;iv4Ro.textContent='{{ _('No output') }}';ipResultStyle(iv4Ro,'',true);};
 		x.send();
 	}
 	var iv4Tok=0;
@@ -1440,7 +1457,7 @@ function initContentCard() {
 	var iv6Row=document.createElement('div');iv6Row.style.cssText='display:flex;align-items:center;gap:12px;flex-wrap:wrap';
 	iv6Row.appendChild(iv6Choices);
 	var iv6Rl=document.createElement('span');iv6Rl.style.cssText='font-size:13px;font-weight:600';iv6Rl.textContent='{{ _('IPv6 result:') }}';iv6Row.appendChild(iv6Rl);
-	var iv6Ro=document.createElement('span');iv6Ro.style.cssText='padding:4px 10px;background:rgba(148,163,184,0.08);border-radius:6px;font-family:Menlo,Consolas,monospace;font-size:12px';iv6Ro.textContent='--';iv6Row.appendChild(iv6Ro);
+	var iv6Ro=document.createElement('span');iv6Ro.className='pushbot-ip-result';iv6Ro.style.cssText='padding:4px 10px;background:rgba(148,163,184,0.08);border-radius:6px;font-family:Menlo,Consolas,monospace;font-size:12px';iv6Ro.textContent='--';iv6Row.appendChild(iv6Ro);
 	b1.appendChild(iv6Row);
 	var iv6Sub = document.createElement('div'); iv6Sub.id='ct_ipv6_extra'; iv6Sub.style.cssText='margin-top:6px;display:none';
 	var iv6Sub1 = document.createElement('div'); iv6Sub1.style.cssText='display:none';
@@ -1475,7 +1492,7 @@ function initContentCard() {
 			var dd=iv6Sub1.querySelector('.cbi-dropdown');
 			var iface=dd?dd.value:(iv6Sub1.querySelector('select')||{}).value;
 			if(iface==null)iface=CT_IPV6_IFACE;
-			if(!iface){iv6Ro.textContent='{{ _('Select an interface first') }}';return;}
+			if(!iface){iv6Ro.textContent='{{ _('Select an interface first') }}';iv6Ro.classList.remove('is-ok','is-warn');iv6Ro.classList.add('is-err');return;}
 			q+='&iface='+encodeURIComponent(iface);
 		}else{
 			/* URL 模式：带配置的接口出口，适配多 WAN */
@@ -1485,10 +1502,11 @@ function initContentCard() {
 		/* 打断：每次新触发使旧请求 token 失效（含重试中的请求） */
 		var myTok=++iv6Tok;
 		iv6Ro.textContent='{{ _('Loading...') }}';
+		iv6Ro.classList.remove('is-ok','is-warn','is-err');
 		var x=new XMLHttpRequest();
 		x.open('GET',base+'?_='+Date.now()+'&'+q,true);
-		x.onload=function(){if(myTok!==iv6Tok)return;iv6Ro.textContent=x.responseText||'{{ _('No output') }}';};
-		x.onerror=function(){if(myTok!==iv6Tok)return;iv6Ro.textContent='{{ _('No output') }}';};
+		x.onload=function(){if(myTok!==iv6Tok)return;iv6Ro.textContent=x.responseText||'{{ _('No output') }}';ipResultStyle(iv6Ro,x.responseText,false);};
+		x.onerror=function(){if(myTok!==iv6Tok)return;iv6Ro.textContent='{{ _('No output') }}';ipResultStyle(iv6Ro,'',true);};
 		x.send();
 	}
 	var iv6Tok=0;
@@ -3124,6 +3142,19 @@ window.addEventListener('DOMContentLoaded', function() {
 .pushbot-ver-toast.is-err {
 	background: linear-gradient(135deg, #ef4444, #dc2626);
 	border: 1px solid rgba(248, 113, 113, 0.45);
+}
+/* IP 预览输出位配色：与检查更新一致（公网=绿 / 非公网=橙 / 失败=红） */
+.pushbot-ip-result.is-ok {
+	background: linear-gradient(135deg, #10b981, #059669) !important;
+	color: #fff;
+}
+.pushbot-ip-result.is-warn {
+	background: linear-gradient(135deg, #f59e0b, #ea580c) !important;
+	color: #fff;
+}
+.pushbot-ip-result.is-err {
+	background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+	color: #fff;
 }
 .pushbot-ver-toast-msg {
 	font-size: 14px;
