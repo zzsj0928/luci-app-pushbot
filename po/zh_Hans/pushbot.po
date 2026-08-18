@@ -299,6 +299,9 @@ msgstr "错误尝试次数"
 msgid "Failed attempts"
 msgstr "错误次数"
 
+msgid "Failed to obtain IP"
+msgstr "获取失败"
+
 msgid "Failure message color"
 msgstr "失败消息颜色"
 
@@ -508,6 +511,9 @@ msgstr "仅通知列表内设备"
 
 msgid "Notify only devices on this interface"
 msgstr "仅通知此接口设备"
+
+msgid "Not a public IP"
+msgstr "非公网IP"
 
 msgid "OUI data"
 msgstr "OUI数据"

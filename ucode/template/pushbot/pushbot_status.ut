@@ -1393,15 +1393,20 @@ function initContentCard() {
 			if(!iface){iv4Ro.textContent='{{ _('Select an interface first') }}';return;}
 			q+='&iface='+encodeURIComponent(iface);
 		}else{
+			/* URL 模式：带配置的接口出口，适配多 WAN */
 			q+='&url='+encodeURIComponent(iv4Ta.value||'');
+			if(CT_IPV4_IFACE)q+='&iface='+encodeURIComponent(CT_IPV4_IFACE);
 		}
+		/* 打断：每次新触发使旧请求 token 失效（含重试中的请求） */
+		var myTok=++iv4Tok;
 		iv4Ro.textContent='{{ _('Loading...') }}';
 		var x=new XMLHttpRequest();
 		x.open('GET',base+'?_='+Date.now()+'&'+q,true);
-		x.onload=function(){iv4Ro.textContent=x.responseText||'{{ _('No output') }}';};
-		x.onerror=function(){iv4Ro.textContent='{{ _('No output') }}';};
+		x.onload=function(){if(myTok!==iv4Tok)return;iv4Ro.textContent=x.responseText||'{{ _('No output') }}';};
+		x.onerror=function(){if(myTok!==iv4Tok)return;iv4Ro.textContent='{{ _('No output') }}';};
 		x.send();
 	}
+	var iv4Tok=0;
 	toggleIPv4(CT_IPV4);
 	if(CT_IPV4==='1'||CT_IPV4==='2')iv4Fetch(CT_IPV4);
 
@@ -1452,15 +1457,20 @@ function initContentCard() {
 			if(!iface){iv6Ro.textContent='{{ _('Select an interface first') }}';return;}
 			q+='&iface='+encodeURIComponent(iface);
 		}else{
+			/* URL 模式：带配置的接口出口，适配多 WAN */
 			q+='&url='+encodeURIComponent(iv6Ta.value||'');
+			if(CT_IPV6_IFACE)q+='&iface='+encodeURIComponent(CT_IPV6_IFACE);
 		}
+		/* 打断：每次新触发使旧请求 token 失效（含重试中的请求） */
+		var myTok=++iv6Tok;
 		iv6Ro.textContent='{{ _('Loading...') }}';
 		var x=new XMLHttpRequest();
 		x.open('GET',base+'?_='+Date.now()+'&'+q,true);
-		x.onload=function(){iv6Ro.textContent=x.responseText||'{{ _('No output') }}';};
-		x.onerror=function(){iv6Ro.textContent='{{ _('No output') }}';};
+		x.onload=function(){if(myTok!==iv6Tok)return;iv6Ro.textContent=x.responseText||'{{ _('No output') }}';};
+		x.onerror=function(){if(myTok!==iv6Tok)return;iv6Ro.textContent='{{ _('No output') }}';};
 		x.send();
 	}
+	var iv6Tok=0;
 	toggleIPv6(CT_IPV6);
 	if(CT_IPV6==='1'||CT_IPV6==='2')iv6Fetch(CT_IPV6);
 
