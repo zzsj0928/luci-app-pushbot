@@ -113,6 +113,67 @@ return {
 		}
 	},
 
+	/* 即时获取 IPv4/IPv6（用于 IPv4/IPv6 变更通知的实时预览输出）：
+	 *   type = 4|6, mode = iface|url
+	 *   iface 模式：读指定接口地址
+	 *   url 模式：从 URL 列表随机取一行 curl 获取
+	 * 返回纯文本 IP（可能为空） */
+	act_get_ip: function() {
+		let type = http.get("type") ?? "4";
+		let mode = http.get("mode") ?? "iface";
+		let iface = http.get("iface") ?? "";
+		let urls  = http.get("url")  ?? "";
+
+		http.prepare_content("text/plain; charset=UTF-8");
+
+		/* 接口名只允许安全字符 */
+		iface = replace(iface, /[^A-Za-z0-9_.\-]/g, "");
+
+		let cmd = "";
+		if (mode == "iface" && iface != "") {
+			if (type == "4") {
+				cmd = "/sbin/ifconfig " + sq(iface) +
+					" | awk '/inet addr/ {print $2}' | awk -F: '{print $2}'" +
+					" | grep -oE '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}' | head -n1";
+			}
+			else {
+				cmd = "ip addr show " + sq(iface) +
+					" | grep -v deprecated | grep -A1 'inet6 [^f:]'" +
+					" | sed -nr ':a;N;s#^ +inet6 ([a-f0-9:]+)/.+? scope global .*? valid_lft ([0-9]+sec) .*#\\2 \\1#p;ta'" +
+					" | sort -nr | head -n1 | awk '{print $2}'";
+			}
+		}
+		else if (mode == "url") {
+			/* 与脚本 get_hostipv4/get_hostipv6 一致：随机取一行 */
+			let lines = [];
+			for (let l in split(urls, /\r?\n/)) {
+				let t = replace(l, /\s+/, "");
+				if (length(t) > 0) push(lines, t);
+			}
+			if (length(lines) > 0) {
+				let pick = lines[time() % length(lines)];
+				if (type == "4")
+					cmd = "curl -k -s -4 -m 5 " + sq(pick) +
+						" | grep -oE '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}' | head -n1";
+				else
+					cmd = "curl -k -s -6 -m 5 " + sq(pick) +
+						" | grep -oE '([\\da-fA-F0-9]{1,4}(:{1,2})){1,15}[\\da-fA-F0-9]{1,4}' | head -n1";
+			}
+		}
+
+		if (cmd == "") {
+			http.write("");
+			return;
+		}
+
+		let f = popen(cmd + " 2>/dev/null", "r");
+		if (f) {
+			let out = f.read("all");
+			f.close();
+			http.write(replace(out, /[\r\n]+$/, ""));
+		}
+	},
+
 	get_log: function() {
 		let u = cursor();
 		if (u.get("pushbot", "pushbot", "debuglevel") != "1") {

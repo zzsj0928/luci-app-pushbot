@@ -34,6 +34,9 @@ msgstr ""
 msgid "3 devices online:"
 msgstr ""
 
+msgid "Select an interface first"
+msgstr ""
+
 msgid "A shorter interval responds faster but consumes more system resources"
 msgstr ""
 
@@ -348,6 +351,9 @@ msgstr ""
 msgid "IPv4 interface"
 msgstr ""
 
+msgid "IPv4 result:"
+msgstr ""
+
 msgid "IPv6 API list"
 msgstr ""
 
@@ -358,6 +364,9 @@ msgid "IPv6 change notification"
 msgstr ""
 
 msgid "IPv6 interface"
+msgstr ""
+
+msgid "IPv6 result:"
 msgstr ""
 
 msgid "Identifies this device in push message titles, to distinguish the source device"

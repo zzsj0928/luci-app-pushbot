@@ -1347,16 +1347,22 @@ function initContentCard() {
 	/* IPv4 row */
 	var iv4Hi = mkH('pushbot_ipv4', CT_IPV4);
 	var iv4Opts=[{v:'',l:'{{ _('Disabled') }}'},{v:'1',l:'{{ _('Via interface') }}'},{v:'2',l:'{{ _('Via URL') }}'}];
-	var iv4Choices = mkChoice(iv4Opts, CT_IPV4, function(v){iv4Hi.value=v; toggleIPv4(v);});
+	var iv4Choices = mkChoice(iv4Opts, CT_IPV4, function(v){iv4Hi.value=v; toggleIPv4(v); iv4Fetch(v);});
 	var iv4Lbl = document.createElement('div'); iv4Lbl.className='pushbot-inline-title';
 	iv4Lbl.style.cssText='margin:0 0 4px 2px;text-transform:none;font-size:13px;font-weight:600;color:inherit';
-	iv4Lbl.textContent='{{ _('IPv4 change notification') }}'; b1.appendChild(iv4Lbl); b1.appendChild(iv4Choices);
+	iv4Lbl.textContent='{{ _('IPv4 change notification') }}'; b1.appendChild(iv4Lbl);
+	/* 三按钮右侧输出位：即时显示获取到的地址 */
+	var iv4Row=document.createElement('div');iv4Row.style.cssText='display:flex;align-items:center;gap:12px;flex-wrap:wrap';
+	iv4Row.appendChild(iv4Choices);
+	var iv4Rl=document.createElement('span');iv4Rl.style.cssText='font-size:13px;font-weight:600';iv4Rl.textContent='{{ _('IPv4 result:') }}';iv4Row.appendChild(iv4Rl);
+	var iv4Ro=document.createElement('span');iv4Ro.style.cssText='padding:4px 10px;background:rgba(148,163,184,0.08);border-radius:6px;font-family:Menlo,Consolas,monospace;font-size:12px';iv4Ro.textContent='--';iv4Row.appendChild(iv4Ro);
+	b1.appendChild(iv4Row);
 	var iv4Sub = document.createElement('div'); iv4Sub.id='ct_ipv4_extra'; iv4Sub.style.cssText='margin-top:6px;display:none';
 	/* interface selector */
 	var iv4Sub1 = document.createElement('div'); iv4Sub1.id='ct_ipv4_iface'; iv4Sub1.style.cssText='display:none';
 	var iv4IfOpts=[{v:'',l:'{{ _('-- Select interface --') }}'}];
 	CT_IFACES.forEach(function(f){iv4IfOpts.push({v:f,l:f});});
-	iv4Sub1.appendChild(mkSel('ipv4_interface','{{ _('Interface name') }}',CT_IPV4_IFACE,iv4IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}'));
+	iv4Sub1.appendChild(mkSel('ipv4_interface','{{ _('Interface name') }}',CT_IPV4_IFACE,iv4IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}',function(){iv4Fetch('1');}));
 	iv4Sub.appendChild(iv4Sub1);
 	/* URL list textarea */
 	var iv4Sub2 = document.createElement('div'); iv4Sub2.id='ct_ipv4_url'; iv4Sub2.style.cssText='display:none';
@@ -1368,6 +1374,7 @@ function initContentCard() {
 	iv4Ta.textContent=CT_IPV4_LIST;
 	var iv4UrlHi=mkH('ipv4_list',CT_IPV4_LIST);
 	iv4Ta.addEventListener('input',function(){iv4UrlHi.value=this.value;});
+	iv4Ta.addEventListener('blur',function(){if(iv4Sub2.style.display!=='none')iv4Fetch('2');});
 	iv4Sub2.appendChild(iv4Ta);
 	iv4Sub.appendChild(iv4Sub2);
 	b1.appendChild(iv4Sub);
@@ -1376,20 +1383,46 @@ function initContentCard() {
 		iv4Sub1.style.display=(v==='1')?'block':'none';
 		iv4Sub2.style.display=(v==='2')?'block':'none';
 	}
+	function iv4Fetch(v){
+		if(v!=='1'&&v!=='2'){iv4Ro.textContent='--';return;}
+		var base='{{ dispatcher.build_url('admin','services','pushbot','get_ip') }}';
+		var q='type=4&mode='+(v==='1'?'iface':'url');
+		if(v==='1'){
+			var sel=iv4Sub1.querySelector('select');
+			var iface=sel?sel.value:CT_IPV4_IFACE;
+			if(!iface){iv4Ro.textContent='{{ _('Select an interface first') }}';return;}
+			q+='&iface='+encodeURIComponent(iface);
+		}else{
+			q+='&url='+encodeURIComponent(iv4Ta.value||'');
+		}
+		iv4Ro.textContent='{{ _('Loading...') }}';
+		var x=new XMLHttpRequest();
+		x.open('GET',base+'?_='+Date.now()+'&'+q,true);
+		x.onload=function(){iv4Ro.textContent=x.responseText||'{{ _('No output') }}';};
+		x.onerror=function(){iv4Ro.textContent='{{ _('No output') }}';};
+		x.send();
+	}
 	toggleIPv4(CT_IPV4);
+	if(CT_IPV4==='1'||CT_IPV4==='2')iv4Fetch(CT_IPV4);
 
 	/* IPv6 row */
 	var iv6Hi = mkH('pushbot_ipv6', CT_IPV6);
 	var iv6Opts=[{v:'0',l:'{{ _('Disabled') }}'},{v:'1',l:'{{ _('Via interface') }}'},{v:'2',l:'{{ _('Via URL') }}'}];
-	var iv6Choices = mkChoice(iv6Opts, CT_IPV6, function(v){iv6Hi.value=v; toggleIPv6(v);});
+	var iv6Choices = mkChoice(iv6Opts, CT_IPV6, function(v){iv6Hi.value=v; toggleIPv6(v); iv6Fetch(v);});
 	var iv6Lbl = document.createElement('div'); iv6Lbl.className='pushbot-inline-title';
 	iv6Lbl.style.cssText='margin:8px 0 4px 2px;text-transform:none;font-size:13px;font-weight:600;color:inherit';
-	iv6Lbl.textContent='{{ _('IPv6 change notification') }}'; b1.appendChild(iv6Lbl); b1.appendChild(iv6Choices);
+	iv6Lbl.textContent='{{ _('IPv6 change notification') }}'; b1.appendChild(iv6Lbl);
+	/* 三按钮右侧输出位：即时显示获取到的地址 */
+	var iv6Row=document.createElement('div');iv6Row.style.cssText='display:flex;align-items:center;gap:12px;flex-wrap:wrap';
+	iv6Row.appendChild(iv6Choices);
+	var iv6Rl=document.createElement('span');iv6Rl.style.cssText='font-size:13px;font-weight:600';iv6Rl.textContent='{{ _('IPv6 result:') }}';iv6Row.appendChild(iv6Rl);
+	var iv6Ro=document.createElement('span');iv6Ro.style.cssText='padding:4px 10px;background:rgba(148,163,184,0.08);border-radius:6px;font-family:Menlo,Consolas,monospace;font-size:12px';iv6Ro.textContent='--';iv6Row.appendChild(iv6Ro);
+	b1.appendChild(iv6Row);
 	var iv6Sub = document.createElement('div'); iv6Sub.id='ct_ipv6_extra'; iv6Sub.style.cssText='margin-top:6px;display:none';
 	var iv6Sub1 = document.createElement('div'); iv6Sub1.style.cssText='display:none';
 	var iv6IfOpts=[{v:'',l:'{{ _('-- Select interface --') }}'}];
 	CT_IFACES.forEach(function(f){iv6IfOpts.push({v:f,l:f});});
-	iv6Sub1.appendChild(mkSel('ipv6_interface','{{ _('Interface name') }}',CT_IPV6_IFACE,iv6IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}'));
+	iv6Sub1.appendChild(mkSel('ipv6_interface','{{ _('Interface name') }}',CT_IPV6_IFACE,iv6IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}',function(){iv6Fetch('1');}));
 	iv6Sub.appendChild(iv6Sub1);
 	var iv6Sub2 = document.createElement('div'); iv6Sub2.id='ct_ipv6_url'; iv6Sub2.style.cssText='display:none';
 	var iv6UrlLbl = document.createElement('div'); iv6UrlLbl.className='pushbot-inline-title';
@@ -1400,6 +1433,7 @@ function initContentCard() {
 	iv6Ta.textContent=CT_IPV6_LIST;
 	var iv6UrlHi=mkH('ipv6_list',CT_IPV6_LIST);
 	iv6Ta.addEventListener('input',function(){iv6UrlHi.value=this.value;});
+	iv6Ta.addEventListener('blur',function(){if(iv6Sub2.style.display!=='none')iv6Fetch('2');});
 	iv6Sub2.appendChild(iv6Ta);
 	iv6Sub.appendChild(iv6Sub2);
 	b1.appendChild(iv6Sub);
@@ -1408,7 +1442,27 @@ function initContentCard() {
 		iv6Sub1.style.display=(v==='1')?'block':'none';
 		iv6Sub2.style.display=(v==='2')?'block':'none';
 	}
+	function iv6Fetch(v){
+		if(v!=='1'&&v!=='2'){iv6Ro.textContent='--';return;}
+		var base='{{ dispatcher.build_url('admin','services','pushbot','get_ip') }}';
+		var q='type=6&mode='+(v==='1'?'iface':'url');
+		if(v==='1'){
+			var sel=iv6Sub1.querySelector('select');
+			var iface=sel?sel.value:CT_IPV6_IFACE;
+			if(!iface){iv6Ro.textContent='{{ _('Select an interface first') }}';return;}
+			q+='&iface='+encodeURIComponent(iface);
+		}else{
+			q+='&url='+encodeURIComponent(iv6Ta.value||'');
+		}
+		iv6Ro.textContent='{{ _('Loading...') }}';
+		var x=new XMLHttpRequest();
+		x.open('GET',base+'?_='+Date.now()+'&'+q,true);
+		x.onload=function(){iv6Ro.textContent=x.responseText||'{{ _('No output') }}';};
+		x.onerror=function(){iv6Ro.textContent='{{ _('No output') }}';};
+		x.send();
+	}
 	toggleIPv6(CT_IPV6);
+	if(CT_IPV6==='1'||CT_IPV6==='2')iv6Fetch(CT_IPV6);
 
 	/* device up/down toggles - use pre-created global hidden inputs */
 	var upHi = document.querySelector('[name="cbid.pushbot.pushbot.pushbot_up"]');
