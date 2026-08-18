@@ -1586,12 +1586,28 @@ function add_ip_black(){
 		fi
 	fi
 	# 防火墙主动变了（有到期）：以 set 为准重写文件，清掉已到期残留；
-	# 并把新拉黑 IP（$1）补回（它已先写入文件，但可能不在 set 中）。
+	# 并合并"用户本次新增"的 IP（当前文件有、prev_file 无 = 用户主动加的，
+	# 如编辑界面追加新 IP；反向同步用 set 覆盖会误抹掉它）。
+	# 注意：用户若明知某 IP 已到期仍想重新拉黑，需通过带参调用（界面"拉黑"按钮），
+	# 或等残留被清后再次添加；纯文本编辑无法区分"残留"与"主动重拉"，以 prev_file 快照判定。
 	if $fw_changed; then
+		# 记录用户本次新增（当前文件 - prev_file）
+		local user_added=""
+		if [ -f "$prev_file" ]; then
+			for ip_new in `cat ${ip_blacklist_path} 2>/dev/null`; do
+				grep -qx "$ip_new" "$prev_file" 2>/dev/null || user_added="${user_added} $ip_new"
+			done
+		fi
 		[ -f "${ip_blacklist_path}.setcur" ] && sort -u ${ip_blacklist_path}.setcur > ${ip_blacklist_path} || > ${ip_blacklist_path}
+		# 合并用户新增（含带参 $1）
 		if [ -n "$1" ] && ! grep -q -x "$1" "${ip_blacklist_path}" 2>/dev/null; then
 			echo "$1" >> ${ip_blacklist_path}
 		fi
+		for ip_new in $user_added; do
+			if ! grep -q -x "$ip_new" "${ip_blacklist_path}" 2>/dev/null; then
+				echo "$ip_new" >> ${ip_blacklist_path}
+			fi
+		done
 	fi
 	rm -f ${ip_blacklist_path}.setcur
 	
