@@ -363,6 +363,9 @@ msgstr ""
 msgid "IPv4 API list"
 msgstr ""
 
+msgid "In URL mode, the interface configured on the left is used as the egress."
+msgstr ""
+
 msgid "IPv4 change"
 msgstr ""
 
@@ -925,7 +928,7 @@ msgstr ""
 msgid "[Zed-OP] Test-OpenWRT status:"
 msgstr ""
 
-msgid "[ Note: If you use a \"Global Interconnect\" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]"
+msgid "[ Note: If you use a \"Global Interconnect\" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]<br>This API list is used for URL probe egress.<br>This API list is used as interface info for scheduled push."
 msgstr ""
 
 msgid "active: Default"

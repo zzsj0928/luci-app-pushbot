@@ -365,6 +365,9 @@ msgstr "逐个添加；支持单个 IP 或 CIDR 网段，如【192.168.1.5】【
 msgid "IPv4 API list"
 msgstr "IPv4 API列表"
 
+msgid "In URL mode, the interface configured on the left is used as the egress."
+msgstr "此处将调用左侧接口设置作为出口"
+
 msgid "IPv4 change"
 msgstr "IPv4变更"
 
@@ -927,8 +930,8 @@ msgstr "【Zed-OP】设备状态变化"
 msgid "[Zed-OP] Test-OpenWRT status:"
 msgstr "【Zed-OP】Test-OpenWRT状态："
 
-msgid "[ Note: If you use a \"Global Interconnect\" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]"
-msgstr "[ 注意：若使用“全球互联”类插件，请把下列 API 加入白名单，避免识别为境外 IP。 ]"
+msgid "[ Note: If you use a \"Global Interconnect\" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]<br>This API list is used for URL probe egress.<br>This API list is used as interface info for scheduled push."
+msgstr "[ 注意：若使用“全球互联”类插件，请把下列 API 加入白名单，避免识别为境外 IP。 ]<br>此处接口将被用于URL探测出口。<br>此处接口将被用于定时推送时接口信息。"
 
 msgid "active: Default"
 msgstr "active：默认"

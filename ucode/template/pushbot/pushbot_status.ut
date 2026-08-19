@@ -1482,7 +1482,7 @@ function initContentCard() {
 	/* 标题下方提示 */
 	var iv4UrlNote=document.createElement('div');iv4UrlNote.className='pushbot-inline-description';
 	iv4UrlNote.style.cssText='margin:0 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
-	iv4UrlNote.textContent='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]') }}';
+	iv4UrlNote.innerHTML='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]<br>This API list is used for URL probe egress.<br>This API list is used as interface info for scheduled push.') }}';
 	iv4Sub2.appendChild(iv4UrlNote);
 	var iv4Ta=document.createElement('textarea');iv4Ta.className='cbi-input-textarea';iv4Ta.rows=4;
 	iv4Ta.style.cssText='width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;box-sizing:border-box;background:rgba(255,255,255,0.7);color:inherit;resize:vertical';
@@ -1491,6 +1491,11 @@ function initContentCard() {
 	iv4Ta.addEventListener('input',function(){iv4UrlHi.value=this.value;});
 	iv4Ta.addEventListener('blur',function(){if(iv4Sub2.style.display!=='none')iv4Fetch('2');});
 	iv4Sub2.appendChild(iv4Ta);
+	/* URL 模式说明：调用左侧接口设置作为出口 */
+	var iv4UrlEgress=document.createElement('div');iv4UrlEgress.className='pushbot-inline-description';
+	iv4UrlEgress.style.cssText='margin:2px 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
+	iv4UrlEgress.textContent='{{ _('In URL mode, the interface configured on the left is used as the egress.') }}';
+	iv4Sub2.appendChild(iv4UrlEgress);
 	/* 恢复插件默认按钮 */
 	var iv4Rst=document.createElement('div');iv4Rst.style.cssText='display:flex;justify-content:flex-end;margin-top:6px';
 	var iv4RstBtn=document.createElement('button');iv4RstBtn.type='button';iv4RstBtn.className='cbi-button cbi-input-action';
@@ -1582,7 +1587,7 @@ function initContentCard() {
 	/* 标题下方提示 */
 	var iv6UrlNote=document.createElement('div');iv6UrlNote.className='pushbot-inline-description';
 	iv6UrlNote.style.cssText='margin:0 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
-	iv6UrlNote.textContent='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]') }}';
+	iv6UrlNote.innerHTML='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]<br>This API list is used for URL probe egress.<br>This API list is used as interface info for scheduled push.') }}';
 	iv6Sub2.appendChild(iv6UrlNote);
 	var iv6Ta=document.createElement('textarea');iv6Ta.className='cbi-input-textarea';iv6Ta.rows=4;
 	iv6Ta.style.cssText='width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;box-sizing:border-box;background:rgba(255,255,255,0.7);color:inherit;resize:vertical';
@@ -1591,6 +1596,11 @@ function initContentCard() {
 	iv6Ta.addEventListener('input',function(){iv6UrlHi.value=this.value;});
 	iv6Ta.addEventListener('blur',function(){if(iv6Sub2.style.display!=='none')iv6Fetch('2');});
 	iv6Sub2.appendChild(iv6Ta);
+	/* URL 模式说明：调用左侧接口设置作为出口 */
+	var iv6UrlEgress=document.createElement('div');iv6UrlEgress.className='pushbot-inline-description';
+	iv6UrlEgress.style.cssText='margin:2px 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
+	iv6UrlEgress.textContent='{{ _('In URL mode, the interface configured on the left is used as the egress.') }}';
+	iv6Sub2.appendChild(iv6UrlEgress);
 	/* 恢复插件默认按钮 */
 	var iv6Rst=document.createElement('div');iv6Rst.style.cssText='display:flex;justify-content:flex-end;margin-top:6px';
 	var iv6RstBtn=document.createElement('button');iv6RstBtn.type='button';iv6RstBtn.className='cbi-button cbi-input-action';
