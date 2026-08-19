@@ -235,19 +235,21 @@ function is_private_ip(){
 }
 
 # 判断指定接口是否为 WAN 接口：以 OpenWrt UCI/ubus 接口角色为准——
-# 所选接口命中 wan/wan6 的 device 或 l3_device 即视为 WAN。
+# 遍历所有 wan* 前缀角色（wan/wan6/wan_6/wan2 等多拨命名）的 device 与 l3_device，
+# 命中所选接口即视为 WAN。
 # 相比"接口 IP 是否三类私网"更可靠：运营商可能给 WAN 分配私网 IP（CGNAT/大内网），
-# 单臂路由的 LAN 也可能带 gateway——唯 UCI 角色是用户/系统定义的权威依据。
+# 单臂路由或子网互通的 LAN 也可能带 gateway——唯 UCI 角色是用户/系统定义的权威依据。
 # 返回 0=WAN 1=非WAN(LAN/未知)
 function iface_is_wan(){
 	local iface="$1"
 	[ -z "$iface" ] && return 1
-	local role_dev role_l3
-	for role in wan wan6; do
-		role_dev=$(ubus call network.interface.$role status 2>/dev/null | grep -oE "\"device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
-		role_l3=$(ubus call network.interface.$role status 2>/dev/null | grep -oE "\"l3_device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
-		[ "$iface" = "$role_dev" ] && return 0
-		[ "$iface" = "$role_l3" ] && return 0
+	local role dev l3
+	for role in $(ubus list 2>/dev/null | grep "network.interface\." | sed 's/network.interface.//' | grep -E "^wan"); do
+		[ -z "$role" ] && continue
+		dev=$(ubus call network.interface.$role status 2>/dev/null | grep -oE "\"device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
+		l3=$(ubus call network.interface.$role status 2>/dev/null | grep -oE "\"l3_device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
+		[ "$iface" = "$dev" ] && return 0
+		[ "$iface" = "$l3" ] && return 0
 	done
 	return 1
 }
