@@ -26,8 +26,8 @@ msgstr "(空)"
 msgid "-- Select interface --"
 msgstr "-- 选择接口 --"
 
-msgid "0 means permanently blacklisted, use with caution<br>If misconfigured, change the device IP and clear the rules in LuCI"
-msgstr "0 为永久拉黑，慎用<br>如不幸误操作，请更改设备 IP 进入 LUCI 界面清空规则"
+msgid "0 = permanently blacklisted, use with caution<br>Plain number = seconds, or use units: 3600 / 1h / 2D / 1W / 1M (month = 30 days)<br>If misconfigured, change the device IP and clear the rules in LuCI"
+msgstr "0 为永久拉黑，慎用<br>纯数字为秒，或使用单位：3600 / 1h / 2D / 1W / 1M（1M=30天）<br>如不幸误操作，请更改设备 IP 进入 LUCI 界面清空规则"
 
 msgid "3 devices online"
 msgstr "现有在线设备3台"
@@ -104,8 +104,8 @@ msgstr "基本"
 msgid "Basic settings"
 msgstr "基本设置"
 
-msgid "Blacklist duration (s)"
-msgstr "拉黑时间(秒)"
+msgid "Blacklist duration"
+msgstr "拉黑时长"
 
 msgid "Blacklist time"
 msgstr "拉黑时间"

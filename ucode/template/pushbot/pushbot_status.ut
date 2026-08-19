@@ -1354,7 +1354,7 @@ function initContentCard() {
 	var CT_SSH_FAIL = PB_bool('ssh_login_failed');
 	var CT_LOGIN_MAX = PB_val('login_max_num', '3');
 	var CT_AUTO_BAN = PB_bool('web_login_black');
-	var CT_BAN_TIMEOUT = PB_val('ip_black_timeout', '86400');
+	var CT_BAN_TIMEOUT = PB_val('ip_black_timeout', '1D');
 	var CT_IP_WHITE = PB_list('ip_white_list');
 	var CT_CLIENT_WHITE = PB_list('client_usage_whitelist');
 	var CT_IPV4_LIST = PB_file('ipv4_list');
@@ -1679,7 +1679,7 @@ cuSub.appendChild(mkBtn('{{ _('Traffic DND') }}',cdOn,function(on){updateFlagInp
 	var banOn = CT_AUTO_BAN;
 	failSub.appendChild(mkBtn('{{ _('Auto blacklist') }}',banOn,function(on){updateFlagInput('web_login_black',on);toggleBan(on);}));
 	var banSub=document.createElement('div');banSub.id='ct_ban_sub';banSub.style.cssText='margin-top:4px;display:'+(CT_AUTO_BAN?'block':'none');
-	banSub.appendChild(mkTxt('ip_black_timeout','{{ _('Blacklist duration (s)') }}',CT_BAN_TIMEOUT,'{{ _('0 means permanently blacklisted, use with caution<br>If misconfigured, change the device IP and clear the rules in LuCI') }}'));
+	banSub.appendChild(mkTxt('ip_black_timeout','{{ _('Blacklist duration') }}',CT_BAN_TIMEOUT,'{{ _('0 = permanently blacklisted, use with caution<br>Plain number = seconds, or use units: 3600 / 1h / 2D / 1W / 1M (month = 30 days)<br>If misconfigured, change the device IP and clear the rules in LuCI') }}'));
 	/* IP white list */
 	var ipCtr=document.createElement('div');ipCtr.style.cssText='margin:4px 0';
 	var ipLbl=document.createElement('div');ipLbl.className='pushbot-inline-title';

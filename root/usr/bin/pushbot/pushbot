@@ -1592,6 +1592,26 @@ function ipv6_in_network(){
 	return 0
 }
 
+# 拉黑时长解析：纯数字=秒（兼容旧配置）；支持单字符单位后缀
+#   h/H 小时  d/D 天  w/W 周  M 月(=30天)  m 分钟
+# 例：3600、1h、2D、1W、1M；0/空 = 永久拉黑。输出统一秒数。
+function parse_timeout(){
+	local v="$1" num unit mult=1
+	[ -z "$v" ] && { echo 0; return; }
+	num=$(echo "$v" | grep -oE "^[0-9]+")
+	[ -z "$num" ] && { echo 0; return; }
+	unit=$(echo "$v" | grep -oE "[a-zA-Z]+$")
+	case "$unit" in
+		h|H) mult=3600 ;;
+		d|D) mult=86400 ;;
+		w|W) mult=604800 ;;
+		M)   mult=2592000 ;;
+		m)   mult=60 ;;
+		*)   mult=1 ;;
+	esac
+	echo $((num * mult))
+}
+
 # 添加黑名单 — 支持 nftables / iptables 双模式
 function add_ip_black(){
 	# 本机地址硬保护：本机接口地址/回环永不拉黑（误拉黑自己会断访问）
@@ -1618,6 +1638,8 @@ function add_ip_black(){
 	local need_update=false
 	local prev_onoff=""
 	local bl_state="/usr/bin/pushbot/api/.ip_blacklist.state"
+	# 拉黑时长统一解析为秒（支持 3600 / 1h / 2D / 1W / 1M，0=永久）
+	local bl_timeout_sec=$(parse_timeout "${ip_black_timeout:-0}")
 	[ -f "${bl_state}.onoff" ] && prev_onoff=$(cat ${bl_state}.onoff)
 	local cur_onoff="${web_login_black:-0}"
 	[ "$prev_onoff" != "$cur_onoff" ] && need_update=true
@@ -1789,7 +1811,7 @@ function add_ip_black(){
 		local prev_timeout_file="${bl_state}.timeout"
 		local prev_timeout=""
 		[ -f "$prev_timeout_file" ] && prev_timeout=$(cat "$prev_timeout_file")
-		local cur_timeout="${ip_black_timeout:-0}"
+		local cur_timeout="$bl_timeout_sec"
 		if [ "$prev_timeout" != "$cur_timeout" ]; then
 			# set 被规则引用时 nft delete set 报 Resource busy，必须先删引用规则
 			# （v4/v6 各一条，必须全部删除），重建后由下方"缺失时插入"逻辑恢复。
@@ -1801,16 +1823,16 @@ function add_ip_black(){
 			nft delete set inet fw4 pushbot_blacklist6 2>/dev/null || true
 			echo "$cur_timeout" > "$prev_timeout_file"
 		fi
-		if [ "$ip_black_timeout" = "0" ]; then
+		if [ "$bl_timeout_sec" = "0" ]; then
 			nft add set inet fw4 pushbot_blacklist { type ipv4_addr\; } 2>/dev/null || true
 		else
-			nft add set inet fw4 pushbot_blacklist { type ipv4_addr\; timeout ${ip_black_timeout}s\; } 2>/dev/null || true
+			nft add set inet fw4 pushbot_blacklist { type ipv4_addr\; timeout ${bl_timeout_sec}s\; } 2>/dev/null || true
 		fi
 		# IPv6 set（支持超时）
-		if [ "$ip_black_timeout" = "0" ]; then
+		if [ "$bl_timeout_sec" = "0" ]; then
 			nft add set inet fw4 pushbot_blacklist6 { type ipv6_addr\; } 2>/dev/null || true
 		else
-			nft add set inet fw4 pushbot_blacklist6 { type ipv6_addr\; timeout ${ip_black_timeout}s\; } 2>/dev/null || true
+			nft add set inet fw4 pushbot_blacklist6 { type ipv6_addr\; timeout ${bl_timeout_sec}s\; } 2>/dev/null || true
 		fi
 		# 规则用 insert（链首优先，不被 accept 抢先），且只在缺失时插入
 		if ! nft list chain inet fw4 input 2>/dev/null | grep -qE "@pushbot_blacklist([^6]|$)"; then
@@ -1880,7 +1902,7 @@ function add_ip_black(){
 		if [ -n "$log_enable" ]; then
 			echo "`date \"+%Y-%m-%d %H:%M:%S\"` 【防火墙】拉黑功能已启用，且读取到黑名单列表，将生成防火墙策略" >> ${logfile}
 		fi
-		ipset list ip_blacklist >/dev/null 2>&1 || ipset create ip_blacklist hash:ip timeout ${ip_black_timeout} >/dev/null 2>&1
+		ipset list ip_blacklist >/dev/null 2>&1 || ipset create ip_blacklist hash:ip timeout ${bl_timeout_sec} >/dev/null 2>&1
 		iptables -C INPUT -m set --match-set ip_blacklist src -j DROP >/dev/null 2>&1 || iptables -I INPUT -m set --match-set ip_blacklist src -j DROP >/dev/null 2>&1
 		for ip_black in `echo "$black_ips"|tr ',' ' '`; do
 			ipset -! add ip_blacklist $ip_black >/dev/null 2>&1
