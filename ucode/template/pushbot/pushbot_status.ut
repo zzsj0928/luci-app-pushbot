@@ -1345,10 +1345,10 @@ function initContentCard() {
 		t.style.cssText='margin:0 0 4px 2px;text-transform:none;font-size:13px;font-weight:600;color:inherit';
 		t.textContent=label;w.appendChild(t);
 		var b=document.createElement('div');b.className='pushbot-inline-body';
-		b.style.cssText='position:relative;display:flex;gap:6px;align-items:center;flex-wrap:nowrap';
+		b.style.cssText='position:relative;display:flex;flex-direction:row;gap:6px;align-items:center;flex-wrap:nowrap';
 		var raw=''+(val==null?'':val);
 		/* 单位定义：值=保存后缀, 范围上限 */
-		var unitDefs=[['permanently','{{ _('Permanently') }}',0],['s','{{ _('Seconds') }}',59],['m','{{ _('Minutes') }}',59],['h','{{ _('Hours') }}',23],['D','{{ _('Days') }}',29],['W','{{ _('Weeks') }}',4],['M','{{ _('Months') }}',12]];
+		var unitDefs=[['permanently','{{ _('Permanently') }}',0],['s','{{ _('Seconds') }}',59],['m','{{ _('Minutes') }}',59],['h','{{ _('Hours') }}',23],['D','{{ _('Days') }}',29],['W','{{ _('Weeks') }}',3],['M','{{ _('Months') }}',12]];
 		/* 解析现有配置 → [单位, 数值]：0/空=永久；纯数字=秒；数字+单位 */
 		function parse(raw){
 			var m=/^(\d+)\s*([a-zA-Z]*)$/.exec(raw);
@@ -1366,19 +1366,19 @@ function initContentCard() {
 		/* 单位自绘下拉 */
 		var unitBtn=document.createElement('button');unitBtn.type='button';
 		unitBtn.className='pushbot-choice-button pushbot-sel-btn';
-		unitBtn.style.cssText='flex:0 0 120px;text-align:left;justify-content:space-between;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+		unitBtn.style.cssText='width:120px;flex:0 0 auto;padding:5px 10px;text-align:left;justify-content:space-between;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
 		var unitLst=document.createElement('div');
 		unitLst.className='pushbot-sel-list';
 		unitLst.setAttribute('data-pb', 'unit');
-		unitLst.style.cssText='display:none;position:absolute;z-index:1000;left:126px;top:calc(100% + 4px);border-radius:10px;max-height:260px;overflow-y:auto;box-shadow:0 12px 32px rgba(0,0,0,0.25)';
+		unitLst.style.cssText='display:none;position:absolute;z-index:1000;left:0;right:0;top:calc(100% + 4px);border-radius:10px;max-height:196px;overflow-y:auto;box-shadow:0 12px 32px rgba(0,0,0,0.25)';
 		/* 数值自绘下拉 */
 		var numBtn=document.createElement('button');numBtn.type='button';
 		numBtn.className='pushbot-choice-button pushbot-sel-btn';
-		numBtn.style.cssText='flex:1;min-width:70px;max-width:110px;text-align:left;justify-content:space-between;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+		numBtn.style.cssText='flex:0 1 auto;min-width:70px;padding:5px 10px;text-align:left;justify-content:space-between;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
 		var numLst=document.createElement('div');
 		numLst.className='pushbot-sel-list';
 		numLst.setAttribute('data-pb', 'num');
-		numLst.style.cssText='display:none;position:absolute;z-index:1000;left:0;top:calc(100% + 4px);border-radius:10px;max-height:260px;overflow-y:auto;box-shadow:0 12px 32px rgba(0,0,0,0.25)';
+		numLst.style.cssText='display:none;position:absolute;z-index:1000;left:0;right:0;top:calc(100% + 4px);border-radius:10px;max-height:196px;overflow-y:auto;box-shadow:0 12px 32px rgba(0,0,0,0.25)';
 		function numOpts(){ var a=[]; var mx=maxFor(curUnit); for(var i=1;i<=mx;i++) a.push({v:''+i,l:''+i}); return a; }
 		function renderUnit(){
 			unitBtn.textContent=labelOf(curUnit);
