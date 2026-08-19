@@ -1472,12 +1472,7 @@ function initContentCard() {
 	var iv4Sub1 = document.createElement('div'); iv4Sub1.id='ct_ipv4_iface'; iv4Sub1.style.cssText='display:none';
 	var iv4IfOpts=[{v:'',l:'{{ _('-- Select interface --') }}'}];
 	CT_IFACES.forEach(function(f){iv4IfOpts.push({v:f,l:f});});
-	iv4Sub1.appendChild(mkSel('ipv4_interface','{{ _('Interface name') }}',CT_IPV4_IFACE,iv4IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}',function(){iv4Fetch('1');}));
-	/* 接口模式说明：调用所选接口设置作为出口 */
-	var iv4IfNote=document.createElement('div');iv4IfNote.className='pushbot-inline-description';
-	iv4IfNote.style.cssText='margin:2px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
-	iv4IfNote.textContent='{{ _('The interface selected here is used as the egress.') }}';
-	iv4Sub1.appendChild(iv4IfNote);
+	iv4Sub1.appendChild(mkSel('ipv4_interface','{{ _('Interface name') }}',CT_IPV4_IFACE,iv4IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}<br>{{ _('The interface selected here is used as the egress.') }}',function(){iv4Fetch('1');}));
 	iv4Sub.appendChild(iv4Sub1);
 	/* URL list textarea */
 	var iv4Sub2 = document.createElement('div'); iv4Sub2.id='ct_ipv4_url'; iv4Sub2.style.cssText='display:none';
@@ -1583,12 +1578,7 @@ function initContentCard() {
 	var iv6Sub1 = document.createElement('div'); iv6Sub1.style.cssText='display:none';
 	var iv6IfOpts=[{v:'',l:'{{ _('-- Select interface --') }}'}];
 	CT_IFACES.forEach(function(f){iv6IfOpts.push({v:f,l:f});});
-	iv6Sub1.appendChild(mkSel('ipv6_interface','{{ _('Interface name') }}',CT_IPV6_IFACE,iv6IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}',function(){iv6Fetch('1');}));
-	/* 接口模式说明：调用所选接口设置作为出口 */
-	var iv6IfNote=document.createElement('div');iv6IfNote.className='pushbot-inline-description';
-	iv6IfNote.style.cssText='margin:2px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
-	iv6IfNote.textContent='{{ _('The interface selected here is used as the egress.') }}';
-	iv6Sub1.appendChild(iv6IfNote);
+	iv6Sub1.appendChild(mkSel('ipv6_interface','{{ _('Interface name') }}',CT_IPV6_IFACE,iv6IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}<br>{{ _('The interface selected here is used as the egress.') }}',function(){iv6Fetch('1');}));
 	iv6Sub.appendChild(iv6Sub1);
 	var iv6Sub2 = document.createElement('div'); iv6Sub2.id='ct_ipv6_url'; iv6Sub2.style.cssText='display:none';
 	var iv6UrlLbl = document.createElement('div'); iv6UrlLbl.className='pushbot-inline-title';
