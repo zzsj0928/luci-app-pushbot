@@ -371,6 +371,9 @@ msgstr "此处将调用左侧接口设置作为出口"
 msgid "This API list is used for WAN info probing in scheduled push."
 msgstr "此处API将用于定时推送时WAN信息探测"
 
+msgid "The selected interface is used as interface info for scheduled push."
+msgstr "此处将调用所选接口作为定时推送时的接口信息"
+
 msgid "IPv4 change"
 msgstr "IPv4变更"
 

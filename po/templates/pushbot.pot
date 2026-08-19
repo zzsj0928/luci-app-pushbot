@@ -369,6 +369,9 @@ msgstr ""
 msgid "This API list is used for WAN info probing in scheduled push."
 msgstr ""
 
+msgid "The selected interface is used as interface info for scheduled push."
+msgstr ""
+
 msgid "IPv4 change"
 msgstr ""
 
