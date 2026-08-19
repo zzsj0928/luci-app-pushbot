@@ -185,9 +185,10 @@ return {
 				   WAN(公网) 或多 WAN 场景绑定该接口探测 */
 				let bind = "";
 				if (iface != "") {
-					/* 以 UCI/ubus 接口角色判定 WAN（遍历 wan* 前缀角色的 device/l3_device 命中），
-					   而非看 IP 是否私网——运营商可能给 WAN 私网 IP，LAN 也可能带 gateway 路由 */
-					let iswan = run("for r in $(ubus list 2>/dev/null | grep 'network.interface.' | sed 's/network.interface.//' | grep -E '^wan'); do ubus call network.interface.$r status 2>/dev/null | grep -oE '\\\"(device|l3_device)\\\": \\\"[^\\\"]*\\\"' | grep -q " + sq(iface) + " && exit 0; done; exit 1");
+					/* 以 OpenWrt 防火墙区域判定 WAN：接口（或所属逻辑接口）出现在
+					   masq=1 的 zone 的 network 列表即视为 WAN。不依赖接口命名
+					   （用户可改名）与 IP 私网/公网。 */
+					let iswan = run("local li i d l3; if uci get network." + sq(iface) + " >/dev/null 2>&1; then li=" + sq(iface) + "; else li=''; for i in $(uci show network 2>/dev/null | grep -oE '^network\\.[^.]+\\\\.(device|ifname)=' | sed 's/^network\\\\.//; s/\\\\.\\(device\\\\|ifname\\)=$//' | sort -u); do d=$(uci get network.$i.device 2>/dev/null); [ \"$d\" = " + sq(iface) + " ] && li=\"$li $i\"; [ -z \"$d\" ] && d=$(uci get network.$i.ifname 2>/dev/null); [ \"$d\" = " + sq(iface) + " ] && li=\"$li $i\"; l3=$(ubus call network.interface.$i status 2>/dev/null | grep -oE '\\\"l3_device\\\": \\\"[^\\\"]*\\\"' | head -1 | cut -d'\\\"' -f4); [ \"$l3\" = " + sq(iface) + " ] && li=\"$li $i\"; done; fi; for i in $li; do for z in $(seq 0 20); do m=$(uci get firewall.@zone[$z].masq 2>/dev/null); [ -z \"$m\" ] && break; [ \"$m\" = \"1\" ] && echo \" $(uci get firewall.@zone[$z].network 2>/dev/null) \" | grep -q \" $i \" && exit 0; done; done; exit 1");
 					if (iswan == "0") bind = " --interface " + sq(iface);
 				}
 				let start = time() % length(lines);

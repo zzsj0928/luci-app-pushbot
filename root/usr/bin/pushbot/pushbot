@@ -234,22 +234,49 @@ function is_private_ip(){
 	fi
 }
 
-# 判断指定接口是否为 WAN 接口：以 OpenWrt UCI/ubus 接口角色为准——
-# 遍历所有 wan* 前缀角色（wan/wan6/wan_6/wan2 等多拨命名）的 device 与 l3_device，
-# 命中所选接口即视为 WAN。
-# 相比"接口 IP 是否三类私网"更可靠：运营商可能给 WAN 分配私网 IP（CGNAT/大内网），
-# 单臂路由或子网互通的 LAN 也可能带 gateway——唯 UCI 角色是用户/系统定义的权威依据。
+# 判断指定接口是否为 WAN 接口：以 OpenWrt 防火墙区域（zone）为权威依据——
+# 接口（或其所属 UCI 逻辑接口）出现在带 masq=1（NAT 出口）的 zone 的 network 列表
+# 即视为 WAN。不依赖接口命名（用户可改名 telecom/mobile/unicom）与 IP 私网/公网。
+# 判定链：
+#   1) 接口名本身是逻辑接口（uci network.interface.<name> 存在）→ 直接用
+#   2) 接口名是物理 device → 反查所有 device 等于它的逻辑接口
+#   3) 逻辑接口 ∈ 某 zone 的 network 且该 zone masq=1 → WAN
 # 返回 0=WAN 1=非WAN(LAN/未知)
 function iface_is_wan(){
 	local iface="$1"
 	[ -z "$iface" ] && return 1
-	local role dev l3
-	for role in $(ubus list 2>/dev/null | grep "network.interface\." | sed 's/network.interface.//' | grep -E "^wan"); do
-		[ -z "$role" ] && continue
-		dev=$(ubus call network.interface.$role status 2>/dev/null | grep -oE "\"device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
-		l3=$(ubus call network.interface.$role status 2>/dev/null | grep -oE "\"l3_device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
-		[ "$iface" = "$dev" ] && return 0
-		[ "$iface" = "$l3" ] && return 0
+	local logical_ifaces=""
+	# 1) 直接是逻辑接口名
+	if uci get network.$iface >/dev/null 2>&1; then
+		logical_ifaces="$iface"
+	else
+		# 2) 物理 device → 反查 device/ifname 等于它的逻辑接口；
+		#    并补 l3_device 反查（PPPoE 拨号后逻辑接口的 l3_device 是虚拟接口名如 pppoe-wan）
+		local ui dev l3
+		for ui in $(uci show network 2>/dev/null | grep -oE "^network\.[^.]+\.(device|ifname)=" | sed 's/^network\.//; s/\.\(device\|ifname\)=$//' | sort -u); do
+			dev=$(uci get network.$ui.device 2>/dev/null)
+			[ "$dev" = "$iface" ] && logical_ifaces="$logical_ifaces $ui"
+			[ -z "$dev" ] && dev=$(uci get network.$ui.ifname 2>/dev/null)
+			[ "$dev" = "$iface" ] && logical_ifaces="$logical_ifaces $ui"
+			l3=$(ubus call network.interface.$ui status 2>/dev/null | grep -oE "\"l3_device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
+			[ "$l3" = "$iface" ] && logical_ifaces="$logical_ifaces $ui"
+		done
+	fi
+	[ -z "$logical_ifaces" ] && return 1
+	# 3) 遍历 zone，找含该逻辑接口且 masq=1 的区域
+	local zone_idx name zone_net masq
+	zone_idx=0
+	while :; do
+		name=$(uci get firewall.@zone[$zone_idx].name 2>/dev/null)
+		[ -z "$name" ] && break
+		zone_net=$(uci get firewall.@zone[$zone_idx].network 2>/dev/null)
+		masq=$(uci get firewall.@zone[$zone_idx].masq 2>/dev/null)
+		if [ "$masq" = "1" ]; then
+			for li in $logical_ifaces; do
+				echo " $zone_net " | grep -q " $li " && return 0
+			done
+		fi
+		zone_idx=$((zone_idx+1))
 	done
 	return 1
 }
