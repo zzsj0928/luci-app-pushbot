@@ -1320,8 +1320,12 @@ function initContentCard() {
 		}
 		sel.addEventListener('change',function(){hi.value=this.value;fireChange();});
 		w.addEventListener('cbi-dropdown-change',function(e){
-			var v=e.detail&&e.detail.value!=null?e.detail.value:(e.target&&e.target.value!=null?e.target.value:null);
-			if(v!=null)hi.value=v;
+			/* detail.value 为对象 {text,value,element}；空值（未选）为 null。
+			   取 .value 属性写 hidden，空值则清空。 */
+			var v='';
+			if (e.detail && e.detail.value && e.detail.value.value !== undefined)
+				v = '' + e.detail.value.value;
+			hi.value=v;
 			fireChange();
 		});
 		b.appendChild(sel);
@@ -1851,7 +1855,16 @@ PB_onReady(function(){ tryContentOnce(); });
 		sel.style.cssText='width:100%;padding:6px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;background:rgba(255,255,255,0.7);color:inherit';
 		opts.forEach(function(o){var op=document.createElement('option');op.value=o.v;op.textContent=o.l;if(o.v===val)op.selected=true;sel.appendChild(op);});
 		var hi=makeHidden(opt,val);
+		/* LuCI 把 select 替换为 .cbi-dropdown，原生 change 失效；
+		   监听 cbi-dropdown-change：detail.value 为对象 {text,value,element}，
+		   空值（禁用）时为 null → 统一规范为空字符串存入 hidden。 */
 		sel.addEventListener('change',function(){hi.value=this.value;});
+		w.addEventListener('cbi-dropdown-change',function(e){
+			var v='';
+			if (e.detail && e.detail.value && e.detail.value.value !== undefined)
+				v = '' + e.detail.value.value;
+			hi.value = v;
+		});
 		b.appendChild(sel);
 		if(desc){var d=document.createElement('div');d.className='pushbot-inline-description';d.innerHTML=desc;b.appendChild(d);}
 		w.appendChild(b);return w;
