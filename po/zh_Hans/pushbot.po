@@ -888,6 +888,9 @@ msgstr "通过接口获取"
 msgid "WAN info"
 msgstr "WAN信息"
 
+msgid "WAN info uses the interface selected in the push content section."
+msgstr "此处将调用推送内容处选定的接口"
+
 msgid "WAN offline"
 msgstr "宽带掉线"
 

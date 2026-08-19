@@ -2069,6 +2069,12 @@ PB_onReady(function(){ tryContentOnce(); });
 			fc.appendChild(b);
 		});
 		contentBody.appendChild(fc);
+		/* WAN 信息说明：调用推送内容处选定的接口 */
+		var wanNote=document.createElement('div');
+		wanNote.className='pushbot-inline-description';
+		wanNote.style.cssText='margin:2px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
+		wanNote.textContent='{{ _('WAN info uses the interface selected in the push content section.') }}';
+		contentBody.appendChild(wanNote);
 
 		/* bottom row: push title + global connectivity timeout */
 		var br = document.createElement('div');
