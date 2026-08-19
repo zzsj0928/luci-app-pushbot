@@ -1518,19 +1518,52 @@ EOF
 	[ $(( t & mask )) -eq $(( n & mask )) ]
 }
 
-# IPv6 CIDR 匹配：逐段（16 位）比较，十六进制转十进制用 awk（busybox ash 不支持 16# 前缀）
+# IPv6 展开：把压缩形式（含 ::，如 2001:db8::1 / ::1 / 2001:db8::）展开为完整 8 段，
+# 输出空格分隔（"2001 db8 0 0 0 0 0 1"）。无 :: 的地址直接转空格分隔（不足 8 段补零兜底）。
+# 用 shell 前后分割而非 awk split 空字段，规避 gawk/busybox 对尾随空字段处理的差异。
+function expand_v6(){
+	local addr="$1" head="" tail="" i
+	[ -z "$addr" ] && return 1
+	local nhead=0 ntail=0 zeros=0 out=""
+	case "$addr" in
+		*::*)
+			head="${addr%%::*}"
+			tail="${addr##*::}"
+			[ -n "$head" ] && nhead=$(echo "$head" | awk -F: '{print NF}')
+			[ -n "$tail" ] && ntail=$(echo "$tail" | awk -F: '{print NF}')
+			zeros=$((8 - nhead - ntail))
+			[ "$zeros" -lt 0 ] && zeros=0
+			[ -n "$head" ] && out="$(echo "$head" | tr ':' ' ')"
+			i=0
+			while [ "$i" -lt "$zeros" ]; do out="$out 0"; i=$((i+1)); done
+			[ -n "$tail" ] && out="$out $(echo "$tail" | tr ':' ' ')"
+			echo "$out" | sed 's/^ *//'
+			;;
+		*)
+			out=$(echo "$addr" | tr ':' ' ')
+			zeros=$((8 - $(echo "$out" | wc -w)))
+			[ "$zeros" -lt 0 ] && zeros=0
+			i=0
+			while [ "$i" -lt "$zeros" ]; do out="$out 0"; i=$((i+1)); done
+			echo "$out"
+			;;
+	esac
+}
+
+# IPv6 CIDR 匹配：先展开压缩地址为完整 8 段，再逐段（16 位）比较，
+# 十六进制转十进制用 printf "%d"（busybox 支持 0x 前缀，不依赖 gawk 的 strtonum）
 function ipv6_in_network(){
 	local target="$1" net="$2" prefix="$3"
 	echo "$target" | grep -qE "^[0-9a-fA-F:]+$" || return 1
 	echo "$net" | grep -qE "^[0-9a-fA-F:]+$" || return 1
 	[ "$prefix" -le 0 ] && return 0
 	[ "$prefix" -gt 128 ] && prefix=128
-	local i=0 tg ng t n bits shift
+	local tlist nlist i=0 tg ng t n bits shift
+	tlist=$(expand_v6 "$target")
+	nlist=$(expand_v6 "$net")
 	while [ "$i" -lt 8 ]; do
-		tg=$(echo "$target" | awk -F: -v i=$i '{n=split($0,a,":"); print (i<n)?a[i+1]:"0"}' 2>/dev/null)
-		ng=$(echo "$net" | awk -F: -v i=$i '{n=split($0,a,":"); print (i<n)?a[i+1]:"0"}' 2>/dev/null)
-		# 十六进制转十进制：用 printf "%d"（busybox 支持 0x 前缀），
-		# 不依赖 gawk 的 strtonum（OpenWrt 默认 busybox awk 无此函数）
+		tg=$(echo "$tlist" | awk -v i=$((i+1)) '{print $i}' 2>/dev/null)
+		ng=$(echo "$nlist" | awk -v i=$((i+1)) '{print $i}' 2>/dev/null)
 		t=$(printf "%d" "0x${tg:-0}" 2>/dev/null)
 		[ -z "$t" ] && t=0
 		n=$(printf "%d" "0x${ng:-0}" 2>/dev/null)
@@ -1748,6 +1781,12 @@ function add_ip_black(){
 		[ -f "$prev_timeout_file" ] && prev_timeout=$(cat "$prev_timeout_file")
 		local cur_timeout="${ip_black_timeout:-0}"
 		if [ "$prev_timeout" != "$cur_timeout" ]; then
+			# set 被规则引用时 nft delete set 报 Resource busy，必须先删引用规则
+			# （v4/v6 各一条，必须全部删除），重建后由下方"缺失时插入"逻辑恢复。
+			local del_rule_handles=$(nft -a list chain inet fw4 input 2>/dev/null | grep "@pushbot_blacklist" | grep -o "handle [0-9]*" | cut -d' ' -f2)
+			for del_h in $del_rule_handles; do
+				nft delete rule inet fw4 input handle $del_h 2>/dev/null || true
+			done
 			nft delete set inet fw4 pushbot_blacklist 2>/dev/null || true
 			nft delete set inet fw4 pushbot_blacklist6 2>/dev/null || true
 			echo "$cur_timeout" > "$prev_timeout_file"
