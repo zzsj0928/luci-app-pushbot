@@ -25,7 +25,25 @@ msgstr ""
 msgid "-- Select interface --"
 msgstr ""
 
-msgid "0 means permanently blacklisted, use with caution<br>If misconfigured, change the device IP and clear the rules in LuCI"
+msgid "Permanently"
+msgstr ""
+
+msgid "Seconds"
+msgstr ""
+
+msgid "Minutes"
+msgstr ""
+
+msgid "Hours"
+msgstr ""
+
+msgid "Days"
+msgstr ""
+
+msgid "Weeks"
+msgstr ""
+
+msgid "Months"
 msgstr ""
 
 msgid "3 devices online"
@@ -103,7 +121,7 @@ msgstr ""
 msgid "Basic settings"
 msgstr ""
 
-msgid "Blacklist duration (s)"
+msgid "Blacklist duration"
 msgstr ""
 
 msgid "Blacklist time"

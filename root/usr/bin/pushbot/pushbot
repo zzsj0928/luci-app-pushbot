@@ -1382,9 +1382,14 @@ function login_send(){
 					fi
 				fi
 			fi
-			sed -i "/^${login_ip}$/d" ${dir}web_failed
-			echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】设备 ${login_ip} 通过 Web 频繁尝试登录" >> ${logfile}
-			add_ip_black $login_ip
+			# 先尝试拉黑（add_ip_black 内部会做本机/白名单保护），
+			# 成功(未被拦截)才清除失败记录；被拦截则保留记录供后续重试。
+			if add_ip_black $login_ip; then
+				sed -i "/^${login_ip}$/d" ${dir}web_failed
+				echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】设备 ${login_ip} 通过 Web 频繁尝试登录" >> ${logfile}
+			else
+				echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】设备 ${login_ip} 触发拉黑但被本机/白名单保护拦截，保留记录待后续确认" >> ${logfile}
+			fi
 		fi
 	done
 	unset login_ip
@@ -1427,9 +1432,13 @@ function login_send(){
 					fi
 				fi
 			fi
-			sed -i "/^${login_ip}$/d" ${dir}ssh_failed
-			echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】设备 ${login_ip} 通过 SSH 频繁尝试登录" >> ${logfile}
-			add_ip_black $login_ip
+			# 先尝试拉黑，成功(未被保护拦截)才清除失败记录
+			if add_ip_black $login_ip; then
+				sed -i "/^${login_ip}$/d" ${dir}ssh_failed
+				echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】设备 ${login_ip} 通过 SSH 频繁尝试登录" >> ${logfile}
+			else
+				echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】设备 ${login_ip} 触发拉黑但被本机/白名单保护拦截，保留记录待后续确认" >> ${logfile}
+			fi
 		fi
 	done
 	unset login_ip
@@ -1444,10 +1453,20 @@ function login_send(){
 function is_local_address(){
 	local target="$1"
 	[ -z "$target" ] && return 1
-	local a
+	# v6 归一化：展开为完整 8 段并转小写，避免压缩/完整形式、大小写差异导致
+	# 本机地址漏判被拉黑（ip 命令输出压缩形式，登录日志可能是完整形式）。
+	# v4 无此问题，保持原样精确比较。
+	local target_norm="$target" a a_norm
+	if echo "$target" | grep -q ":"; then
+		target_norm=$(expand_v6 "$target" 2>/dev/null | tr 'A-F' 'a-f')
+	fi
 	for a in $local_addrs; do
 		[ -z "$a" ] && continue
-		[ "$a" = "$target" ] && return 0
+		a_norm="$a"
+		if echo "$a" | grep -q ":"; then
+			a_norm=$(expand_v6 "$a" 2>/dev/null | tr 'A-F' 'a-f')
+		fi
+		[ "$a_norm" = "$target_norm" ] && return 0
 	done
 	return 1
 }
@@ -1509,21 +1528,55 @@ EOF
 	[ $(( t & mask )) -eq $(( n & mask )) ]
 }
 
-# IPv6 CIDR 匹配：逐段（16 位）比较，十六进制转十进制用 awk（busybox ash 不支持 16# 前缀）
+# IPv6 展开：把压缩形式（含 ::，如 2001:db8::1 / ::1 / 2001:db8::）展开为完整 8 段，
+# 输出空格分隔（"2001 db8 0 0 0 0 0 1"）。无 :: 的地址直接转空格分隔（不足 8 段补零兜底）。
+# 用 shell 前后分割而非 awk split 空字段，规避 gawk/busybox 对尾随空字段处理的差异。
+function expand_v6(){
+	local addr="$1" head="" tail="" i
+	[ -z "$addr" ] && return 1
+	local nhead=0 ntail=0 zeros=0 out=""
+	case "$addr" in
+		*::*)
+			head="${addr%%::*}"
+			tail="${addr##*::}"
+			[ -n "$head" ] && nhead=$(echo "$head" | awk -F: '{print NF}')
+			[ -n "$tail" ] && ntail=$(echo "$tail" | awk -F: '{print NF}')
+			zeros=$((8 - nhead - ntail))
+			[ "$zeros" -lt 0 ] && zeros=0
+			[ -n "$head" ] && out="$(echo "$head" | tr ':' ' ')"
+			i=0
+			while [ "$i" -lt "$zeros" ]; do out="$out 0"; i=$((i+1)); done
+			[ -n "$tail" ] && out="$out $(echo "$tail" | tr ':' ' ')"
+			echo "$out" | sed 's/^ *//'
+			;;
+		*)
+			out=$(echo "$addr" | tr ':' ' ')
+			zeros=$((8 - $(echo "$out" | wc -w)))
+			[ "$zeros" -lt 0 ] && zeros=0
+			i=0
+			while [ "$i" -lt "$zeros" ]; do out="$out 0"; i=$((i+1)); done
+			echo "$out"
+			;;
+	esac
+}
+
+# IPv6 CIDR 匹配：先展开压缩地址为完整 8 段，再逐段（16 位）比较，
+# 十六进制转十进制用 printf "%d"（busybox 支持 0x 前缀，不依赖 gawk 的 strtonum）
 function ipv6_in_network(){
 	local target="$1" net="$2" prefix="$3"
 	echo "$target" | grep -qE "^[0-9a-fA-F:]+$" || return 1
 	echo "$net" | grep -qE "^[0-9a-fA-F:]+$" || return 1
 	[ "$prefix" -le 0 ] && return 0
 	[ "$prefix" -gt 128 ] && prefix=128
-	local i=0 tg ng t n bits shift
+	local tlist nlist i=0 tg ng t n bits shift
+	tlist=$(expand_v6 "$target")
+	nlist=$(expand_v6 "$net")
 	while [ "$i" -lt 8 ]; do
-		tg=$(echo "$target" | awk -F: -v i=$i '{n=split($0,a,":"); print (i<n)?a[i+1]:"0"}' 2>/dev/null)
-		ng=$(echo "$net" | awk -F: -v i=$i '{n=split($0,a,":"); print (i<n)?a[i+1]:"0"}' 2>/dev/null)
-		# awk 直接按 0x 前缀转十进制（busybox awk 支持）
-		t=$(echo "0x${tg:-0}" | awk '{print strtonum($1)}' 2>/dev/null)
+		tg=$(echo "$tlist" | awk -v i=$((i+1)) '{print $i}' 2>/dev/null)
+		ng=$(echo "$nlist" | awk -v i=$((i+1)) '{print $i}' 2>/dev/null)
+		t=$(printf "%d" "0x${tg:-0}" 2>/dev/null)
 		[ -z "$t" ] && t=0
-		n=$(echo "0x${ng:-0}" | awk '{print strtonum($1)}' 2>/dev/null)
+		n=$(printf "%d" "0x${ng:-0}" 2>/dev/null)
 		[ -z "$n" ] && n=0
 		bits=$((prefix - i*16))
 		if [ "$bits" -ge 16 ]; then
@@ -1539,17 +1592,39 @@ function ipv6_in_network(){
 	return 0
 }
 
+# 拉黑时长解析：纯数字=秒（兼容旧配置）；支持单字符单位后缀
+#   h/H 小时  d/D 天  w/W 周  M 月(=30天)  m 分钟  y/Y 年(=365天)
+# 例：3600、1h、2D、1W、1M、1Y；0/空 = 永久拉黑。输出统一秒数。
+function parse_timeout(){
+	local v="$1" num unit mult=1
+	[ -z "$v" ] && { echo 0; return; }
+	num=$(echo "$v" | grep -oE "^[0-9]+")
+	[ -z "$num" ] && { echo 0; return; }
+	unit=$(echo "$v" | grep -oE "[a-zA-Z]+$")
+	case "$unit" in
+		h|H) mult=3600 ;;
+		d|D) mult=86400 ;;
+		w|W) mult=604800 ;;
+		M)   mult=2592000 ;;
+		m)   mult=60 ;;
+		y|Y) mult=31536000 ;;
+		*)   mult=1 ;;
+	esac
+	echo $((num * mult))
+}
+
 # 添加黑名单 — 支持 nftables / iptables 双模式
 function add_ip_black(){
 	# 本机地址硬保护：本机接口地址/回环永不拉黑（误拉黑自己会断访问）
+	# 返回 1 表示"被保护拦截未拉黑"，调用方可据此保留失败记录供后续重试
 	if [ -n "$1" ] && is_local_address "$1"; then
 		echo "`date \"+%Y-%m-%d %H:%M:%S\"` 【防火墙】IP $1 是本机地址，跳过拉黑" >> ${logfile}
-		return 0
+		return 1
 	fi
 	# 白名单优先：命中白名单（含网段）的 IP 永不拉黑
 	if [ -n "$1" ] && ip_in_whitelist "$1"; then
 		echo "`date \"+%Y-%m-%d %H:%M:%S\"` 【防火墙】IP $1 命中白名单，跳过拉黑" >> ${logfile}
-		return 0
+		return 1
 	fi
 	# 只添加不存在的 IP，避免重复行（精确匹配整行）
 	if [ -n "$1" ]; then
@@ -1564,6 +1639,11 @@ function add_ip_black(){
 	local need_update=false
 	local prev_onoff=""
 	local bl_state="/usr/bin/pushbot/api/.ip_blacklist.state"
+	# 拉黑时长统一解析为秒（支持 3600 / 1h / 2D / 1W / 1M，0=永久）
+	local bl_timeout_sec=$(parse_timeout "${ip_black_timeout:-0}")
+	# timeout 配置变化必须触发重建（set 的 timeout 属性只能在创建时设定，
+	# 否则 nft add set 对已存在 set 报错、直接加元素不会更新超时）
+	[ -f "${bl_state}.timeout" ] && [ "$(cat ${bl_state}.timeout)" != "$bl_timeout_sec" ] && need_update=true
 	[ -f "${bl_state}.onoff" ] && prev_onoff=$(cat ${bl_state}.onoff)
 	local cur_onoff="${web_login_black:-0}"
 	[ "$prev_onoff" != "$cur_onoff" ] && need_update=true
@@ -1588,7 +1668,7 @@ function add_ip_black(){
 		if command -v nft >/dev/null 2>&1; then
 			if nft list set inet fw4 pushbot_blacklist >/dev/null 2>&1; then
 				nft list set inet fw4 pushbot_blacklist 2>/dev/null | grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" > ${ip_blacklist_path}.setcur
-				nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]{2,}" >> ${ip_blacklist_path}.setcur
+				nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]+:[0-9a-fA-F:]+" >> ${ip_blacklist_path}.setcur
 				cmp -s "$prev_set_file" "${ip_blacklist_path}.setcur" || fw_changed=true
 			fi
 		elif command -v ipset >/dev/null 2>&1; then
@@ -1637,7 +1717,7 @@ function add_ip_black(){
 		if command -v nft >/dev/null 2>&1; then
 			nft list set inet fw4 pushbot_blacklist >/dev/null 2>&1 || need_update=true
 			nft list set inet fw4 pushbot_blacklist6 >/dev/null 2>&1 || need_update=true
-			nft list chain inet fw4 input 2>/dev/null | grep -q "@pushbot_blacklist" || need_update=true
+			nft list chain inet fw4 input 2>/dev/null | grep -qE "@pushbot_blacklist([^6]|$)" || need_update=true
 		else
 			ipset list ip_blacklist >/dev/null 2>&1 || need_update=true
 			iptables -C INPUT -m set --match-set ip_blacklist src -j DROP >/dev/null 2>&1 || need_update=true
@@ -1651,7 +1731,7 @@ function add_ip_black(){
 			if command -v nft >/dev/null 2>&1; then
 				if nft list set inet fw4 pushbot_blacklist >/dev/null 2>&1; then
 					nft list set inet fw4 pushbot_blacklist 2>/dev/null | grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" > ${ip_blacklist_path}.tmp
-					nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]{2,}" >> ${ip_blacklist_path}.tmp
+					nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]+:[0-9a-fA-F:]+" >> ${ip_blacklist_path}.tmp
 					if [ -s "${ip_blacklist_path}.tmp" ]; then
 						sort -u ${ip_blacklist_path}.tmp > ${ip_blacklist_path}
 					else
@@ -1729,19 +1809,37 @@ function add_ip_black(){
 			return
 		fi
 		# IPv4 set（支持超时）
-		if [ "$ip_black_timeout" = "0" ]; then
+		# 仅当 timeout 配置变化时重建 set（nft add set 对已存在 set 报错，
+		# 直接 add 不会更新 timeout；重建会让元素采用新 timeout 重新计时）。
+		# timeout 未变时保持增量同步（保留未到期元素剩余时间）。
+		local prev_timeout_file="${bl_state}.timeout"
+		local prev_timeout=""
+		[ -f "$prev_timeout_file" ] && prev_timeout=$(cat "$prev_timeout_file")
+		local cur_timeout="$bl_timeout_sec"
+		if [ "$prev_timeout" != "$cur_timeout" ]; then
+			# set 被规则引用时 nft delete set 报 Resource busy，必须先删引用规则
+			# （v4/v6 各一条，必须全部删除），重建后由下方"缺失时插入"逻辑恢复。
+			local del_rule_handles=$(nft -a list chain inet fw4 input 2>/dev/null | grep "@pushbot_blacklist" | grep -o "handle [0-9]*" | cut -d' ' -f2)
+			for del_h in $del_rule_handles; do
+				nft delete rule inet fw4 input handle $del_h 2>/dev/null || true
+			done
+			nft delete set inet fw4 pushbot_blacklist 2>/dev/null || true
+			nft delete set inet fw4 pushbot_blacklist6 2>/dev/null || true
+			echo "$cur_timeout" > "$prev_timeout_file"
+		fi
+		if [ "$bl_timeout_sec" = "0" ]; then
 			nft add set inet fw4 pushbot_blacklist { type ipv4_addr\; } 2>/dev/null || true
 		else
-			nft add set inet fw4 pushbot_blacklist { type ipv4_addr\; timeout ${ip_black_timeout}s\; } 2>/dev/null || true
+			nft add set inet fw4 pushbot_blacklist { type ipv4_addr\; timeout ${bl_timeout_sec}s\; } 2>/dev/null || true
 		fi
-		# IPv6 set（支持超时）— 存在时用 add set 会报错，|| true 容忍
-		if [ "$ip_black_timeout" = "0" ]; then
+		# IPv6 set（支持超时）
+		if [ "$bl_timeout_sec" = "0" ]; then
 			nft add set inet fw4 pushbot_blacklist6 { type ipv6_addr\; } 2>/dev/null || true
 		else
-			nft add set inet fw4 pushbot_blacklist6 { type ipv6_addr\; timeout ${ip_black_timeout}s\; } 2>/dev/null || true
+			nft add set inet fw4 pushbot_blacklist6 { type ipv6_addr\; timeout ${bl_timeout_sec}s\; } 2>/dev/null || true
 		fi
 		# 规则用 insert（链首优先，不被 accept 抢先），且只在缺失时插入
-		if ! nft list chain inet fw4 input 2>/dev/null | grep -q "@pushbot_blacklist"; then
+		if ! nft list chain inet fw4 input 2>/dev/null | grep -qE "@pushbot_blacklist([^6]|$)"; then
 			nft insert rule inet fw4 input ip saddr @pushbot_blacklist drop 2>/dev/null || true
 		fi
 		if ! nft list chain inet fw4 input 2>/dev/null | grep -q "@pushbot_blacklist6"; then
@@ -1764,7 +1862,7 @@ function add_ip_black(){
 			for ip_del in `nft list set inet fw4 pushbot_blacklist 2>/dev/null | grep -oE "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"`; do
 				grep -qx "$ip_del" "${ip_blacklist_path}" || echo "delete element inet fw4 pushbot_blacklist { $ip_del }"
 			done
-			for ip_del6 in `nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]{2,}"`; do
+			for ip_del6 in `nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]+:[0-9a-fA-F:]+"`; do
 				grep -qx "$ip_del6" "${ip_blacklist_path}" || echo "delete element inet fw4 pushbot_blacklist6 { $ip_del6 }"
 			done
 		} | nft -f - 2>/dev/null || {
@@ -1778,7 +1876,7 @@ function add_ip_black(){
 			for ip_del in `nft list set inet fw4 pushbot_blacklist 2>/dev/null | grep -oE "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"`; do
 				grep -qx "$ip_del" "${ip_blacklist_path}" || nft delete element inet fw4 pushbot_blacklist { $ip_del } 2>/dev/null || true
 			done
-			for ip_del6 in `nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]{2,}"`; do
+			for ip_del6 in `nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]+:[0-9a-fA-F:]+"`; do
 				grep -qx "$ip_del6" "${ip_blacklist_path}" || nft delete element inet fw4 pushbot_blacklist6 { $ip_del6 } 2>/dev/null || true
 			done
 		}
@@ -1786,7 +1884,7 @@ function add_ip_black(){
 		# 回写黑名单文件（v4+v6）以内核 set 为准：超时移除的元素不在此列，自然从文件清除
 		nft list set inet fw4 pushbot_blacklist 2>/dev/null | grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" > ${ip_blacklist_path}.tmp
 		# v6 只抓 elements 行内的地址（跳过 set 头注释/flags 等单词）
-		nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]{2,}" >> ${ip_blacklist_path}.tmp
+		nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]+:[0-9a-fA-F:]+" >> ${ip_blacklist_path}.tmp
 		if [ -s "${ip_blacklist_path}.tmp" ]; then
 			# 去重 + 过滤掉 set 头注释行可能的残留
 			sort -u ${ip_blacklist_path}.tmp > ${ip_blacklist_path}
@@ -1808,7 +1906,7 @@ function add_ip_black(){
 		if [ -n "$log_enable" ]; then
 			echo "`date \"+%Y-%m-%d %H:%M:%S\"` 【防火墙】拉黑功能已启用，且读取到黑名单列表，将生成防火墙策略" >> ${logfile}
 		fi
-		ipset list ip_blacklist >/dev/null 2>&1 || ipset create ip_blacklist hash:ip timeout ${ip_black_timeout} >/dev/null 2>&1
+		ipset list ip_blacklist >/dev/null 2>&1 || ipset create ip_blacklist hash:ip timeout ${bl_timeout_sec} >/dev/null 2>&1
 		iptables -C INPUT -m set --match-set ip_blacklist src -j DROP >/dev/null 2>&1 || iptables -I INPUT -m set --match-set ip_blacklist src -j DROP >/dev/null 2>&1
 		for ip_black in `echo "$black_ips"|tr ',' ' '`; do
 			ipset -! add ip_blacklist $ip_black >/dev/null 2>&1
@@ -1829,7 +1927,7 @@ function add_ip_black(){
 		if command -v nft >/dev/null 2>&1; then
 			if nft list set inet fw4 pushbot_blacklist >/dev/null 2>&1; then
 				nft list set inet fw4 pushbot_blacklist 2>/dev/null | grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" > "$prev_set_file" 2>/dev/null || true
-				nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]{2,}" >> "$prev_set_file" 2>/dev/null || true
+				nft list set inet fw4 pushbot_blacklist6 2>/dev/null | grep -oE "elements = \{ [^}]*\}" | grep -oE "[0-9a-fA-F:]+:[0-9a-fA-F:]+" >> "$prev_set_file" 2>/dev/null || true
 			fi
 		elif command -v ipset >/dev/null 2>&1; then
 			ipset list ip_blacklist 2>/dev/null | grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" > "$prev_set_file" 2>/dev/null || true
