@@ -1473,6 +1473,11 @@ function initContentCard() {
 	var iv4IfOpts=[{v:'',l:'{{ _('-- Select interface --') }}'}];
 	CT_IFACES.forEach(function(f){iv4IfOpts.push({v:f,l:f});});
 	iv4Sub1.appendChild(mkSel('ipv4_interface','{{ _('Interface name') }}',CT_IPV4_IFACE,iv4IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}',function(){iv4Fetch('1');}));
+	/* 接口模式说明：调用所选接口设置作为出口 */
+	var iv4IfNote=document.createElement('div');iv4IfNote.className='pushbot-inline-description';
+	iv4IfNote.style.cssText='margin:2px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
+	iv4IfNote.textContent='{{ _('The interface selected here is used as the egress.') }}';
+	iv4Sub1.appendChild(iv4IfNote);
 	iv4Sub.appendChild(iv4Sub1);
 	/* URL list textarea */
 	var iv4Sub2 = document.createElement('div'); iv4Sub2.id='ct_ipv4_url'; iv4Sub2.style.cssText='display:none';
@@ -1491,10 +1496,10 @@ function initContentCard() {
 	iv4Ta.addEventListener('input',function(){iv4UrlHi.value=this.value;});
 	iv4Ta.addEventListener('blur',function(){if(iv4Sub2.style.display!=='none')iv4Fetch('2');});
 	iv4Sub2.appendChild(iv4Ta);
-	/* URL 模式说明：调用左侧接口设置作为出口 */
+	/* URL 模式说明：定时推送时 WAN 信息探测 */
 	var iv4UrlEgress=document.createElement('div');iv4UrlEgress.className='pushbot-inline-description';
 	iv4UrlEgress.style.cssText='margin:2px 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
-	iv4UrlEgress.textContent='{{ _('In URL mode, the interface configured on the left is used as the egress.') }}';
+	iv4UrlEgress.textContent='{{ _('This API list is used for WAN info probing in scheduled push.') }}';
 	iv4Sub2.appendChild(iv4UrlEgress);
 	/* 恢复插件默认按钮 */
 	var iv4Rst=document.createElement('div');iv4Rst.style.cssText='display:flex;justify-content:flex-end;margin-top:6px';
@@ -1579,6 +1584,11 @@ function initContentCard() {
 	var iv6IfOpts=[{v:'',l:'{{ _('-- Select interface --') }}'}];
 	CT_IFACES.forEach(function(f){iv6IfOpts.push({v:f,l:f});});
 	iv6Sub1.appendChild(mkSel('ipv6_interface','{{ _('Interface name') }}',CT_IPV6_IFACE,iv6IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}',function(){iv6Fetch('1');}));
+	/* 接口模式说明：调用所选接口设置作为出口 */
+	var iv6IfNote=document.createElement('div');iv6IfNote.className='pushbot-inline-description';
+	iv6IfNote.style.cssText='margin:2px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
+	iv6IfNote.textContent='{{ _('The interface selected here is used as the egress.') }}';
+	iv6Sub1.appendChild(iv6IfNote);
 	iv6Sub.appendChild(iv6Sub1);
 	var iv6Sub2 = document.createElement('div'); iv6Sub2.id='ct_ipv6_url'; iv6Sub2.style.cssText='display:none';
 	var iv6UrlLbl = document.createElement('div'); iv6UrlLbl.className='pushbot-inline-title';
@@ -1599,7 +1609,7 @@ function initContentCard() {
 	/* URL 模式说明：调用左侧接口设置作为出口 */
 	var iv6UrlEgress=document.createElement('div');iv6UrlEgress.className='pushbot-inline-description';
 	iv6UrlEgress.style.cssText='margin:2px 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
-	iv6UrlEgress.textContent='{{ _('In URL mode, the interface configured on the left is used as the egress.') }}';
+	iv6UrlEgress.textContent='{{ _('This API list is used for WAN info probing in scheduled push.') }}';
 	iv6Sub2.appendChild(iv6UrlEgress);
 	/* 恢复插件默认按钮 */
 	var iv6Rst=document.createElement('div');iv6Rst.style.cssText='display:flex;justify-content:flex-end;margin-top:6px';
