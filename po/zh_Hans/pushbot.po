@@ -365,6 +365,15 @@ msgstr "逐个添加；支持单个 IP 或 CIDR 网段，如【192.168.1.5】【
 msgid "IPv4 API list"
 msgstr "IPv4 API列表"
 
+msgid "URL probing egress: LAN interface uses the default route; WAN interface is bound as the egress."
+msgstr "URL探测出口：LAN接口走默认路由；WAN接口绑定该接口为出口"
+
+msgid "This API list is used for WAN info probing in scheduled push."
+msgstr "此处API将用于定时推送时WAN信息探测"
+
+msgid "The selected interface is used as interface info for scheduled push."
+msgstr "此处将调用所选接口作为定时推送时的接口信息"
+
 msgid "IPv4 change"
 msgstr "IPv4变更"
 
@@ -884,6 +893,9 @@ msgstr "通过接口获取"
 
 msgid "WAN info"
 msgstr "WAN信息"
+
+msgid "WAN info uses the interface selected in the push content section."
+msgstr "此处将调用推送内容处选定的接口"
 
 msgid "WAN offline"
 msgstr "宽带掉线"

@@ -234,6 +234,63 @@ function is_private_ip(){
 	fi
 }
 
+# 判断指定接口是否为 WAN 接口：以 OpenWrt 防火墙区域（zone）为权威依据——
+# 接口（或其所属 UCI 逻辑接口）出现在带 masq=1（NAT 出口）的 zone 的 network 列表
+# 即视为 WAN。不依赖接口命名（用户可改名 telecom/mobile/unicom）与 IP 私网/公网。
+# 判定链：
+#   1) 接口名本身是逻辑接口（uci network.interface.<name> 存在）→ 直接用
+#   2) 接口名是物理 device → 反查所有 device 等于它的逻辑接口
+#   3) 逻辑接口 ∈ 某 zone 的 network 且该 zone masq=1 → WAN
+# 返回 0=WAN 1=非WAN(LAN/未知)
+function iface_is_wan(){
+	local iface="$1"
+	[ -z "$iface" ] && return 1
+	local logical_ifaces=""
+	# 1) 直接是逻辑接口名
+	if uci get network.$iface >/dev/null 2>&1; then
+		logical_ifaces="$iface"
+	else
+		# 2) 物理 device → 反查 device/ifname 等于它的逻辑接口；
+		#    并补 l3_device 反查（PPPoE 拨号后逻辑接口的 l3_device 是虚拟接口名如 pppoe-wan）
+		local ui dev l3
+		for ui in $(uci show network 2>/dev/null | grep -oE "^network\.[^.]+\.(device|ifname)=" | sed 's/^network\.//; s/\.\(device\|ifname\)=$//' | sort -u); do
+			dev=$(uci get network.$ui.device 2>/dev/null)
+			[ "$dev" = "$iface" ] && logical_ifaces="$logical_ifaces $ui"
+			[ -z "$dev" ] && dev=$(uci get network.$ui.ifname 2>/dev/null)
+			[ "$dev" = "$iface" ] && logical_ifaces="$logical_ifaces $ui"
+			l3=$(ubus call network.interface.$ui status 2>/dev/null | grep -oE "\"l3_device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
+			[ "$l3" = "$iface" ] && logical_ifaces="$logical_ifaces $ui"
+		done
+	fi
+	[ -z "$logical_ifaces" ] && return 1
+	# 3) 遍历 zone，找含该逻辑接口且 masq=1 的区域
+	local zone_idx name zone_net masq
+	zone_idx=0
+	while :; do
+		name=$(uci get firewall.@zone[$zone_idx].name 2>/dev/null)
+		[ -z "$name" ] && break
+		zone_net=$(uci get firewall.@zone[$zone_idx].network 2>/dev/null)
+		masq=$(uci get firewall.@zone[$zone_idx].masq 2>/dev/null)
+		if [ "$masq" = "1" ]; then
+			for li in $logical_ifaces; do
+				echo " $zone_net " | grep -q " $li " && return 0
+			done
+		fi
+		zone_idx=$((zone_idx+1))
+	done
+	return 1
+}
+
+# 判断指定接口是否为 LAN/内网接口：UCI 角色非 WAN 即视为 LAN。
+# 用于决定 URL 外网探测出口：LAN 接口走默认路由（如单臂路由），WAN 接口绑定该接口。
+# 返回 0=LAN 1=WAN(或无法判定)
+function iface_is_lan(){
+	local iface="$1"
+	[ -z "$iface" ] && return 1
+	iface_is_wan "$iface" && return 1
+	return 0
+}
+
 function getip(){
 	[ ! "$1" ] && return
 	if [ $1 == "wanipv4" ] ;then
@@ -253,7 +310,17 @@ function getip(){
 				local ipv4_URL=`echo "$ipv4_urllist"| sed -n "${line}p"|sed -e 's/\r//g'`
 				[ -z "$ipv4_URL" ] && continue
 				local hostIP=""
-				[ ! -z "$ipv4_interface" ] && local hostIP=$(curl -k -s -4 --interface ${ipv4_interface} -m 8 ${ipv4_URL}) || local hostIP=$(curl -k -s -4 -m 8 ${ipv4_URL})
+				# 出口策略：显式配置的接口为 LAN(私网) 时走默认路由（如单臂路由，
+				# LAN 接口即通往公网的路径）；为 WAN(公网) 或多 WAN 场景绑定该接口探测
+				if [ ! -z "$ipv4_interface" ]; then
+					if iface_is_lan "$ipv4_interface"; then
+						local hostIP=$(curl -k -s -4 -m 8 ${ipv4_URL})
+					else
+						local hostIP=$(curl -k -s -4 --interface ${ipv4_interface} -m 8 ${ipv4_URL})
+					fi
+				else
+					local hostIP=$(curl -k -s -4 -m 8 ${ipv4_URL})
+				fi
 				local out=`echo $hostIP|grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'|head -n1`
 				[ ! -z "$out" ] && echo "$out" && return
 			done
@@ -278,7 +345,16 @@ function getip(){
 				local ipv6_URL=`echo "$ipv6_urllist"| sed -n "${line}p"|sed -e 's/\r//g'`
 				[ -z "$ipv6_URL" ] && continue
 				local hostIPv6=""
-				[ ! -z "$ipv6_interface" ] && local hostIPv6=$(curl -k -s -6 --interface ${ipv6_interface} -m 8 ${ipv6_URL}) || local hostIPv6=$(curl -k -s -6 -m 8 ${ipv6_URL})
+				# 出口策略：LAN(私网) 接口走默认路由，WAN(公网) 接口绑定该接口探测
+				if [ ! -z "$ipv6_interface" ]; then
+					if iface_is_lan "$ipv6_interface"; then
+						local hostIPv6=$(curl -k -s -6 -m 8 ${ipv6_URL})
+					else
+						local hostIPv6=$(curl -k -s -6 --interface ${ipv6_interface} -m 8 ${ipv6_URL})
+					fi
+				else
+					local hostIPv6=$(curl -k -s -6 -m 8 ${ipv6_URL})
+				fi
 				local out=`echo $hostIPv6|grep -oE '([\da-fA-F0-9]{1,4}(:{1,2})){1,15}[\da-fA-F0-9]{1,4}'|head -n1`
 				[ ! -z "$out" ] && echo "$out" && return
 			done
@@ -1994,33 +2070,43 @@ function send(){
 	fi
 
 	if [ -z "$1" ] && [ ! -z "$router_wan" ] && [ "$router_wan" -eq "1" ]; then
-		local send_wanIP=`getip wanipv4`;local send_hostIP=`getip hostipv4`
-		# 接口 IP 为私网时标注非公网
+		local send_wanIP=`getip wanipv4`
+		# 判断用户所选接口是否为 LAN：以 UCI/ubus 接口角色为准（非 wan/wan6 即 LAN，
+		# 不依赖 IP 是否私网——运营商可能给 WAN 私网 IP）。无论 LAN/WAN，外网 IP
+		# 均探测并显示（getip 内部按接口类型选择出口：LAN 走默认路由，WAN 绑定接口）。
+		local wan_lan_mode=0
+		if [ ! -z "$ipv4_interface" ]; then
+			iface_is_lan "$ipv4_interface" && wan_lan_mode=1
+		fi
+		# 无论 LAN/WAN 都探测外网 IP（出口策略在 getip 内部处理）
+		local send_hostIP=`getip hostipv4`
+		# 接口 IP 为私网时标注非公网（仅 WAN 模式；LAN 模式接口本身私网属正常，不标注）
 		local wanIP_note=""
-		[ ! -z "$send_wanIP" ] && [ "$send_wanIP" != "获取失败" ] && is_private_ip "$send_wanIP" 4 && wanIP_note=" (非公网IP)"
+		[ "$wan_lan_mode" -eq "0" ] && [ ! -z "$send_wanIP" ] && [ "$send_wanIP" != "获取失败" ] && is_private_ip "$send_wanIP" 4 && wanIP_note=" (非公网IP)"
 		local wanIP6_note=""
 		if [ "$table_enable" = "1" ]; then
 			local LF='\n'
-			local send_content="${send_content}${str_splitline}${str_title_start}${font_module} WAN 口信息${font_end}${str_title_end}${LF}| **接口IP** | ${send_wanIP}${wanIP_note} |${LF}| --- | --- |${LF}| **外网IP** | ${send_hostIP} |"
+			local send_content="${send_content}${str_splitline}${str_title_start}${font_module} WAN 口信息${font_end}${str_title_end}${LF}| --- | --- |${LF}| **接口IP** | ${send_wanIP}${wanIP_note} |${LF}| **外网IP** | ${send_hostIP} |"
 			if [ ! -z "$pushbot_ipv6" ] && [ "$pushbot_ipv6" -ne "0" ]; then
-				local send_wanIPv6=`getip wanipv6`;local send_hostIPv6=`getip hostipv6`
-				[ ! -z "$send_wanIPv6" ] && [ "$send_wanIPv6" != "获取失败" ] && is_private_ip "$send_wanIPv6" 6 && wanIP6_note=" (非公网IP)"
+				local send_wanIPv6=`getip wanipv6`
+				local send_hostIPv6=`getip hostipv6`
+				[ "$wan_lan_mode" -eq "0" ] && [ ! -z "$send_wanIPv6" ] && [ "$send_wanIPv6" != "获取失败" ] && is_private_ip "$send_wanIPv6" 6 && wanIP6_note=" (非公网IP)"
 				local send_content="${send_content}${LF}| **IPv6** | ${send_wanIPv6}${wanIP6_note} |${LF}| **外网v6** | ${send_hostIPv6} |"
 			fi
-			[ ! -z "$send_wanIP" ] && [ ! -z "$send_hostIP" ] && [ "$send_hostIP" != "获取失败" ] && ( ! echo "$send_wanIP"|grep -q -w ${send_hostIP} ) && local send_content="${send_content}${LF}| **提示** | 外网 ip 与接口 ip 不一致，不是公网 ip |"
+			# 外网 IP 与接口 IP 不一致提示（仅 WAN 模式；LAN 模式接口 IP 私网、外网 IP 公网必然不一致，提示无意义）
+			[ "$wan_lan_mode" -eq "0" ] && [ ! -z "$send_wanIP" ] && [ ! -z "$send_hostIP" ] && [ "$send_hostIP" != "获取失败" ] && ( ! echo "$send_wanIP"|grep -q -w ${send_hostIP} ) && local send_content="${send_content}${LF}| **提示** | 外网 ip 与接口 ip 不一致，不是公网 ip |"
 			local interfaceuptime=`getinterfaceuptime`
 			[ ! -z "$interfaceuptime" ] && local wanstatustime=`getinterfaceuptime|awk -F. '{run_days=$1 / 86400;run_hour=($1 % 86400)/3600;run_minute=($1 % 3600)/60;run_second=$1 % 60;printf("在线时间：%d天%d时%d分%d秒",run_days,run_hour,run_minute,run_second)}'` && unset run_days run_hour run_minute run_second
 			[ ! -z "$wanstatustime" ] && local send_content="${send_content}${LF}| **在线时间** | ${wanstatustime#在线时间：} |"
 		else
-			local send_content="${send_content}${str_splitline}${str_title_start}${font_module} WAN 口信息${font_end}${str_title_end}${str_linefeed}${str_tab}接口ip:${send_wanIP}${wanIP_note}"
-			local send_content="${send_content}${str_linefeed}${str_tab}外网ip:${send_hostIP}"
+			local send_content="${send_content}${str_splitline}${str_title_start}${font_module} WAN 口信息${font_end}${str_title_end}${str_linefeed}${str_tab}接口ip:${send_wanIP}${wanIP_note}${str_linefeed}${str_tab}外网ip:${send_hostIP}"
 			if [ ! -z "$pushbot_ipv6" ] && [ "$pushbot_ipv6" -ne "0" ]; then
-				local send_wanIPv6=`getip wanipv6`;local send_hostIPv6=`getip hostipv6`
-				[ ! -z "$send_wanIPv6" ] && [ "$send_wanIPv6" != "获取失败" ] && is_private_ip "$send_wanIPv6" 6 && wanIP6_note=" (非公网IP)"
-				local send_content="${send_content}${str_linefeed}${str_tab}ipv6 :${send_wanIPv6}${wanIP6_note}"
-				local send_content="${send_content}${str_linefeed}${str_tab}外网v6:${send_hostIPv6}"
+				local send_wanIPv6=`getip wanipv6`
+				local send_hostIPv6=`getip hostipv6`
+				[ "$wan_lan_mode" -eq "0" ] && [ ! -z "$send_wanIPv6" ] && [ "$send_wanIPv6" != "获取失败" ] && is_private_ip "$send_wanIPv6" 6 && wanIP6_note=" (非公网IP)"
+				local send_content="${send_content}${str_linefeed}${str_tab}ipv6 :${send_wanIPv6}${wanIP6_note}${str_linefeed}${str_tab}外网v6:${send_hostIPv6}"
 			fi
-			[ ! -z "$send_wanIP" ] && [ ! -z "$send_hostIP" ] && [ "$send_hostIP" != "获取失败" ] && ( ! echo "$send_wanIP"|grep -q -w ${send_hostIP} ) && local send_content="${send_content}${str_linefeed}${str_tab}外网 ip 与接口 ip 不一致，你的 ip 不是公网 ip"
+			[ "$wan_lan_mode" -eq "0" ] && [ ! -z "$send_wanIP" ] && [ ! -z "$send_hostIP" ] && [ "$send_hostIP" != "获取失败" ] && ( ! echo "$send_wanIP"|grep -q -w ${send_hostIP} ) && local send_content="${send_content}${str_linefeed}${str_tab}外网 ip 与接口 ip 不一致，你的 ip 不是公网 ip"
 			local interfaceuptime=`getinterfaceuptime`
 			[ ! -z "$interfaceuptime" ] && local wanstatustime=`getinterfaceuptime|awk -F. '{run_days=$1 / 86400;run_hour=($1 % 86400)/3600;run_minute=($1 % 3600)/60;run_second=$1 % 60;printf("在线时间：%d天%d时%d分%d秒",run_days,run_hour,run_minute,run_second)}'` && unset run_days run_hour run_minute run_second
 			local send_content="${send_content}${str_linefeed}${str_tab}${wanstatustime}"

@@ -363,6 +363,15 @@ msgstr ""
 msgid "IPv4 API list"
 msgstr ""
 
+msgid "URL probing egress: LAN interface uses the default route; WAN interface is bound as the egress."
+msgstr ""
+
+msgid "This API list is used for WAN info probing in scheduled push."
+msgstr ""
+
+msgid "The selected interface is used as interface info for scheduled push."
+msgstr ""
+
 msgid "IPv4 change"
 msgstr ""
 
@@ -881,6 +890,9 @@ msgid "Via interface"
 msgstr ""
 
 msgid "WAN info"
+msgstr ""
+
+msgid "WAN info uses the interface selected in the push content section."
 msgstr ""
 
 msgid "WAN offline"

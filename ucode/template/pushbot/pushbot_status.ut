@@ -1472,7 +1472,7 @@ function initContentCard() {
 	var iv4Sub1 = document.createElement('div'); iv4Sub1.id='ct_ipv4_iface'; iv4Sub1.style.cssText='display:none';
 	var iv4IfOpts=[{v:'',l:'{{ _('-- Select interface --') }}'}];
 	CT_IFACES.forEach(function(f){iv4IfOpts.push({v:f,l:f});});
-	iv4Sub1.appendChild(mkSel('ipv4_interface','{{ _('Interface name') }}',CT_IPV4_IFACE,iv4IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}',function(){iv4Fetch('1');}));
+	iv4Sub1.appendChild(mkSel('ipv4_interface','{{ _('Interface name') }}',CT_IPV4_IFACE,iv4IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}<br>{{ _('URL probing egress: LAN interface uses the default route; WAN interface is bound as the egress.') }}<br>{{ _('The selected interface is used as interface info for scheduled push.') }}',function(){iv4Fetch('1');}));
 	iv4Sub.appendChild(iv4Sub1);
 	/* URL list textarea */
 	var iv4Sub2 = document.createElement('div'); iv4Sub2.id='ct_ipv4_url'; iv4Sub2.style.cssText='display:none';
@@ -1482,7 +1482,7 @@ function initContentCard() {
 	/* 标题下方提示 */
 	var iv4UrlNote=document.createElement('div');iv4UrlNote.className='pushbot-inline-description';
 	iv4UrlNote.style.cssText='margin:0 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
-	iv4UrlNote.textContent='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]') }}';
+	iv4UrlNote.innerHTML='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]') }}';
 	iv4Sub2.appendChild(iv4UrlNote);
 	var iv4Ta=document.createElement('textarea');iv4Ta.className='cbi-input-textarea';iv4Ta.rows=4;
 	iv4Ta.style.cssText='width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;box-sizing:border-box;background:rgba(255,255,255,0.7);color:inherit;resize:vertical';
@@ -1491,6 +1491,11 @@ function initContentCard() {
 	iv4Ta.addEventListener('input',function(){iv4UrlHi.value=this.value;});
 	iv4Ta.addEventListener('blur',function(){if(iv4Sub2.style.display!=='none')iv4Fetch('2');});
 	iv4Sub2.appendChild(iv4Ta);
+	/* URL 模式说明：定时推送时 WAN 信息探测 */
+	var iv4UrlEgress=document.createElement('div');iv4UrlEgress.className='pushbot-inline-description';
+	iv4UrlEgress.style.cssText='margin:2px 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
+	iv4UrlEgress.textContent='{{ _('This API list is used for WAN info probing in scheduled push.') }}';
+	iv4Sub2.appendChild(iv4UrlEgress);
 	/* 恢复插件默认按钮 */
 	var iv4Rst=document.createElement('div');iv4Rst.style.cssText='display:flex;justify-content:flex-end;margin-top:6px';
 	var iv4RstBtn=document.createElement('button');iv4RstBtn.type='button';iv4RstBtn.className='cbi-button cbi-input-action';
@@ -1573,7 +1578,7 @@ function initContentCard() {
 	var iv6Sub1 = document.createElement('div'); iv6Sub1.style.cssText='display:none';
 	var iv6IfOpts=[{v:'',l:'{{ _('-- Select interface --') }}'}];
 	CT_IFACES.forEach(function(f){iv6IfOpts.push({v:f,l:f});});
-	iv6Sub1.appendChild(mkSel('ipv6_interface','{{ _('Interface name') }}',CT_IPV6_IFACE,iv6IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}',function(){iv6Fetch('1');}));
+	iv6Sub1.appendChild(mkSel('ipv6_interface','{{ _('Interface name') }}',CT_IPV6_IFACE,iv6IfOpts,'{{ _('Usually select the wan interface; choose yourself in multi-WAN environments') }}<br>{{ _('URL probing egress: LAN interface uses the default route; WAN interface is bound as the egress.') }}<br>{{ _('The selected interface is used as interface info for scheduled push.') }}',function(){iv6Fetch('1');}));
 	iv6Sub.appendChild(iv6Sub1);
 	var iv6Sub2 = document.createElement('div'); iv6Sub2.id='ct_ipv6_url'; iv6Sub2.style.cssText='display:none';
 	var iv6UrlLbl = document.createElement('div'); iv6UrlLbl.className='pushbot-inline-title';
@@ -1582,7 +1587,7 @@ function initContentCard() {
 	/* 标题下方提示 */
 	var iv6UrlNote=document.createElement('div');iv6UrlNote.className='pushbot-inline-description';
 	iv6UrlNote.style.cssText='margin:0 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
-	iv6UrlNote.textContent='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]') }}';
+	iv6UrlNote.innerHTML='{{ _('[ Note: If you use a "Global Interconnect" style plugin, please add the following APIs to the whitelist to avoid being identified as an overseas IP. ]') }}';
 	iv6Sub2.appendChild(iv6UrlNote);
 	var iv6Ta=document.createElement('textarea');iv6Ta.className='cbi-input-textarea';iv6Ta.rows=4;
 	iv6Ta.style.cssText='width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;box-sizing:border-box;background:rgba(255,255,255,0.7);color:inherit;resize:vertical';
@@ -1591,6 +1596,11 @@ function initContentCard() {
 	iv6Ta.addEventListener('input',function(){iv6UrlHi.value=this.value;});
 	iv6Ta.addEventListener('blur',function(){if(iv6Sub2.style.display!=='none')iv6Fetch('2');});
 	iv6Sub2.appendChild(iv6Ta);
+	/* URL 模式说明：调用左侧接口设置作为出口 */
+	var iv6UrlEgress=document.createElement('div');iv6UrlEgress.className='pushbot-inline-description';
+	iv6UrlEgress.style.cssText='margin:2px 0 6px 2px;font-size:12px;color:inherit;opacity:0.75';
+	iv6UrlEgress.textContent='{{ _('This API list is used for WAN info probing in scheduled push.') }}';
+	iv6Sub2.appendChild(iv6UrlEgress);
 	/* 恢复插件默认按钮 */
 	var iv6Rst=document.createElement('div');iv6Rst.style.cssText='display:flex;justify-content:flex-end;margin-top:6px';
 	var iv6RstBtn=document.createElement('button');iv6RstBtn.type='button';iv6RstBtn.className='cbi-button cbi-input-action';
@@ -2043,6 +2053,12 @@ PB_onReady(function(){ tryContentOnce(); });
 
 		var fc = document.createElement('div');
 		fc.className = 'pushbot-choice-list';
+		/* WAN 信息说明：调用推送内容处选定的接口——仅 WAN 信息启用时显示 */
+		var wanNote=document.createElement('div');
+		wanNote.className='pushbot-inline-description';
+		wanNote.style.cssText='margin:2px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
+		wanNote.textContent='{{ _('WAN info uses the interface selected in the push content section.') }}';
+		wanNote.style.display = router_wan ? '' : 'none';
 		[
 			{opt:'router_status',label:'{{ _('System status') }}',on:router_status},
 			{opt:'router_temp',label:'{{ _('Device temperature') }}',on:router_temp},
@@ -2055,10 +2071,12 @@ PB_onReady(function(){ tryContentOnce(); });
 			b.addEventListener('click',function(e){
 				e.preventDefault();on=!on;updateFlagInput(f.opt, on);
 				b.className='pushbot-choice-button '+(on?'is-on':'is-off');
+				if(f.opt==='router_wan') wanNote.style.display = on ? '' : 'none';
 			});
 			fc.appendChild(b);
 		});
 		contentBody.appendChild(fc);
+		contentBody.appendChild(wanNote);
 
 		/* bottom row: push title + global connectivity timeout */
 		var br = document.createElement('div');
