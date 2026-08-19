@@ -26,8 +26,8 @@ msgstr "(空)"
 msgid "-- Select interface --"
 msgstr "-- 选择接口 --"
 
-msgid "Forever = permanently blacklisted<br>1M = 30 days. Plain numbers in seconds are also accepted for backward compatibility"
-msgstr "永久 = 永久拉黑，慎用<br>1M = 30 天。纯数字按秒处理（兼容旧配置）"
+msgid "Unit ranges are fixed (seconds 1-59, minutes 1-59, hours 1-23, days 1-29, weeks 1-4, months 1-12), max about 1 year"
+msgstr "单位范围固定（秒 1-59、分 1-59、时 1-23、天 1-29、周 1-4、月 1-12），最长约 1 年"
 
 msgid "Forever"
 msgstr "永久"

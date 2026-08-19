@@ -1335,62 +1335,86 @@ function initContentCard() {
 	/* 拉黑时长组合控件：单位下拉（永久/秒/分/时/天/周/月）+ 数值输入框。
 	   选择"永久"时隐藏数值框，保存 0（永久拉黑）；选其他单位显示数值框，
 	   保存为 纯数字(秒) 或 数字+单位(30m/2h/3D/1W/2M)。兼容旧配置纯数字秒。 */
-	function mkTimeout(name, label, val, desc) {
+	/* 拉黑时长两级自绘下拉：先选单位（永久/秒/分/时/天/周/月），数值下拉随单位
+	   限定范围（秒1-59、分1-59、时1-23、天1-29、周1-4、月1-12），最大约 1 年。
+	   自绘（仿 mkSelS）绕开 LuCI select→dropdown 转换对选中项显示的错误；
+	   保存值即所选档位原样（0 / 30 / 5m / 12h / 15D / 2W / 6M），不做换算。 */
+	function mkTimeoutSel(name, label, val, desc) {
 		var w=document.createElement('div');w.className='pushbot-inline-field';w.style.cssText='margin:4px 0';
 		var t=document.createElement('div');t.className='pushbot-inline-title';
 		t.style.cssText='margin:0 0 4px 2px;text-transform:none;font-size:13px;font-weight:600;color:inherit';
 		t.textContent=label;w.appendChild(t);
 		var b=document.createElement('div');b.className='pushbot-inline-body';
-		b.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:nowrap';
-		/* 解析现有配置：0/空=永久；纯数字=秒；数字+单位 */
+		b.style.cssText='position:relative;display:flex;gap:6px;align-items:center;flex-wrap:nowrap';
 		var raw=''+(val==null?'':val);
-		var m=/^(\d+)\s*([a-zA-Z]*)$/.exec(raw);
-		var num = m?m[1]:'';
-		var unit = (raw==='0'||raw==='') ? 'forever' : (m&&m[2]?m[2]:'s');
-		/* 数值输入框（非永久时显示） */
-		var inp=document.createElement('input');inp.type='text';inp.className='cbi-input-text';
-		inp.style.cssText='width:160px;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;box-sizing:border-box;background:rgba(255,255,255,0.7);color:inherit';
-		inp.value=num;
-		if(unit==='forever'){inp.style.display='none';inp.disabled=true;}
-		/* 单位下拉 */
-		var sel=document.createElement('select');sel.className='cbi-input-select';
-		sel.style.cssText='width:130px;padding:6px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;background:rgba(255,255,255,0.7);color:inherit';
-		var units=[['forever','{{ _('Forever') }}'],['s','{{ _('Seconds') }}'],['m','{{ _('Minutes') }}'],['h','{{ _('Hours') }}'],['D','{{ _('Days') }}'],['W','{{ _('Weeks') }}'],['M','{{ _('Months') }}']];
-		units.forEach(function(u){var op=document.createElement('option');op.value=u[0];op.textContent=u[1];if(u[0]===unit)op.selected=true;sel.appendChild(op);});
-		var hi=mkH(name,unit==='forever'?'0':raw);
-		function curUnit(){
-			var dd=w.querySelector('.cbi-dropdown');
-			if(dd&&dd.value!==null&&dd.value!==undefined){
-				var v=(dd.value.value!==undefined)?dd.value.value:dd.value;
-				if(v!==null&&v!==undefined&&v!=='')return ''+v;
-			}
-			return sel.value;
+		/* 单位定义：值=保存后缀, 范围上限 */
+		var unitDefs=[['forever','{{ _('Forever') }}',0],['s','{{ _('Seconds') }}',59],['m','{{ _('Minutes') }}',59],['h','{{ _('Hours') }}',23],['D','{{ _('Days') }}',29],['W','{{ _('Weeks') }}',4],['M','{{ _('Months') }}',12]];
+		/* 解析现有配置 → [单位, 数值]：0/空=永久；纯数字=秒；数字+单位 */
+		function parse(raw){
+			var m=/^(\d+)\s*([a-zA-Z]*)$/.exec(raw);
+			if(raw==='0'||raw===''||!m) return ['forever',1];
+			var u=m[2]||'s';
+			if(u==='H')u='h'; if(u==='d')u='D'; if(u==='w')u='W';
+			return [u,parseInt(m[1],10)];
+		}
+		function maxFor(u){ for(var k=0;k<unitDefs.length;k++) if(unitDefs[k][0]===u) return unitDefs[k][2]; return 59; }
+		function labelOf(u){ for(var k=0;k<unitDefs.length;k++) if(unitDefs[k][0]===u) return unitDefs[k][1]; return u; }
+		var init=parse(raw);
+		var hi=makeHidden(name, raw===''?'0':raw);
+		var curUnit=''+(init[0]||'forever');
+		var curNum=init[1]>=1?init[1]:1;
+		/* 单位自绘下拉 */
+		var unitBtn=document.createElement('button');unitBtn.type='button';
+		unitBtn.className='pushbot-choice-button pushbot-sel-btn';
+		unitBtn.style.cssText='flex:0 0 120px;text-align:left;justify-content:space-between;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+		var unitLst=document.createElement('div');
+		unitLst.className='pushbot-sel-list';
+		unitLst.setAttribute('data-pb', 'unit');
+		unitLst.style.cssText='display:none;position:absolute;z-index:1000;left:126px;top:calc(100% + 4px);border-radius:10px;max-height:260px;overflow-y:auto;box-shadow:0 12px 32px rgba(0,0,0,0.25)';
+		/* 数值自绘下拉 */
+		var numBtn=document.createElement('button');numBtn.type='button';
+		numBtn.className='pushbot-choice-button pushbot-sel-btn';
+		numBtn.style.cssText='flex:1;min-width:70px;max-width:110px;text-align:left;justify-content:space-between;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+		var numLst=document.createElement('div');
+		numLst.className='pushbot-sel-list';
+		numLst.setAttribute('data-pb', 'num');
+		numLst.style.cssText='display:none;position:absolute;z-index:1000;left:0;top:calc(100% + 4px);border-radius:10px;max-height:260px;overflow-y:auto;box-shadow:0 12px 32px rgba(0,0,0,0.25)';
+		function numOpts(){ var a=[]; var mx=maxFor(curUnit); for(var i=1;i<=mx;i++) a.push({v:''+i,l:''+i}); return a; }
+		function renderUnit(){
+			unitBtn.textContent=labelOf(curUnit);
+			unitLst.innerHTML='';
+			unitDefs.forEach(function(u){
+				var item=document.createElement('div');
+				item.className='pushbot-sel-item'+(u[0]===curUnit?' is-on':'');
+				item.textContent=u[1];
+				item.addEventListener('click',function(){curUnit=u[0];renderUnit();renderNum();compose();unitLst.style.display='none';});
+				unitLst.appendChild(item);
+			});
+		}
+		function renderNum(){
+			var mx=maxFor(curUnit);
+			var show=(curUnit!=='forever');
+			numBtn.style.display=show?'':'none';
+			numBtn.textContent=show?''+curNum:'';
+			numLst.innerHTML='';
+			if(!show)return;
+			numOpts().forEach(function(o){
+				var item=document.createElement('div');
+				item.className='pushbot-sel-item'+(String(o.v)===String(curNum)?' is-on':'');
+				item.textContent=o.l;
+				item.addEventListener('click',function(){curNum=parseInt(o.v,10);renderNum();compose();numLst.style.display='none';});
+				numLst.appendChild(item);
+			});
 		}
 		function compose(){
-			var u=curUnit();
-			if(u==='forever'){hi.value='0';return;}
-			var n=(''+inp.value).replace(/[^\d]/g,'');
-			if(n===''){hi.value='';return;}
-			hi.value=(u==='s')?n:n+u;
+			if(curUnit==='forever'){hi.value='0';return;}
+			hi.value=(curUnit==='s')?''+curNum:''+curNum+curUnit;
 		}
-		inp.addEventListener('input',compose);
-		sel.addEventListener('change',function(){
-			var u=sel.value;
-			inp.style.display=(u==='forever')?'none':'';
-			inp.disabled=(u==='forever');
-			compose();
-		});
-		/* LuCI 将 select 替换为 .cbi-dropdown 并派发 cbi-dropdown-change（bubbles）；
-		   detail.value 为对象 {text,value,element}，空值为 null。 */
-		w.addEventListener('cbi-dropdown-change',function(e){
-			var v='forever';
-			if(e.detail&&e.detail.value&&e.detail.value.value!==undefined&&e.detail.value.value!==null&&e.detail.value.value!=='')
-				v=''+e.detail.value.value;
-			inp.style.display=(v==='forever')?'none':'';
-			inp.disabled=(v==='forever');
-			compose();
-		});
-		b.appendChild(inp);b.appendChild(sel);
+		unitBtn.addEventListener('click',function(e){e.preventDefault();var o=numLst.style.display;numLst.style.display='none';unitLst.style.display=(unitLst.style.display==='none')?'block':'none';});
+		numBtn.addEventListener('click',function(e){e.preventDefault();var o=unitLst.style.display;unitLst.style.display='none';numLst.style.display=(numLst.style.display==='none')?'block':'none';});
+		document.addEventListener('click',function(e){ if(!w.contains(e.target)){unitLst.style.display='none';numLst.style.display='none';} });
+		renderUnit();renderNum();compose();
+		b.appendChild(numBtn);b.appendChild(numLst);b.appendChild(unitBtn);b.appendChild(unitLst);
 		if(desc){var d=document.createElement('div');d.className='pushbot-inline-description';d.innerHTML=desc;b.appendChild(d);}
 		w.appendChild(b);return w;
 	}
@@ -1741,7 +1765,7 @@ cuSub.appendChild(mkBtn('{{ _('Traffic DND') }}',cdOn,function(on){updateFlagInp
 	var banOn = CT_AUTO_BAN;
 	failSub.appendChild(mkBtn('{{ _('Auto blacklist') }}',banOn,function(on){updateFlagInput('web_login_black',on);toggleBan(on);}));
 	var banSub=document.createElement('div');banSub.id='ct_ban_sub';banSub.style.cssText='margin-top:4px;display:'+(CT_AUTO_BAN?'block':'none');
-	banSub.appendChild(mkTimeout('ip_black_timeout','{{ _('Blacklist duration') }}',CT_BAN_TIMEOUT,'{{ _('Forever = permanently blacklisted<br>1M = 30 days. Plain numbers in seconds are also accepted for backward compatibility') }}'));
+	banSub.appendChild(mkTimeoutSel('ip_black_timeout','{{ _('Blacklist duration') }}',CT_BAN_TIMEOUT,'{{ _('Unit ranges are fixed (seconds 1-59, minutes 1-59, hours 1-23, days 1-29, weeks 1-4, months 1-12), max about 1 year') }}'));
 	/* IP white list */
 	var ipCtr=document.createElement('div');ipCtr.style.cssText='margin:4px 0';
 	var ipLbl=document.createElement('div');ipLbl.className='pushbot-inline-title';

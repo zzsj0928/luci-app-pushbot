@@ -1593,8 +1593,8 @@ function ipv6_in_network(){
 }
 
 # 拉黑时长解析：纯数字=秒（兼容旧配置）；支持单字符单位后缀
-#   h/H 小时  d/D 天  w/W 周  M 月(=30天)  m 分钟
-# 例：3600、1h、2D、1W、1M；0/空 = 永久拉黑。输出统一秒数。
+#   h/H 小时  d/D 天  w/W 周  M 月(=30天)  m 分钟  y/Y 年(=365天)
+# 例：3600、1h、2D、1W、1M、1Y；0/空 = 永久拉黑。输出统一秒数。
 function parse_timeout(){
 	local v="$1" num unit mult=1
 	[ -z "$v" ] && { echo 0; return; }
@@ -1607,6 +1607,7 @@ function parse_timeout(){
 		w|W) mult=604800 ;;
 		M)   mult=2592000 ;;
 		m)   mult=60 ;;
+		y|Y) mult=31536000 ;;
 		*)   mult=1 ;;
 	esac
 	echo $((num * mult))
