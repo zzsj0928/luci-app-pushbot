@@ -639,14 +639,16 @@ function pushbot_cron(){
 		crontab -l 2>/dev/null > conf && echo -e "0 */$interval_time * * * /usr/bin/pushbot/pushbot send &" >> conf && crontab conf && rm -f conf >/dev/null 2>&1
 	elif [ "$crontab" = "1" ] && { [ ! -z "$regular_time" ] || [ ! -z "$regular_time_2" ] || [ ! -z "$regular_time_3" ]; }; then
 		# 定时发送（兼容旧配置：crontab 未设置但 regular_time* 有值）
-		[ ! -z "$regular_time_2" ] && local regular_time_2=",${regular_time_2}"
-		[ ! -z "$regular_time_3" ] && local regular_time_3=",${regular_time_3}"
+		# 第二、三时段值为 0 时视为"禁用"残留（旧版把 Disabled 存成 0），过滤掉；
+		# 主时段 regular_time=0 是合法的"0 点发送"，保留。
+		[ ! -z "$regular_time_2" ] && [ "$regular_time_2" != "0" ] && local regular_time_2=",${regular_time_2}" || local regular_time_2=""
+		[ ! -z "$regular_time_3" ] && [ "$regular_time_3" != "0" ] && local regular_time_3=",${regular_time_3}" || local regular_time_3=""
 		crontab -l 2>/dev/null > conf && echo -e "0 $regular_time$regular_time_2$regular_time_3 * * * /usr/bin/pushbot/pushbot send &" >> conf && crontab conf && rm -f conf >/dev/null 2>&1
 	elif [ -z "$crontab" ] && { [ ! -z "$regular_time" ] || [ ! -z "$regular_time_2" ] || [ ! -z "$regular_time_3" ] || [ ! -z "$interval_time" ]; }; then
 		# 旧版兼容：crontab 未设置时，按 legacy 逻辑（定时优先，其次间隔）
 		if [ ! -z "$regular_time" ] || [ ! -z "$regular_time_2" ] || [ ! -z "$regular_time_3" ]; then
-			[ ! -z "$regular_time_2" ] && local regular_time_2=",${regular_time_2}"
-			[ ! -z "$regular_time_3" ] && local regular_time_3=",${regular_time_3}"
+			[ ! -z "$regular_time_2" ] && [ "$regular_time_2" != "0" ] && local regular_time_2=",${regular_time_2}" || local regular_time_2=""
+			[ ! -z "$regular_time_3" ] && [ "$regular_time_3" != "0" ] && local regular_time_3=",${regular_time_3}" || local regular_time_3=""
 			crontab -l 2>/dev/null > conf && echo -e "0 $regular_time$regular_time_2$regular_time_3 * * * /usr/bin/pushbot/pushbot send &" >> conf && crontab conf && rm -f conf >/dev/null 2>&1
 		elif [ ! -z "$interval_time" ]; then
 			crontab -l 2>/dev/null > conf && echo -e "0 */$interval_time * * * /usr/bin/pushbot/pushbot send &" >> conf && crontab conf && rm -f conf >/dev/null 2>&1
