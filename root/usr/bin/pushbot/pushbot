@@ -1640,6 +1640,9 @@ function add_ip_black(){
 	local bl_state="/usr/bin/pushbot/api/.ip_blacklist.state"
 	# 拉黑时长统一解析为秒（支持 3600 / 1h / 2D / 1W / 1M，0=永久）
 	local bl_timeout_sec=$(parse_timeout "${ip_black_timeout:-0}")
+	# timeout 配置变化必须触发重建（set 的 timeout 属性只能在创建时设定，
+	# 否则 nft add set 对已存在 set 报错、直接加元素不会更新超时）
+	[ -f "${bl_state}.timeout" ] && [ "$(cat ${bl_state}.timeout)" != "$bl_timeout_sec" ] && need_update=true
 	[ -f "${bl_state}.onoff" ] && prev_onoff=$(cat ${bl_state}.onoff)
 	local cur_onoff="${web_login_black:-0}"
 	[ "$prev_onoff" != "$cur_onoff" ] && need_update=true
