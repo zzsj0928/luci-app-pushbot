@@ -28,7 +28,7 @@ msgstr ""
 msgid "Unit ranges are fixed (seconds 1-59, minutes 1-59, hours 1-23, days 1-29, weeks 1-4, months 1-12), max about 1 year"
 msgstr ""
 
-msgid "Forever"
+msgid "Permanently"
 msgstr ""
 
 msgid "Seconds"

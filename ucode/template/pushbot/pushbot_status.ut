@@ -1348,7 +1348,7 @@ function initContentCard() {
 		b.style.cssText='position:relative;display:flex;gap:6px;align-items:center;flex-wrap:nowrap';
 		var raw=''+(val==null?'':val);
 		/* 单位定义：值=保存后缀, 范围上限 */
-		var unitDefs=[['forever','{{ _('Forever') }}',0],['s','{{ _('Seconds') }}',59],['m','{{ _('Minutes') }}',59],['h','{{ _('Hours') }}',23],['D','{{ _('Days') }}',29],['W','{{ _('Weeks') }}',4],['M','{{ _('Months') }}',12]];
+		var unitDefs=[['forever','{{ _('Permanently') }}',0],['s','{{ _('Seconds') }}',59],['m','{{ _('Minutes') }}',59],['h','{{ _('Hours') }}',23],['D','{{ _('Days') }}',29],['W','{{ _('Weeks') }}',4],['M','{{ _('Months') }}',12]];
 		/* 解析现有配置 → [单位, 数值]：0/空=永久；纯数字=秒；数字+单位 */
 		function parse(raw){
 			var m=/^(\d+)\s*([a-zA-Z]*)$/.exec(raw);
