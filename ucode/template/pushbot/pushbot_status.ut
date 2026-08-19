@@ -2053,6 +2053,12 @@ PB_onReady(function(){ tryContentOnce(); });
 
 		var fc = document.createElement('div');
 		fc.className = 'pushbot-choice-list';
+		/* WAN 信息说明：调用推送内容处选定的接口——仅 WAN 信息启用时显示 */
+		var wanNote=document.createElement('div');
+		wanNote.className='pushbot-inline-description';
+		wanNote.style.cssText='margin:2px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
+		wanNote.textContent='{{ _('WAN info uses the interface selected in the push content section.') }}';
+		wanNote.style.display = router_wan ? '' : 'none';
 		[
 			{opt:'router_status',label:'{{ _('System status') }}',on:router_status},
 			{opt:'router_temp',label:'{{ _('Device temperature') }}',on:router_temp},
@@ -2065,15 +2071,11 @@ PB_onReady(function(){ tryContentOnce(); });
 			b.addEventListener('click',function(e){
 				e.preventDefault();on=!on;updateFlagInput(f.opt, on);
 				b.className='pushbot-choice-button '+(on?'is-on':'is-off');
+				if(f.opt==='router_wan') wanNote.style.display = on ? '' : 'none';
 			});
 			fc.appendChild(b);
 		});
 		contentBody.appendChild(fc);
-		/* WAN 信息说明：调用推送内容处选定的接口 */
-		var wanNote=document.createElement('div');
-		wanNote.className='pushbot-inline-description';
-		wanNote.style.cssText='margin:2px 0 0 2px;font-size:12px;color:inherit;opacity:0.75';
-		wanNote.textContent='{{ _('WAN info uses the interface selected in the push content section.') }}';
 		contentBody.appendChild(wanNote);
 
 		/* bottom row: push title + global connectivity timeout */
