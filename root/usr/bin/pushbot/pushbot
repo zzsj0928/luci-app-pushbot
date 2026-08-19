@@ -1453,10 +1453,20 @@ function login_send(){
 function is_local_address(){
 	local target="$1"
 	[ -z "$target" ] && return 1
-	local a
+	# v6 归一化：展开为完整 8 段并转小写，避免压缩/完整形式、大小写差异导致
+	# 本机地址漏判被拉黑（ip 命令输出压缩形式，登录日志可能是完整形式）。
+	# v4 无此问题，保持原样精确比较。
+	local target_norm="$target" a a_norm
+	if echo "$target" | grep -q ":"; then
+		target_norm=$(expand_v6 "$target" 2>/dev/null | tr 'A-F' 'a-f')
+	fi
 	for a in $local_addrs; do
 		[ -z "$a" ] && continue
-		[ "$a" = "$target" ] && return 0
+		a_norm="$a"
+		if echo "$a" | grep -q ":"; then
+			a_norm=$(expand_v6 "$a" 2>/dev/null | tr 'A-F' 'a-f')
+		fi
+		[ "$a_norm" = "$target_norm" ] && return 0
 	done
 	return 1
 }
