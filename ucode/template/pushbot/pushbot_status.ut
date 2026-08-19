@@ -1860,6 +1860,14 @@ PB_onReady(function(){ tryContentOnce(); });
 	function renderScheduledContent() {
 		contentBody.innerHTML = '';
 		var mode = crCur;
+		/* 模式互斥：切换/关闭时清空另一模式的 hidden 字段，避免残留值
+		   让脚本 pushbot_cron 误判分支（定时 vs 间隔） */
+		function clearHidden(name) {
+			var el = document.querySelector('[name="cbid.pushbot.pushbot.' + name + '"]');
+			if (el) el.value = '';
+		}
+		if (mode !== '1') { clearHidden('regular_time'); clearHidden('regular_time_2'); clearHidden('regular_time_3'); }
+		if (mode !== '2') { clearHidden('interval_time'); }
 		if (mode === '' || mode === null) return;
 
 		/* ── time selectors ── */
