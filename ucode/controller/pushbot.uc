@@ -181,10 +181,18 @@ return {
 				if (length(t) > 0) push(lines, t);
 			}
 			if (length(lines) > 0) {
+				/* 出口策略：显式接口为 LAN(私网) 时走默认路由（如单臂路由），
+				   WAN(公网) 或多 WAN 场景绑定该接口探测 */
+				let bind = "";
+				if (iface != "") {
+					let ifip = run(type == "4"
+						? "/sbin/ifconfig " + sq(iface) + " | awk '/inet addr/ {print $2}' | awk -F: '{print $2}' | grep -oE '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}' | head -n1"
+						: "ip addr show " + sq(iface) + " | grep -v deprecated | grep -A1 'inet6 [^f:]' | sed -nr ':a;N;s#^ +inet6 ([a-f0-9:]+)/.+? scope global .*? valid_lft ([0-9]+sec) .*#\\2 \\1#p;ta' | sort -nr | head -n1 | awk '{print $2}'");
+					if (ifip != "" && !is_private(ifip)) bind = " --interface " + sq(iface);
+				}
 				let start = time() % length(lines);
 				for (let i = 0; i < 3 && i < length(lines); i++) {
 					let pick = lines[(start + i) % length(lines)];
-					let bind = iface != "" ? " --interface " + sq(iface) : "";
 					let out = run("curl -k -s -" + (type == "4" ? "4" : "6") + bind + " -m 8 " + sq(pick) +
 						(type == "4"
 							? " | grep -oE '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}' | head -n1"
