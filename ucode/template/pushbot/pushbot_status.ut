@@ -1332,6 +1332,68 @@ function initContentCard() {
 		if(desc){var d=document.createElement('div');d.className='pushbot-inline-description';d.innerHTML=desc;b.appendChild(d);}
 		w.appendChild(b);return w;
 	}
+	/* 拉黑时长组合控件：单位下拉（永久/秒/分/时/天/周/月）+ 数值输入框。
+	   选择"永久"时隐藏数值框，保存 0（永久拉黑）；选其他单位显示数值框，
+	   保存为 纯数字(秒) 或 数字+单位(30m/2h/3D/1W/2M)。兼容旧配置纯数字秒。 */
+	function mkTimeout(name, label, val, desc) {
+		var w=document.createElement('div');w.className='pushbot-inline-field';w.style.cssText='margin:4px 0';
+		var t=document.createElement('div');t.className='pushbot-inline-title';
+		t.style.cssText='margin:0 0 4px 2px;text-transform:none;font-size:13px;font-weight:600;color:inherit';
+		t.textContent=label;w.appendChild(t);
+		var b=document.createElement('div');b.className='pushbot-inline-body';
+		b.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:nowrap';
+		/* 解析现有配置：0/空=永久；纯数字=秒；数字+单位 */
+		var raw=''+(val==null?'':val);
+		var m=/^(\d+)\s*([a-zA-Z]*)$/.exec(raw);
+		var num = m?m[1]:'';
+		var unit = (raw==='0'||raw==='') ? 'forever' : (m&&m[2]?m[2]:'s');
+		/* 数值输入框（非永久时显示） */
+		var inp=document.createElement('input');inp.type='text';inp.className='cbi-input-text';
+		inp.style.cssText='width:160px;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;box-sizing:border-box;background:rgba(255,255,255,0.7);color:inherit';
+		inp.value=num;
+		if(unit==='forever'){inp.style.display='none';inp.disabled=true;}
+		/* 单位下拉 */
+		var sel=document.createElement('select');sel.className='cbi-input-select';
+		sel.style.cssText='width:130px;padding:6px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;background:rgba(255,255,255,0.7);color:inherit';
+		var units=[['forever','{{ _('Forever') }}'],['s','{{ _('Seconds') }}'],['m','{{ _('Minutes') }}'],['h','{{ _('Hours') }}'],['D','{{ _('Days') }}'],['W','{{ _('Weeks') }}'],['M','{{ _('Months') }}']];
+		units.forEach(function(u){var op=document.createElement('option');op.value=u[0];op.textContent=u[1];if(u[0]===unit)op.selected=true;sel.appendChild(op);});
+		var hi=mkH(name,unit==='forever'?'0':raw);
+		function curUnit(){
+			var dd=w.querySelector('.cbi-dropdown');
+			if(dd&&dd.value!==null&&dd.value!==undefined){
+				var v=(dd.value.value!==undefined)?dd.value.value:dd.value;
+				if(v!==null&&v!==undefined&&v!=='')return ''+v;
+			}
+			return sel.value;
+		}
+		function compose(){
+			var u=curUnit();
+			if(u==='forever'){hi.value='0';return;}
+			var n=(''+inp.value).replace(/[^\d]/g,'');
+			if(n===''){hi.value='';return;}
+			hi.value=(u==='s')?n:n+u;
+		}
+		inp.addEventListener('input',compose);
+		sel.addEventListener('change',function(){
+			var u=sel.value;
+			inp.style.display=(u==='forever')?'none':'';
+			inp.disabled=(u==='forever');
+			compose();
+		});
+		/* LuCI 将 select 替换为 .cbi-dropdown 并派发 cbi-dropdown-change（bubbles）；
+		   detail.value 为对象 {text,value,element}，空值为 null。 */
+		w.addEventListener('cbi-dropdown-change',function(e){
+			var v='forever';
+			if(e.detail&&e.detail.value&&e.detail.value.value!==undefined&&e.detail.value.value!==null&&e.detail.value.value!=='')
+				v=''+e.detail.value.value;
+			inp.style.display=(v==='forever')?'none':'';
+			inp.disabled=(v==='forever');
+			compose();
+		});
+		b.appendChild(inp);b.appendChild(sel);
+		if(desc){var d=document.createElement('div');d.className='pushbot-inline-description';d.innerHTML=desc;b.appendChild(d);}
+		w.appendChild(b);return w;
+	}
 
 	var CT_IFACES = PB_sys('ifaces');
 	var CT_IP_HINTS = PB_sys('ip_hints');
@@ -1679,7 +1741,7 @@ cuSub.appendChild(mkBtn('{{ _('Traffic DND') }}',cdOn,function(on){updateFlagInp
 	var banOn = CT_AUTO_BAN;
 	failSub.appendChild(mkBtn('{{ _('Auto blacklist') }}',banOn,function(on){updateFlagInput('web_login_black',on);toggleBan(on);}));
 	var banSub=document.createElement('div');banSub.id='ct_ban_sub';banSub.style.cssText='margin-top:4px;display:'+(CT_AUTO_BAN?'block':'none');
-	banSub.appendChild(mkTxt('ip_black_timeout','{{ _('Blacklist duration') }}',CT_BAN_TIMEOUT,'{{ _('0 = permanently blacklisted, use with caution<br>Plain number = seconds, or use units: 3600 / 1h / 2D / 1W / 1M (month = 30 days)<br>If misconfigured, change the device IP and clear the rules in LuCI') }}'));
+	banSub.appendChild(mkTimeout('ip_black_timeout','{{ _('Blacklist duration') }}',CT_BAN_TIMEOUT,'{{ _('Forever = permanently blacklisted<br>1M = 30 days. Plain numbers in seconds are also accepted for backward compatibility') }}'));
 	/* IP white list */
 	var ipCtr=document.createElement('div');ipCtr.style.cssText='margin:4px 0';
 	var ipLbl=document.createElement('div');ipLbl.className='pushbot-inline-title';

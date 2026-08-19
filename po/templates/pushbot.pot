@@ -25,7 +25,28 @@ msgstr ""
 msgid "-- Select interface --"
 msgstr ""
 
-msgid "0 = permanently blacklisted, use with caution<br>Plain number = seconds, or use units: 3600 / 1h / 2D / 1W / 1M (month = 30 days)<br>If misconfigured, change the device IP and clear the rules in LuCI"
+msgid "Forever = permanently blacklisted<br>1M = 30 days. Plain numbers in seconds are also accepted for backward compatibility"
+msgstr ""
+
+msgid "Forever"
+msgstr ""
+
+msgid "Seconds"
+msgstr ""
+
+msgid "Minutes"
+msgstr ""
+
+msgid "Hours"
+msgstr ""
+
+msgid "Days"
+msgstr ""
+
+msgid "Weeks"
+msgstr ""
+
+msgid "Months"
 msgstr ""
 
 msgid "3 devices online"
