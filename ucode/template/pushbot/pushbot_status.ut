@@ -1348,11 +1348,11 @@ function initContentCard() {
 		b.style.cssText='position:relative;display:flex;gap:6px;align-items:center;flex-wrap:nowrap';
 		var raw=''+(val==null?'':val);
 		/* 单位定义：值=保存后缀, 范围上限 */
-		var unitDefs=[['forever','{{ _('Permanently') }}',0],['s','{{ _('Seconds') }}',59],['m','{{ _('Minutes') }}',59],['h','{{ _('Hours') }}',23],['D','{{ _('Days') }}',29],['W','{{ _('Weeks') }}',4],['M','{{ _('Months') }}',12]];
+		var unitDefs=[['permanently','{{ _('Permanently') }}',0],['s','{{ _('Seconds') }}',59],['m','{{ _('Minutes') }}',59],['h','{{ _('Hours') }}',23],['D','{{ _('Days') }}',29],['W','{{ _('Weeks') }}',4],['M','{{ _('Months') }}',12]];
 		/* 解析现有配置 → [单位, 数值]：0/空=永久；纯数字=秒；数字+单位 */
 		function parse(raw){
 			var m=/^(\d+)\s*([a-zA-Z]*)$/.exec(raw);
-			if(raw==='0'||raw===''||!m) return ['forever',1];
+			if(raw==='0'||raw===''||!m) return ['permanently',1];
 			var u=m[2]||'s';
 			if(u==='H')u='h'; if(u==='d')u='D'; if(u==='w')u='W';
 			return [u,parseInt(m[1],10)];
@@ -1361,7 +1361,7 @@ function initContentCard() {
 		function labelOf(u){ for(var k=0;k<unitDefs.length;k++) if(unitDefs[k][0]===u) return unitDefs[k][1]; return u; }
 		var init=parse(raw);
 		var hi=makeHidden(name, raw===''?'0':raw);
-		var curUnit=''+(init[0]||'forever');
+		var curUnit=''+(init[0]||'permanently');
 		var curNum=init[1]>=1?init[1]:1;
 		/* 单位自绘下拉 */
 		var unitBtn=document.createElement('button');unitBtn.type='button';
@@ -1393,7 +1393,7 @@ function initContentCard() {
 		}
 		function renderNum(){
 			var mx=maxFor(curUnit);
-			var show=(curUnit!=='forever');
+			var show=(curUnit!=='permanently');
 			numBtn.style.display=show?'':'none';
 			numBtn.textContent=show?''+curNum:'';
 			numLst.innerHTML='';
@@ -1407,7 +1407,7 @@ function initContentCard() {
 			});
 		}
 		function compose(){
-			if(curUnit==='forever'){hi.value='0';return;}
+			if(curUnit==='permanently'){hi.value='0';return;}
 			hi.value=(curUnit==='s')?''+curNum:''+curNum+curUnit;
 		}
 		unitBtn.addEventListener('click',function(e){e.preventDefault();var o=numLst.style.display;numLst.style.display='none';unitLst.style.display=(unitLst.style.display==='none')?'block':'none';});
