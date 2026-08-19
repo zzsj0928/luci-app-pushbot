@@ -365,7 +365,7 @@ msgstr "逐个添加；支持单个 IP 或 CIDR 网段，如【192.168.1.5】【
 msgid "IPv4 API list"
 msgstr "IPv4 API列表"
 
-msgid "The interface selected here is used as the egress."
+msgid "URL probing will use this interface as the egress."
 msgstr "此处将调用左侧接口设置作为出口"
 
 msgid "This API list is used for WAN info probing in scheduled push."

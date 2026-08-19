@@ -363,7 +363,7 @@ msgstr ""
 msgid "IPv4 API list"
 msgstr ""
 
-msgid "The interface selected here is used as the egress."
+msgid "URL probing will use this interface as the egress."
 msgstr ""
 
 msgid "This API list is used for WAN info probing in scheduled push."
