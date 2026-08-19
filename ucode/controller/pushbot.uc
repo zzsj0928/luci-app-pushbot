@@ -185,10 +185,10 @@ return {
 				   WAN(公网) 或多 WAN 场景绑定该接口探测 */
 				let bind = "";
 				if (iface != "") {
-					let ifip = run(type == "4"
-						? "/sbin/ifconfig " + sq(iface) + " | awk '/inet addr/ {print $2}' | awk -F: '{print $2}' | grep -oE '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}' | head -n1"
-						: "ip addr show " + sq(iface) + " | grep -v deprecated | grep -A1 'inet6 [^f:]' | sed -nr ':a;N;s#^ +inet6 ([a-f0-9:]+)/.+? scope global .*? valid_lft ([0-9]+sec) .*#\\2 \\1#p;ta' | sort -nr | head -n1 | awk '{print $2}'");
-					if (ifip != "" && !is_private(ifip)) bind = " --interface " + sq(iface);
+					/* 以 UCI/ubus 接口角色判定 WAN（wan/wan6 的 device/l3_device 命中），
+					   而非看 IP 是否私网——运营商可能给 WAN 私网 IP，单臂路由 LAN 也可能有 gateway */
+					let iswan = run("for r in wan wan6; do ubus call network.interface.$r status 2>/dev/null | grep -oE '\\\"(device|l3_device)\\\": \\\"[^\\\"]*\\\"' | grep -q " + sq(iface) + " && exit 0; done; exit 1");
+					if (iswan == "0") bind = " --interface " + sq(iface);
 				}
 				let start = time() % length(lines);
 				for (let i = 0; i < 3 && i < length(lines); i++) {

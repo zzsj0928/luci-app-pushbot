@@ -234,19 +234,32 @@ function is_private_ip(){
 	fi
 }
 
-# 判断指定接口是否为 LAN/内网接口：取接口 IP（v4 或 v6）用 is_private_ip 判定。
-# 用于决定 URL 外网探测出口：LAN 接口走默认路由（如单臂路由），WAN 接口绑定该接口。
-# 返回 0=LAN(私网) 1=WAN(公网或无法判定)
-function iface_is_lan(){
-	local iface="$1" fam="$2" ip=""
+# 判断指定接口是否为 WAN 接口：以 OpenWrt UCI/ubus 接口角色为准——
+# 所选接口命中 wan/wan6 的 device 或 l3_device 即视为 WAN。
+# 相比"接口 IP 是否三类私网"更可靠：运营商可能给 WAN 分配私网 IP（CGNAT/大内网），
+# 单臂路由的 LAN 也可能带 gateway——唯 UCI 角色是用户/系统定义的权威依据。
+# 返回 0=WAN 1=非WAN(LAN/未知)
+function iface_is_wan(){
+	local iface="$1"
 	[ -z "$iface" ] && return 1
-	if [ "$fam" = "6" ]; then
-		ip=$(ip addr show ${iface} 2>/dev/null|grep -v deprecated|grep -A1 'inet6 [^f:]'|sed -nr ':a;N;s#^ +inet6 ([a-f0-9:]+)/.+? scope global .*? valid_lft ([0-9]+sec) .*#\2 \1#p;ta'|sort -nr|head -n1|awk '{print $2}')
-	else
-		ip=$(/sbin/ifconfig ${iface} 2>/dev/null|awk '/inet addr/ {print $2}'|awk -F: '{print $2}'|grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'|head -n1)
-	fi
-	[ -z "$ip" ] && return 1
-	is_private_ip "$ip" "$fam"
+	local role_dev role_l3
+	for role in wan wan6; do
+		role_dev=$(ubus call network.interface.$role status 2>/dev/null | grep -oE "\"device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
+		role_l3=$(ubus call network.interface.$role status 2>/dev/null | grep -oE "\"l3_device\": \"[^\"]*\"" | head -1 | cut -d'"' -f4)
+		[ "$iface" = "$role_dev" ] && return 0
+		[ "$iface" = "$role_l3" ] && return 0
+	done
+	return 1
+}
+
+# 判断指定接口是否为 LAN/内网接口：UCI 角色非 WAN 即视为 LAN。
+# 用于决定 URL 外网探测出口：LAN 接口走默认路由（如单臂路由），WAN 接口绑定该接口。
+# 返回 0=LAN 1=WAN(或无法判定)
+function iface_is_lan(){
+	local iface="$1"
+	[ -z "$iface" ] && return 1
+	iface_is_wan "$iface" && return 1
+	return 0
 }
 
 function getip(){
@@ -271,7 +284,7 @@ function getip(){
 				# 出口策略：显式配置的接口为 LAN(私网) 时走默认路由（如单臂路由，
 				# LAN 接口即通往公网的路径）；为 WAN(公网) 或多 WAN 场景绑定该接口探测
 				if [ ! -z "$ipv4_interface" ]; then
-					if iface_is_lan "$ipv4_interface" 4; then
+					if iface_is_lan "$ipv4_interface"; then
 						local hostIP=$(curl -k -s -4 -m 8 ${ipv4_URL})
 					else
 						local hostIP=$(curl -k -s -4 --interface ${ipv4_interface} -m 8 ${ipv4_URL})
@@ -305,7 +318,7 @@ function getip(){
 				local hostIPv6=""
 				# 出口策略：LAN(私网) 接口走默认路由，WAN(公网) 接口绑定该接口探测
 				if [ ! -z "$ipv6_interface" ]; then
-					if iface_is_lan "$ipv6_interface" 6; then
+					if iface_is_lan "$ipv6_interface"; then
 						local hostIPv6=$(curl -k -s -6 -m 8 ${ipv6_URL})
 					else
 						local hostIPv6=$(curl -k -s -6 --interface ${ipv6_interface} -m 8 ${ipv6_URL})
@@ -2029,12 +2042,12 @@ function send(){
 
 	if [ -z "$1" ] && [ ! -z "$router_wan" ] && [ "$router_wan" -eq "1" ]; then
 		local send_wanIP=`getip wanipv4`
-		# 判断用户所选接口是否为 LAN/内网：仅当显式配置了接口且其 IP 为三类私网
-		# （10/8、172.16/12、192.168/16）时判定为 LAN。无论 LAN/WAN，外网 IP
+		# 判断用户所选接口是否为 LAN：以 UCI/ubus 接口角色为准（非 wan/wan6 即 LAN，
+		# 不依赖 IP 是否私网——运营商可能给 WAN 私网 IP）。无论 LAN/WAN，外网 IP
 		# 均探测并显示（getip 内部按接口类型选择出口：LAN 走默认路由，WAN 绑定接口）。
 		local wan_lan_mode=0
 		if [ ! -z "$ipv4_interface" ]; then
-			iface_is_lan "$ipv4_interface" 4 && wan_lan_mode=1
+			iface_is_lan "$ipv4_interface" && wan_lan_mode=1
 		fi
 		# 无论 LAN/WAN 都探测外网 IP（出口策略在 getip 内部处理）
 		local send_hostIP=`getip hostipv4`
