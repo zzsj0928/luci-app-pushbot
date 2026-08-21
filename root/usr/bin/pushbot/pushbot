@@ -561,7 +561,7 @@ function get_client_usage(){
 	[ "$client_usage_disturb" -eq "1" ] && [ ! -z "$client_usage_whitelist" ] && local MACLIST=`echo "$client_usage_whitelist"`
 	[ -z "$MACLIST" ] && return
 
-	if [ "$((`date +%s`-$get_client_usage_time))" -ge "60" ]; then
+	if [ "$((`date +%s`-$get_client_usage_time))" -ge "$sleeptime" ] && [ "$sleeptime" -ge "10" ]; then
 		> ${dir}client_usage_aliases
 		for mac in $MACLIST; do
 			( ! cat ${dir}ipAddress|grep -q -i -w $mac|grep -v "^$"|sort -u|head -n1 ) && continue
