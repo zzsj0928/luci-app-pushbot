@@ -62,8 +62,8 @@ msgstr "越短的时间时间响应越及时，但会占用更多的系统资源
 msgid "Abnormal device traffic"
 msgstr "设备异常流量"
 
-msgid "Abnormal device traffic alert (bytes); you can append K or M"
-msgstr "设备异常流量警报（byte），你可以追加 K 或者 M"
+msgid "Abnormal device traffic alert (bytes); you can append K, M or G"
+msgstr "设备异常流量警报（byte），你可以追加 K、M 或 G"
 
 msgid "Abnormal traffic"
 msgstr "流量异常"
