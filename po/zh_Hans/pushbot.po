@@ -89,6 +89,9 @@ msgstr "自动拉黑"
 msgid "Auto refresh"
 msgstr "自动刷新"
 
+msgid "Refresh"
+msgstr "刷新"
+
 msgid "Average load: 0.09 0.28 0.16"
 msgstr "平均负载： 0.09 0.28 0.16"
 
@@ -861,8 +864,8 @@ msgstr "流量免打扰"
 msgid "Traffic limit"
 msgstr "流量上限"
 
-msgid "Traffic limit per minute"
-msgstr "每分钟流量限制"
+msgid "Traffic limit per interval"
+msgstr "时间间隔内流量限制"
 
 msgid "Traffic watchlist"
 msgstr "流量关注列表"
