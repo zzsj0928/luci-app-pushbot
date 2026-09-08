@@ -2125,14 +2125,24 @@ function need_blacklist_sync(){
 	[ "$(cat "$state.timeout" 2>/dev/null)" != "$(parse_timeout "${ip_black_timeout:-0}")" ] && return 0
 	old=$(blacklist_members < "$state.prevset" 2>/dev/null)
 	[ "$old" != "$bl_members" ] && return 0
+	# ── 内核规则完整性检查（仅首次启动 / fw4 重启后执行一次）──
+	# 上面的检查覆盖了配置/文件/set 内容变化，变化时立即同步。
+	# 下面检查的是内核 set 和 DROP 规则是否完整，用于 fw4 重启后自动恢复。
+	# 此类检查涉及多次 nft/iptables 查询，若在主循环每轮都执行代价较高，
+	# 且系统短暂不稳定时可能误判（规则还没恢复就触发无意义重建）。
+	# 方案：用 boot_marker 控制，每次 pushbot 重启后仅首次进入时执行一次。
 	if [ "$web_login_black" = 1 ] && [ -s "$ip_blacklist_path" ]; then
-		[ "$bl_exists4" = 0 ] && return 0
-		if [ "$firewall_mode" = nft ]; then
-			[ "$bl_exists6" = 0 ] && return 0
-			printf '%s\n' "$bl_rules" | grep -qE '^[[:space:]]*ip saddr @pushbot_blacklist[[:space:]]+drop([[:space:]]|$)' || return 0
-			printf '%s\n' "$bl_rules" | grep -qE '^[[:space:]]*ip6 saddr @pushbot_blacklist6[[:space:]]+drop([[:space:]]|$)' || return 0
-		else
-			printf '%s\n' "$bl_rules" | grep -qxF -- '-A INPUT -m set --match-set ip_blacklist src -j DROP' || return 0
+		local boot_marker="${state}.boot"
+		if [ -f "$boot_marker" ]; then
+			rm -f "$boot_marker"
+			[ "$bl_exists4" = 0 ] && return 0
+			if [ "$firewall_mode" = nft ]; then
+				[ "$bl_exists6" = 0 ] && return 0
+				printf '%s\n' "$bl_rules" | grep -qE '^[[:space:]]*ip saddr @pushbot_blacklist[[:space:]]+drop([[:space:]]|$)' || return 0
+				printf '%s\n' "$bl_rules" | grep -qE '^[[:space:]]*ip6 saddr @pushbot_blacklist6[[:space:]]+drop([[:space:]]|$)' || return 0
+			else
+				printf '%s\n' "$bl_rules" | grep -qxF -- '-A INPUT -m set --match-set ip_blacklist src -j DROP' || return 0
+			fi
 		fi
 	fi
 	bl_snapshot_ready=0
@@ -2617,6 +2627,10 @@ pushbot_init;[ $? -eq 1 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】�
 echo "`date "+%Y-%m-%d %H:%M:%S"` 【初始化】载入在线设备" >> ${logfile}
 > ${dir}send_enable.lock && pushbot_first && deltemp
 echo "`date "+%Y-%m-%d %H:%M:%S"` 【初始化】初始化完成" >> ${logfile}
+
+# 首次启动标记：供 need_blacklist_sync 的内核规则检查只执行一次
+# 启动时创建 → 首次检查时删除 → 下次重启再创建
+touch /usr/bin/pushbot/api/.ip_blacklist.state.boot 2>/dev/null
 
 # 循环（仅当明确启用 =1 时运行；0/空/读取失败均不进入，脚本自然退出，不空转）
 while [ "$pushbot_enable" = "1" ]; do
