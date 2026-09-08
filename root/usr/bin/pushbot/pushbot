@@ -16,7 +16,7 @@ function read_config(){
 	"pushbot_ipv4" "ipv4_interface" "pushbot_ipv6" "ipv6_interface" "pushbot_up" "pushbot_down" "cpuload_enable" "cpuload" "temperature_enable" "temperature" \
 	"regular_time" "regular_time_2" "regular_time_3" "interval_time" "crontab" \
 	"client_usage" "client_usage_max" "client_usage_disturb" "client_usage_whitelist" \
-	"web_logged" "ssh_logged" "web_login_failed" "ssh_login_failed" "wifi_connected" "wifi_auth_failed" "login_max_num" "web_login_black" "ip_white_list" "ip_black_timeout" \
+	"web_logged" "ssh_logged" "web_login_failed" "ssh_login_failed" "wifi_connected" "wifi_auth_failed" "login_max_num" "web_login_black" "ip_white_list" "ip_black_timeout" "ip_black_persist" \
 	"pushbot_sheep" "starttime" "endtime" "pushbot_whitelist" "pushbot_blacklist" "pushbot_interface" "MAC_online_list" "MAC_offline_list" \
 	"dnd_low_range" \
 	"up_timeout" "down_timeout" "timeout_retry_count" "thread_num" "soc_code" "pve_host" "pve_port"\
