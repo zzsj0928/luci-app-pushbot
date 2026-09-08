@@ -2131,7 +2131,10 @@ function need_blacklist_sync(){
 	# 此类检查涉及多次 nft/iptables 查询，若在主循环每轮都执行代价较高，
 	# 且系统短暂不稳定时可能误判（规则还没恢复就触发无意义重建）。
 	# 方案：用 boot_marker 控制，每次 pushbot 重启后仅首次进入时执行一次。
-	if [ "$web_login_black" = 1 ] && [ -s "$ip_blacklist_path" ]; then
+	# ── 内核规则完整性检查（仅首次启动 / fw4 重启后执行一次）──
+	# boot_marker 在 pushbot 启动时创建，首次检查后删除，下次重启再创建。
+	# 不检查黑名单文件是否非空——反向同步可能已清空文件，但 set/规则仍需验证。
+	if [ "$web_login_black" = 1 ]; then
 		local boot_marker="${state}.boot"
 		if [ -f "$boot_marker" ]; then
 			rm -f "$boot_marker"
@@ -2188,11 +2191,15 @@ function add_ip_black(){
 		printf '%s\n' "$requested" | grep -qxF "$ip" || user_deleted="$user_deleted $ip"
 	done
 	if [ "$onoff" = 1 ]; then
+		# set_changed: 当前 set 与上次快照不一致 → 内核重启/超时移除等非预期变化
+		# 此时 set 中"丢失"的 IP 不应标记为 expired（到期移除），而是重新添加。
+		local set_changed=false
+		[ "$before" != "$prevset" ] && set_changed=true
 		for ip in $requested; do
 			is_local_address "$ip" && continue
 			ip_in_whitelist "$ip" && continue
 			exists="$bl_exists4"; case "$ip" in *:*) exists="$bl_exists6";; esac
-			if [ "$old_timeout" = "$timeout" ] && [ "$exists" = 1 ] && [ "$ip" != "$explicit" ] &&
+			if ! $set_changed && [ "$old_timeout" = "$timeout" ] && [ "$exists" = 1 ] && [ "$ip" != "$explicit" ] &&
 				printf '%s\n' "$prevset" | grep -qxF "$ip" &&
 				printf '%s\n' "$previous" | grep -qxF "$ip" &&
 				! printf '%s\n' "$before" | grep -qxF "$ip"; then
