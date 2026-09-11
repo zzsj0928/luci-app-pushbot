@@ -1558,7 +1558,8 @@ function login_send(){
 					sed -i "/^${login_ip}$/d" ${dir}web_failed
 					echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】设备 ${login_ip} 通过 Web 频繁尝试登录" >> ${logfile}
 				else
-					echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】设备 ${login_ip} 触发拉黑但未成功，保留记录待后续确认" >> ${logfile}				fi
+					echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】设备 ${login_ip} 触发拉黑但未成功，保留记录待后续确认" >> ${logfile}
+				fi
 			fi
 		fi
 	done
