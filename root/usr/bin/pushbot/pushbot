@@ -2199,12 +2199,22 @@ function add_ip_black(){
 			is_local_address "$ip" && continue
 			ip_in_whitelist "$ip" && continue
 			exists="$bl_exists4"; case "$ip" in *:*) exists="$bl_exists6";; esac
-			if ! $set_changed && [ "$old_timeout" = "$timeout" ] && [ "$exists" = 1 ] && [ "$ip" != "$explicit" ] &&
-				printf '%s\n' "$prevset" | grep -qxF "$ip" &&
-				printf '%s\n' "$previous" | grep -qxF "$ip" &&
-				! printf '%s\n' "$before" | grep -qxF "$ip"; then
+			# 判断 IP 是否在当前 set 中
+			local in_before=false
+			printf '%s\n' "$before" | grep -qxF "$ip" && in_before=true
+			# 判断 IP 是否在上次快照中
+			local in_prevset=false
+			printf '%s\n' "$prevset" | grep -qxF "$ip" && in_prevset=true
+			# 判断 IP 是否在上次文件中
+			local in_previous=false
+			printf '%s\n' "$previous" | grep -qxF "$ip" && in_previous=true
+			
+			# 超时过期检测：set 存在，IP 在上次快照和文件中，但不在当前 set 中
+			# 这说明 IP 因为超时被 nftables 自动移除，应该标记为 expired 并从文件中删除
+			if [ "$exists" = 1 ] && [ "$timeout" -gt 0 ] && $in_prevset && $in_previous && ! $in_before; then
 				expired="$expired $ip"
 			else
+				# 其他情况：新增 IP、已在 set 中的 IP、或 set 不存在需要重建
 				desired="$desired $ip"
 			fi
 		done
