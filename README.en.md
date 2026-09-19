@@ -24,7 +24,7 @@
 
 ## 📝 Changelog
 
-- **2026-08-28 - 2026-09-19** (v5.17-r4 → r24): Blacklist & traffic source improvements
+- **2026-09-19** (v5.17-r4 → r24): Blacklist & traffic source improvements
   - Added: **nlbw startup health check** — auto-detects and fixes nlbw service issues after reboot
   - Added: **WiFi auth failure monitoring** (MTK closed-source driver) — extracts failed MACs with group stats
   - Improved: **Blacklist sync mechanism** — resolves file/kernel set inconsistency
