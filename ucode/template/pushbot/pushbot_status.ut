@@ -1583,7 +1583,7 @@ function initContentCard() {
 		t.style.cssText='margin:0 0 4px 2px;text-transform:none;font-size:13px;font-weight:600;color:inherit';
 		t.textContent=label;w.appendChild(t);
 		var b=document.createElement('div');b.className='pushbot-inline-body';
-		b.style.cssText='position:relative;display:flex;flex-direction:row;gap:6px;align-items:center;flex-wrap:nowrap';
+		b.style.cssText='position:relative;display:flex;flex-direction:row;gap:6px;align-items:center;flex-wrap:wrap';
 		var raw=''+(val==null?'':val);
 		/* 单位定义：值=保存后缀, 范围上限 */
 		var unitDefs=[['permanently','{{ _('Permanently') }}',0],['s','{{ _('Seconds') }}',59],['m','{{ _('Minutes') }}',59],['h','{{ _('Hours') }}',23],['D','{{ _('Days') }}',29],['W','{{ _('Weeks') }}',3],['M','{{ _('Months') }}',12]];
@@ -1604,7 +1604,8 @@ function initContentCard() {
 		/* 单位自绘下拉 */
 		var unitBtn=document.createElement('button');unitBtn.type='button';
 		unitBtn.className='pushbot-choice-button pushbot-sel-btn';
-		unitBtn.style.cssText='width:120px;flex:0 0 auto;padding:5px 10px;text-align:left;justify-content:space-between;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+		/* 宽度由内容决定（不裁切文字），超过卡片宽度时换行 */
+		unitBtn.style.cssText='flex:0 0 auto;width:auto;min-width:0;max-width:100%;box-sizing:border-box;padding:5px 10px;text-align:left;justify-content:space-between';
 		var unitLst=document.createElement('div');
 		unitLst.className='pushbot-sel-list';
 		unitLst.setAttribute('data-pb', 'unit');
@@ -1612,7 +1613,7 @@ function initContentCard() {
 		/* 数值自绘下拉 */
 		var numBtn=document.createElement('button');numBtn.type='button';
 		numBtn.className='pushbot-choice-button pushbot-sel-btn';
-		numBtn.style.cssText='flex:0 1 auto;min-width:70px;padding:5px 10px;text-align:left;justify-content:space-between;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+		numBtn.style.cssText='flex:0 0 auto;min-width:0;max-width:100%;box-sizing:border-box;padding:5px 10px;text-align:left;justify-content:space-between';
 		var numLst=document.createElement('div');
 		numLst.className='pushbot-sel-list';
 		numLst.setAttribute('data-pb', 'num');
@@ -2275,7 +2276,7 @@ cuSub.appendChild(mkBtn('{{ _('Traffic DND') }}',cdOn,function(on){updateFlagInp
 		/* 主按钮：复用插件 choice-button 样式（明暗自动适配） */
 		var btn=document.createElement('button');btn.type='button';
 		btn.className='pushbot-choice-button pushbot-sel-btn';
-		btn.style.cssText='width:100%;text-align:left;justify-content:space-between;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+		btn.style.cssText='width:100%;max-width:100%;box-sizing:border-box;text-align:left;justify-content:space-between';
 		/* 选项列表（绝对定位覆盖，样式走主题） */
 		var lst=document.createElement('div');
 		lst.className='pushbot-sel-list';
@@ -4228,6 +4229,7 @@ window.addEventListener('DOMContentLoaded', function() {
 }
 .pushbot-log-controls {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
@@ -4486,6 +4488,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
 .pushbot-card-top {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
@@ -4617,6 +4620,32 @@ window.addEventListener('DOMContentLoaded', function() {
 .pushbot-sel-list {
 	background: #ffffff;
 	border: 1px solid #e2e8f0;
+}
+
+/* ── 按钮文字完整显示：不省略、不裁切、不溢出卡片 ──
+   面板内所有按钮一律按需换行显示完整文字（覆盖内联的 nowrap/ellipsis），
+   宽度以卡片为上限；按钮所在横向 flex 行放不下时自动换行，
+   避免把按钮或内容顶出卡片（卡片 overflow:hidden 时会表现为"被省略"）。 */
+.pushbot-body button,
+.pushbot-body .cbi-button {
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+/* 按钮内部的分段文字（如 tab 的"基础/设置"）同样允许折行，保持居中 */
+.pushbot-body .pushbot-tab .pb-txt {
+	flex-wrap: wrap;
+	justify-content: center;
+}
+/* 横向 flex 行容器：空间不足时换行而不是溢出 */
+.pushbot-body [style*="display:flex"],
+.pushbot-body [style*="display: flex"] {
+	flex-wrap: wrap;
 }
 .pushbot-sel-item {
 	padding: 8px 12px;
