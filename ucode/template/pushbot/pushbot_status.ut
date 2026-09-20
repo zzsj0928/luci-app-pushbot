@@ -671,13 +671,17 @@ else
 		};
 
 		function renderModeSettings() {
-			/* 渠道不支持表格化时自动关闭 table_format(目前仅钉钉支持) */
+			/* 渠道不支持表格化时自动关闭 table_format 并隐藏按钮(目前仅钉钉支持) */
 			var tfh = hiddenBox.querySelector('[name="cbid.pushbot.pushbot.table_format"]');
 			var tfBtn = document.getElementById('table_format_btn');
 			var supported = ['/usr/bin/pushbot/api/dingding.json'];
-			if (tfh && supported.indexOf(modeHidden.value) < 0) {
-				tfh.value = '0';
-				if (tfBtn) tfBtn.className = 'pushbot-choice-button is-off';
+			if (supported.indexOf(modeHidden.value) < 0) {
+				/* 不支持表格化的渠道：关闭并隐藏 */
+				if (tfh) tfh.value = '0';
+				if (tfBtn) tfBtn.style.display = 'none';
+			} else {
+				/* 支持表格化的渠道：显示按钮 */
+				if (tfBtn) tfBtn.style.display = '';
 			}
 			var body = document.getElementById('pm_settings_body');
 			body.innerHTML = '';
