@@ -381,6 +381,13 @@ function diy_send(){
 		curl -s -m 15 --fail -H "X-Gotify-Key: ${gotify_token}" -H "Content-Type: application/json" -d "{\"title\":\"${gotify_title}\",\"message\":\"${gotify_msg}\",\"priority\":${gotify_priority}}" "${gotify_url}"
 		return $?
 	fi
+	# WxPusher: 每个模块用卡片包裹，提升观感（与是否表格化无关）
+	# 模块间的 <hr/> 分隔符转为卡片边界，首尾补上卡片标签
+	if ( echo "${3}"|grep -q "wxpusher" ); then
+		local _card_open='<div style="border:1px solid #e6e6e6;border-radius:10px;padding:10px 14px;margin:10px 0;background:#fafafa">'
+		local _card_body=$(printf '%s' "$2" | sed "s|^<hr/>||; s|<hr/>$||; s|<hr/>|</div>${_card_open}|g")
+		set -- "$1" "${_card_open}${_card_body}</div>" "${3}"
+	fi
 	( ! echo "$lite_enable"|grep -q "content" ) && ( ! echo "$lite_enable"|grep -q "nowtime" ) && local nowtime=`date "+%Y-%m-%d %H:%M:%S"`
 	local diyurl=`/usr/bin/jq -r .url ${3}` && local diyurl=`eval echo ${diyurl} 2>/dev/null`
 	local type=`/usr/bin/jq -r '.type' ${3}` && local type=`eval echo ${type} 2>/dev/null`
