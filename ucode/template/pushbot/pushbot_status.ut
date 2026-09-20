@@ -4543,21 +4543,49 @@ window.addEventListener('DOMContentLoaded', function() {
 	gap: 10px;
 }
 
-/* 移动端渠道按钮样式：每行最多显示4个 */
+/* 移动端渠道按钮：按钮按内容自适应宽度，每行最多约 4 个，不做上下列对齐 */
 @media (max-width: 768px) {
 	.pushbot-choice-list.pushbot-pushmode-list {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 8px;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
 	}
 	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button {
-		padding: 8px 6px;
-		font-size: 12px;
+		/* 宽度由内容决定（短标签就窄），可收缩但不超过 1/4 行宽，
+		   从而把每行限制在 4 个以内且不会撑出卡片右侧 */
+		flex: 0 1 auto;
+		min-width: 0;
+		max-width: calc(25% - 5px);
+		padding: 6px 8px;
+		font-size: 11px;
 		gap: 4px;
 	}
 	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button svg {
-		width: 18px;
-		height: 18px;
+		width: 16px;
+		height: 16px;
+		flex-shrink: 0;
+	}
+	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+/* 窄屏进一步缩小，保证一行 4 个仍能完整显示 */
+@media (max-width: 480px) {
+	.pushbot-choice-list.pushbot-pushmode-list {
+		gap: 4px;
+	}
+	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button {
+		max-width: calc(25% - 3px);
+		padding: 4px 5px;
+		font-size: 10px;
+		gap: 3px;
+	}
+	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button svg {
+		width: 14px;
+		height: 14px;
 	}
 }
 
