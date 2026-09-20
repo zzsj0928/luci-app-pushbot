@@ -4546,40 +4546,29 @@ window.addEventListener('DOMContentLoaded', function() {
 	gap: 10px;
 }
 
-/* 移动端渠道按钮：按钮按内容自适应宽度，完整显示文字，超出则换行 */
+/* 移动端渠道按钮：按钮宽度只由自身内容决定（短名不占多余宽度、不等宽），
+   按钮的字号/图标/内边距整体随卡片宽度等比缩放，卡片越窄整体越小，
+   10 个渠道在手机宽度下正好排成两行、每行 5 个，不留空档也不孤行。
+   文字始终完整显示，不省略、不裁切、不溢出卡片。 */
 @media (max-width: 768px) {
 	.pushbot-choice-list.pushbot-pushmode-list {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 5px;
-	}
-	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button {
-		/* 宽度完全由内容决定：文字不省略、不裁切，放不下时整颗按钮换到下一行 */
-		flex: 0 0 auto;
-		padding: 6px 9px;
-		font-size: 12px;
-		gap: 4px;
-	}
-	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button svg {
-		width: 16px;
-		height: 16px;
-		flex-shrink: 0;
-	}
-}
-
-/* 窄屏进一步缩小字号与内边距，让每行能容纳更多按钮 */
-@media (max-width: 480px) {
-	.pushbot-choice-list.pushbot-pushmode-list {
-		gap: 4px;
-	}
-	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button {
-		padding: 5px 7px;
-		font-size: 11px;
+		container-type: inline-size;   /* 让按钮可用 cqw 参照本列表宽度 */
 		gap: 3px;
 	}
+	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button {
+		flex: 0 0 auto;   /* 宽度贴合内容：不拉伸、不与其他按钮强行等宽 */
+		min-width: 0;
+		font-size: 11px;                          /* 回退值（不支持容器查询时） */
+		font-size: clamp(8.5px, 3.05cqw, 13px);   /* 随卡片宽度等比缩放 */
+		padding: 0.5em 0.36em;
+		gap: 0.24em;
+	}
 	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button svg {
-		width: 14px;
-		height: 14px;
+		width: 1.15em;
+		height: 1.15em;
+		flex-shrink: 0;
 	}
 }
 
@@ -4651,7 +4640,9 @@ window.addEventListener('DOMContentLoaded', function() {
 	padding: 8px 12px;
 	font-size: 13px;
 	cursor: pointer;
-	white-space: nowrap;
+	/* 选项文字完整显示：过长时折行，不撑破下拉列表 */
+	white-space: normal;
+	overflow-wrap: anywhere;
 	color: #334155;
 	transition: background 0.15s ease;
 }
