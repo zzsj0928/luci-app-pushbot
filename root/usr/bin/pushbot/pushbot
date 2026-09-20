@@ -133,7 +133,6 @@ function read_config(){
 	boldstar=`/usr/bin/jq -r '.boldstar' ${jsonpath}` 2>/dev/null; [ "$boldstar" = "null" ] && boldstar=""
 	# 加粗结束标记：Markdown 渠道与 boldstar 相同（对称 **），HTML 渠道为 </b>
 	boldend=`/usr/bin/jq -r '.boldend' ${jsonpath}` 2>/dev/null; [ "$boldend" = "null" ] && boldend="$boldstar"
-	table_tab=`/usr/bin/jq -r '.tabletab' ${jsonpath}`
 	table_enable=`/usr/bin/jq -r '.table_enable' ${jsonpath}` 2>/dev/null; [ "$table_enable" = "null" ] && table_enable=""
 	get_config "table_format"; [ "$table_format" = "0" ] && table_enable=""
 	# 表格化实现方式：钉钉用 Markdown 表格，WxPusher 用 HTML 表格（无边框、无表头，卡片式）
