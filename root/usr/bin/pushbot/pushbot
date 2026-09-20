@@ -2474,7 +2474,7 @@ function send(){
 		local wanIP6_note=""
 		if [ "$table_enable" = "1" ]; then
 			local LF='\n'
-			local send_content="${send_content}${str_splitline}${str_title_start}${font_module} WAN 口信息${font_end}${str_title_end}${LF}$(md_table_sep)$(md_table_rows "接口IP" "${send_wanIP}${wanIP_note}" "外网IP" "${send_hostIP}")"
+			local send_content="${send_content}${str_splitline}${str_title_start}${font_module} WAN 口信息${font_end}${str_title_end}$(md_table_body "接口IP" "${send_wanIP}${wanIP_note}" "外网IP" "${send_hostIP}")"
 			if [ ! -z "$pushbot_ipv6" ] && [ "$pushbot_ipv6" -ne "0" ]; then
 				local send_wanIPv6=`getip wanipv6`
 				local send_hostIPv6=`getip hostipv6`
