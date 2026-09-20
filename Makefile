@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-pushbot
-PKG_VERSION:=5.17
-PKG_RELEASE:=45
+PKG_VERSION:=5.18
+PKG_RELEASE:=1
 
 PKG_MAINTAINER:=tty228 <tty228@yeah.net>  zzsj0928
 
