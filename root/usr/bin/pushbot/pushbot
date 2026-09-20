@@ -689,7 +689,6 @@ function get_client_usage(){
 				local time1=`date +%s`
 				local time1=$(time_for_humans `expr ${time1} - ${time_up}`)
 				if [ "$table_enable" = "1" ]; then
-					local LF='\n'
 					[ ! -z "$ip_total" ] && local ip_total_v="$ip_total" || local ip_total_v=""
 					local info="$(md_table_body "客户端名" "${ip_name}" "客户端IP" "${ip}" "客户端MAC" "${mac}" "总计流量" "${ip_total_v}" "检测间隔内流量" "${tmp_usage}" "在线时间" "${time1}")"
 					if [ -z "$title" ]; then
@@ -1307,7 +1306,6 @@ function down_send(){
 		local time1=`date +%s`
 		local time1=$(time_for_humans `expr ${time1} - ${time_up}`)
 		if [ "$table_enable" = "1" ]; then
-			local LF='\n'
 			[ ! -z "$ip_total" ] && local ip_total_v="$ip_total" || local ip_total_v=""
 			local device_info="$(md_table_body "客户端名" "${ip_name}" "客户端IP" "${ip}" "客户端MAC" "${ip_mac}" "总计流量" "${ip_total_v}" "在线时间" "${time1}")"
 			if [ -z "$title" ]; then
@@ -1395,7 +1393,6 @@ function cpu_load(){
 			temperaturecd_time=`date +%s`
 			echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text} CPU 温度过高: ${cpu_wendu}" >> ${logfile}
 			if [ "$table_enable" = "1" ]; then
-				local LF='\n'
 				content="${content}${str_splitline}${str_title_start}${font_fail} CPU 温度过高${font_end}${str_title_end}$(md_table_body "当前温度" "${cpu_wendu}℃" "状态" "已连续五分钟超过预设" "提示" "接下来一小时不再提示")"
 			else
 				content="${content}${str_splitline}${str_title_start}${font_fail} CPU 温度过高${font_end}${str_title_end}${str_linefeed}${str_tab}CPU 温度已连续五分钟超过预设${str_linefeed}${str_tab}接下来一小时不再提示${str_linefeed}${str_tab}当前温度：${cpu_wendu}℃"
@@ -1427,7 +1424,6 @@ function cpu_load(){
 			cpucd_time=`date +%s`
 			echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text} CPU 负 载过高: ${cpu_fuzai}" >> ${logfile}
 			if [ "$table_enable" = "1" ]; then
-				local LF='\n'
 				content="${content}${str_splitline}${font_fail}CPU 负载过高${font_end}$(md_table_body "当前负载" "${cpu_fuzai}" "状态" "已连续五分钟超过预设" "提示" "接下来一小时不再提示")"
 			else
 				content="${content}${str_splitline}${font_fail}CPU 负载过高${font_end}${str_linefeed}${str_tab}CPU 负载已连续五分钟超过预设${str_linefeed}${str_tab}接下来一小时不再提示${str_linefeed}${str_tab}当前负载：${cpu_fuzai}"
@@ -1492,7 +1488,6 @@ function login_send(){
 				continue
 			fi
 			if [ "$table_enable" = "1" ]; then
-				local LF='\n'
 				local info="$(md_table_body "时间" "${web_login_time}" "设备 IP" "${login_ip}" "登录方式" "${web_login_mode}")"
 				if [ -z "$title" ]; then
 					title="${login_ip} 通过 Web 登录了路由器"
@@ -1536,7 +1531,6 @@ function login_send(){
 				continue
 			fi
 			if [ "$table_enable" = "1" ]; then
-				local LF='\n'
 				local info="$(md_table_body "时间" "${ssh_login_time}" "设备 IP" "${login_ip}" "登录方式" "${ssh_login_mode}")"
 				if [ -z "$title" ]; then
 					title="${login_ip} 通过 SSH 登录了路由器"
@@ -1579,7 +1573,6 @@ function login_send(){
 		if [ "$web_login_sum" -ge "$login_max_num" ] ;then
 			if [ ! -z "$web_login_failed" ] && [ "$web_login_failed" -eq "1" ]; then
 				if [ "$table_enable" = "1" ]; then
-					local LF='\n'
 					local info="$(md_table_body "设备 IP" "${login_ip}")"
 					if [ -z "$title" ]; then
 						title="${login_ip} 通过 Web 频繁尝试登录"
@@ -1632,7 +1625,6 @@ function login_send(){
 		if [ "$ssh_login_sum" -ge "$login_max_num" ] ;then
 			if [ ! -z "$ssh_login_failed" ] && [ "$ssh_login_failed" -eq "1" ]; then
 				if [ "$table_enable" = "1" ]; then
-					local LF='\n'
 					local info="$(md_table_body "设备 IP" "${login_ip}")"
 					if [ -z "$title" ]; then
 						title="${login_ip} 通过 SSH 频繁尝试登录"
@@ -1759,7 +1751,6 @@ function login_send(){
 					local wifi_time=$(date "+%Y-%m-%d %H:%M:%S")
 					echo "`date "+%Y-%m-%d %H:%M:%S"` WiFi 设备 ${_mac_text} 已连接" >> ${logfile}
 					if [ "$table_enable" = "1" ]; then
-						local LF='\n'
 						local wifi_detail_rows=""
 						local _didx=0
 						for _dm in $_new_macs; do
@@ -1818,7 +1809,6 @@ function login_send(){
 							local wifi_time=$(date "+%Y-%m-%d %H:%M:%S")
 							local wifi_offline_dur=$(time_for_humans $_duration)
 							if [ "$table_enable" = "1" ]; then
-								local LF='\n'
 								local wifi_info="$(md_table_body "时间" "${wifi_time}" "MAC" "${wifi_mac}" "离线时长" "${wifi_offline_dur}")"
 								if [ -z "$title" ]; then
 									title="WiFi 设备已离线"
@@ -1878,7 +1868,6 @@ function login_send(){
 				local _mac_summary=$(echo "$_mac_stats" | awk '{printf "%s: %d次, ", $1, $2}' | sed 's/, $//')
 				echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}WiFi 认证失败 ${_new_count} 次（${_mac_summary}）" >> ${logfile}
 				if [ "$table_enable" = "1" ]; then
-					local LF='\n'
 					local _mac_rows=$(echo "$_mac_stats" | awk '{printf "\\n| %s | %s 次 |", $1, $2}')
 					local _wifi_fail_info="$(md_table_body "失败MAC" "**次数**")${_mac_rows}"
 					if [ -z "$title" ]; then
@@ -1925,7 +1914,6 @@ function login_send(){
 				fi
 				echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}WiFi 认证失败 ${_wifi_cur_count} 次${_wifi_fail_mac:+（MAC: ${_wifi_fail_mac}）}" >> ${logfile}
 				if [ "$table_enable" = "1" ]; then
-					local LF='\n'
 					local _wifi_fail_info="$(md_table_body "失败次数" "${_wifi_cur_count}")"
 					[ ! -z "$_wifi_fail_mac" ] && _wifi_fail_info="${_wifi_fail_info}$(md_table_rows "MAC" "${_wifi_fail_mac}")"
 					if [ -z "$title" ]; then
@@ -2473,7 +2461,6 @@ function send(){
 		[ "$wan_lan_mode" -eq "0" ] && [ ! -z "$send_wanIP" ] && [ "$send_wanIP" != "获取失败" ] && is_private_ip "$send_wanIP" 4 && wanIP_note=" (非公网IP)"
 		local wanIP6_note=""
 		if [ "$table_enable" = "1" ]; then
-			local LF='\n'
 			local send_content="${send_content}${str_splitline}${str_title_start}${font_module} WAN 口信息${font_end}${str_title_end}$(md_table_body "接口IP" "${send_wanIP}${wanIP_note}" "外网IP" "${send_hostIP}")"
 			if [ ! -z "$pushbot_ipv6" ] && [ "$pushbot_ipv6" -ne "0" ]; then
 				local send_wanIPv6=`getip wanipv6`
