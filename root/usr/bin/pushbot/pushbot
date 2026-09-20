@@ -386,8 +386,16 @@ function diy_send(){
 	# 注意：样式必须用单引号——content 已由 send() 统一把双引号转为单引号，
 	# 此处若引入双引号会破坏 eval 展开后的 JSON 结构
 	if ( echo "${3}"|grep -q "wxpusher" ); then
-		local _card_open="<div style='border:1px solid #e6e6e6;border-radius:10px;padding:10px 14px;margin:10px 0;background:#fafafa'>"
-		local _card_body=$(printf '%s' "$2" | sed "s|^<hr/>||; s|<hr/>$||; s|<hr/>|</div>${_card_open}|g")
+		# 卡片样式：不设背景色（透明跟随宿主主题，兼容明暗模式），
+		# 边框用半透明中性灰，明暗环境下均可见
+		local _card_open="<div style='border:1px solid rgba(128,128,128,0.35);border-radius:10px;padding:10px 14px;margin:10px 0'>"
+		# 先去换行：HTML 中换行会被折叠，且 <hr/> 常位于行尾，
+		# 逐行 sed 会把它误当成"末尾分隔"删掉，导致模块无法拆分为独立卡片
+		local _card_src=$(printf '%s' "$2" | tr -d '\n')
+		# 去掉首尾多余的模块分隔（首段前、末段后）
+		_card_src=$(printf '%s' "$_card_src" | sed 's|^<hr/>||; s|<hr/>$||')
+		# 其余分隔符转为卡片边界，整体首尾补卡片标签
+		local _card_body=$(printf '%s' "$_card_src" | sed "s|<hr/>|</div>${_card_open}|g")
 		set -- "$1" "${_card_open}${_card_body}</div>" "${3}"
 	fi
 	( ! echo "$lite_enable"|grep -q "content" ) && ( ! echo "$lite_enable"|grep -q "nowtime" ) && local nowtime=`date "+%Y-%m-%d %H:%M:%S"`
