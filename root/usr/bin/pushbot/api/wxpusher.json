@@ -27,8 +27,8 @@
         "content": "\"${2}\"",
         "summary": "\"${1}\"",
         "contentType": "3",
-        "topicIds": "[${wxpusher_topics}]",
-        "uids": "[${wxpusher_uids}]",
+        "topicIds": "${wxpusher_topics}",
+        "uids": "${wxpusher_uids}",
         "url": "\"\"",
         "verifyPay": "false",
         "verifyPayType": "0"

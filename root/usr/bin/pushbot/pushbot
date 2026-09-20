@@ -24,6 +24,20 @@ function read_config(){
 	"jsonpath" "dd_webhook" "we_webhook" "pp_token" "pp_channel" "pp_webhook" "pp_topic_enable" "pp_topic" "fs_webhook" "pushdeer_key" "pushdeer_srv_enable" "pushdeer_srv" "bark_srv_enable" "bark_srv" "bark_token" "bark_sound" "bark_icon" "bark_icon_enable" "bark_level" "ntfy_srv_enable" "ntfy_server" "ntfy_topic" "ntfy_token_enable" "ntfy_token" "ntfy_priority" "gotify_server" "gotify_token" "gotify_priority" "wxpusher_app_token" "wxpusher_uids_enable" "wxpusher_uids" "wxpusher_topics_enable" "wxpusher_topics" \
 	"font_title" "font_success" "font_fail" "font_client" "font_module"
 	
+	# WxPusher: 根据 enable 状态处理数组，未 enable 的直接设为空数组
+	if [ "$wxpusher_uids_enable" = "1" ] && [ ! -z "$wxpusher_uids" ]; then
+		wxpusher_uids_json=$(echo "$wxpusher_uids" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | awk '{printf "\"%s\",", $0}' | sed 's/,$//')
+		wxpusher_uids="[${wxpusher_uids_json}]"
+	else
+		wxpusher_uids="[]"
+	fi
+	if [ "$wxpusher_topics_enable" = "1" ] && [ ! -z "$wxpusher_topics" ]; then
+		wxpusher_topics_json=$(echo "$wxpusher_topics" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | awk '{printf "%s,", $0}' | sed 's/,$//')
+		wxpusher_topics="[${wxpusher_topics_json}]"
+	else
+		wxpusher_topics="[]"
+	fi
+	
 	for str_version in "wrtbwmon" "iputils-arping" "curl" "iw"; do
 		pkg_var="${str_version:0:2}_version"
 		eval "${pkg_var}=\$(get_package_version \"${str_version}\")"
@@ -2470,6 +2484,11 @@ function send(){
 	send_title=`echo "$send_title"|tr '"' "'"`
 	send_content=`echo "$send_content"|tr '"' "'"`
 	device_name=`echo "$device_name"|tr '"' "'"`
+	# WxPusher: 检查 uid 和 topics 是否至少有一个
+	if ( echo "${jsonpath}"|grep -q "wxpusher" ) && [ "$wxpusher_uids" = "[]" ] && [ "$wxpusher_topics" = "[]" ]; then
+		echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】WxPusher：User IDs 或 Topic IDs 至少填写一个" >> ${logfile}
+		return 1
+	fi
 	[ "$send_disturb" -eq "0" ] && diy_send "${send_title}" "${send_content}" "${jsonpath}" >/dev/null 2>&1
 	local send_rc=$?
 	if [ ! -z "$1" ]; then
@@ -2719,8 +2738,13 @@ while [ "$pushbot_enable" = "1" ]; do
 	if [ ! -f "${dir}send_enable.lock" ] && [ ! -z "$title" ] && [ ! -z "$content" ]; then
 		[ ! -z "$device_name" ] && title="【$device_name】$title"
 		( echo "$lite_enable"|grep -q "content" ) && content="$title"
-		[ "$disturb" -eq "0" ] && diy_send "${title}" "${content}" "${jsonpath}" >/dev/null 2>&1
-		[ $? -eq 1 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】推送失败，请检查网络或设置信息 " >> ${logfile}
+		# WxPusher: 检查 uid 和 topics 是否至少有一个
+		if ( echo "${jsonpath}"|grep -q "wxpusher" ) && [ "$wxpusher_uids" = "[]" ] && [ "$wxpusher_topics" = "[]" ]; then
+			echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】WxPusher：User IDs 或 Topic IDs 至少填写一个" >> ${logfile}
+		else
+			[ "$disturb" -eq "0" ] && diy_send "${title}" "${content}" "${jsonpath}" >/dev/null 2>&1
+			[ $? -eq 1 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】推送失败，请检查网络或设置信息 " >> ${logfile}
+		fi
 	fi
 	
 	while [ -f "${dir}send_enable.lock" ]; do
