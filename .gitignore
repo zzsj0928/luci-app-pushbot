@@ -7,5 +7,9 @@
 # Reasonix 本地配置
 reasonix.toml
 
+# 编译产物
 *.ipk
 *.apk
+
+# 本地工具脚本
+*.sh
