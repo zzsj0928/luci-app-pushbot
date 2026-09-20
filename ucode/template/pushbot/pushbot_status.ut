@@ -566,7 +566,7 @@ else
 			'{{ _('Gotify (debug)') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
 			'PushPlus': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5h-2v5l4 2.4 1-1.6-3-1.8V7z"/></svg>',
 			'PushDeer': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 16a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/></svg>',
-			'{{ _('WxPusher') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/><line x1="4" y1="22" x2="20" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+			'{{ _('WxPusher') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M18 16v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/><line x1="8" y1="20" x2="16" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
 			'{{ _('Custom push') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1 14H9v-2h2v2zm0-4H9V8h2v4z"/></svg>'
 		};
 		var modeOpts = [
@@ -623,11 +623,11 @@ else
 				{ name: 'pp_topic', type: 'text', label: '{{ _('PushPlus Topic') }}', depends: 'pp_topic_enable', desc: '{{ _('PushPlus group code<br>The group code used for group push<br>See <a href="http://www.pushplus.plus/push2.html" target="_blank">here</a> for details<br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/wxpusher.json': [
-				{ name: 'wxpusher_app_token', type: 'text', label: '{{ _('App Token') }}', desc: '{{ _('WxPusher app token<br><a href="https://wxpusher.zjiecode.com/docs/" target="_blank">Get the code</a><br><br>') }}'},
+				{ name: 'wxpusher_app_token', type: 'text', label: '{{ _('App Token') }}', desc: '{{ _('WxPusher app token<br><a href="https://wxpusher.zjiecode.com/docs/" target="_blank">Get the code</a><br>Must enable at least one of User IDs or Topics below (both can be enabled simultaneously)<br>Each supports one or multiple values<br><br>') }}'},
 				{ name: 'wxpusher_uids_enable', type: 'toggle', label: '{{ _('Send to Users') }}' },
-				{ name: 'wxpusher_uids', type: 'text', label: '{{ _('User IDs') }}', depends: 'wxpusher_uids_enable', desc: '{{ _('User UIDs (max 20)<br>e.g. UID_xxxx,UID_yyyy<br><br>') }}'},
+				{ name: 'wxpusher_uids', type: 'text', label: '{{ _('User IDs') }}', depends: 'wxpusher_uids_enable', desc: '{{ _('User UIDs (max 20)<br>Multiple values supported, separated by comma or space<br>e.g. UID_xxxx,UID_yyyy<br><br>') }}'},
 				{ name: 'wxpusher_topics_enable', type: 'toggle', label: '{{ _('Send to Topics') }}' },
-				{ name: 'wxpusher_topics', type: 'text', label: '{{ _('Topic IDs') }}', depends: 'wxpusher_topics_enable', desc: '{{ _('Topic IDs (max 20)<br>e.g. 123,456<br><br>') }}'},
+				{ name: 'wxpusher_topics', type: 'text', label: '{{ _('Topic IDs') }}', depends: 'wxpusher_topics_enable', desc: '{{ _('Topic IDs (max 20)<br>Multiple values supported, separated by comma or space<br>e.g. 123,456<br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/feishu.json': [
 				{ name: 'fs_webhook', type: 'text', label: '{{ _('WebHook') }}', desc: '{{ _('Feishu WebHook<br><a href="https://www.feishu.cn/hc/zh-CN/articles/360024984973" target="_blank">Get the code</a><br><br>') }}'},
