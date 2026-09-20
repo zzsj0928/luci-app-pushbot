@@ -1376,3 +1376,6 @@ msgstr "[ 注意：如使用「全球互联」类插件，请将以下 API 加�
 
 msgid "Make sure SSH key login is configured, otherwise the script may fail to run!<br/>Install the sensors command on PVE yourself<br/>SSH key login example:<br/>opkg update #update package list<br/>opkg install openssh-client openssh-keygen #install openssh client<br/>ssh-keygen -t rsa #generate a key pair (set a password etc.)<br/>ssh root@10.0.0.2 \"tee -a ~/.ssh/id_rsa.pub\" < ~/.ssh/id_rsa.pub #transfer the public key to PVE<br/>ssh -i ~/.ssh/id_rsa root@10.0.0.2 sensors #test the temperature command"
 msgstr "请确认已配置 SSH 密钥登录，否则脚本可能无法运行！<br/>请自行在 PVE 上安装 sensors 命令<br/>SSH 密钥登录示例：<br/>opkg update #更新软件包列表<br/>opkg install openssh-client openssh-keygen #安装 openssh 客户端<br/>ssh-keygen -t rsa #生成密钥对（可设置密码等）<br/>ssh root@10.0.0.2 \"tee -a ~/.ssh/id_rsa.pub\" < ~/.ssh/id_rsa.pub #将公钥传到 PVE<br/>ssh -i ~/.ssh/id_rsa root@10.0.0.2 sensors #测试温度命令"
+
+msgid "Gotify"
+msgstr "Gotify"

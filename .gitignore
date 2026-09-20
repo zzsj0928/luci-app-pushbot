@@ -13,3 +13,6 @@ reasonix.toml
 
 # 本地工具脚本
 *.sh
+# 本地备份/临时文件
+*.bak
+*.conf.bak
