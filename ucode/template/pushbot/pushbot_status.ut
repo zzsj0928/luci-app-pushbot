@@ -563,7 +563,7 @@ else
 			'{{ _('Feishu') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.5 6h3c.83 0 1.5.67 1.5 1.5v1c0 .83-.67 1.5-1.5 1.5h-3A1.5 1.5 0 0 1 9 10.5v-1c0-.83.67-1.5 1.5-1.5zm0 4h5c.83 0 1.5.67 1.5 1.5v1c0 .83-.67 1.5-1.5 1.5h-5A1.5 1.5 0 0 1 9 13v-1c0-.83.67-1.5 1.5-1.5z"/></svg>',
 			'Bark': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
 			'ntfy': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
-			'{{ _('Gotify (debug)') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
+			'{{ _('Gotify') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
 			'PushPlus': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5h-2v5l4 2.4 1-1.6-3-1.8V7z"/></svg>',
 			'PushDeer': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 16a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/></svg>',
 			'{{ _('WxPusher') }}': '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width:24px;height:24px"><path d="M18 16v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/><line x1="8" y1="20" x2="16" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -575,7 +575,7 @@ else
 			{ v: '/usr/bin/pushbot/api/pushplus.json', l: '{{ _('PushPlus') }}' },
 			{ v: '/usr/bin/pushbot/api/wxpusher.json', l: '{{ _('WxPusher') }}' },
 			{ v: '/usr/bin/pushbot/api/feishu.json', l: '{{ _('Feishu') }}' },
-			{ v: '/usr/bin/pushbot/api/gotify.json', l: '{{ _('Gotify (debug)') }}' },
+			{ v: '/usr/bin/pushbot/api/gotify.json', l: '{{ _('Gotify') }}' },
 			{ v: '/usr/bin/pushbot/api/ntfy.json', l: '{{ _('ntfy') }}' },
 			{ v: '/usr/bin/pushbot/api/bark.json', l: '{{ _('Bark') }}' },
 			{ v: '/usr/bin/pushbot/api/pushdeer.json', l: '{{ _('PushDeer') }}' },
@@ -4543,21 +4543,18 @@ window.addEventListener('DOMContentLoaded', function() {
 	gap: 10px;
 }
 
-/* 移动端渠道按钮：按钮按内容自适应宽度，每行最多约 4 个，不做上下列对齐 */
+/* 移动端渠道按钮：按钮按内容自适应宽度，完整显示文字，超出则换行 */
 @media (max-width: 768px) {
 	.pushbot-choice-list.pushbot-pushmode-list {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 6px;
+		gap: 5px;
 	}
 	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button {
-		/* 宽度由内容决定（短标签就窄），可收缩但不超过 1/4 行宽，
-		   从而把每行限制在 4 个以内且不会撑出卡片右侧 */
-		flex: 0 1 auto;
-		min-width: 0;
-		max-width: calc(25% - 5px);
-		padding: 6px 8px;
-		font-size: 11px;
+		/* 宽度完全由内容决定：文字不省略、不裁切，放不下时整颗按钮换到下一行 */
+		flex: 0 0 auto;
+		padding: 6px 9px;
+		font-size: 12px;
 		gap: 4px;
 	}
 	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button svg {
@@ -4565,22 +4562,16 @@ window.addEventListener('DOMContentLoaded', function() {
 		height: 16px;
 		flex-shrink: 0;
 	}
-	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button span {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
 }
 
-/* 窄屏进一步缩小，保证一行 4 个仍能完整显示 */
+/* 窄屏进一步缩小字号与内边距，让每行能容纳更多按钮 */
 @media (max-width: 480px) {
 	.pushbot-choice-list.pushbot-pushmode-list {
 		gap: 4px;
 	}
 	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button {
-		max-width: calc(25% - 3px);
-		padding: 4px 5px;
-		font-size: 10px;
+		padding: 5px 7px;
+		font-size: 11px;
 		gap: 3px;
 	}
 	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button svg {
