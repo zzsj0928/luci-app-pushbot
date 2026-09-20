@@ -292,6 +292,7 @@ return {
 			"router_status","router_temp","router_wan","client_list",
 			"google_check_count","pushbot_up","pushbot_down","table_format",
 			"ntfy_srv_enable","ntfy_server","ntfy_topic","ntfy_token_enable","ntfy_token","ntfy_priority","gotify_server","gotify_token","gotify_priority",
+			"wxpusher_app_token","wxpusher_uids_enable","wxpusher_uids","wxpusher_topics_enable","wxpusher_topics",
 			"cpuload_enable","cpuload","temperature_enable","temperature",
 			"client_usage","client_usage_max","client_usage_disturb",
 			"pushbot_ipv4","ipv4_interface","pushbot_ipv6","ipv6_interface",
