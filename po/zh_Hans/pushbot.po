@@ -317,8 +317,8 @@ msgstr "开启日志"
 msgid "Enabled"
 msgstr "已启用"
 
-msgid "Enter MAC-alias, e.g. XX:XX:XX:XX:XX:XX-MyPhone"
-msgstr "输入 MAC-别名，如 XX:XX:XX:XX:XX:XX-我的手机"
+msgid "Enter MAC-alias, e.g. XX:XX:XX:XX:XX:XX-MyPhone. Multiple aliases supported, separated by comma or space"
+msgstr "输入 MAC-别名，如 XX:XX:XX:XX:XX:XX-我的手机（支持多个，逗号或空格分隔）"
 
 msgid "Enter a #RRGGBB hex color code, leave empty to use the default"
 msgstr "填写 #RRGGBB 十六进制颜色代码，留空使用预设色"
