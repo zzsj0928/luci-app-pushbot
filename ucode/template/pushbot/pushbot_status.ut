@@ -839,7 +839,7 @@ else
 		aliasRow2.style.cssText = 'display:flex;gap:8px;align-items:center';
 		var aliasInp = document.createElement('input');
 		aliasInp.type = 'text';
-		aliasInp.placeholder = '{{ _('XX:XX:XX:XX:XX:XX-MyPhone') }}';
+		aliasInp.placeholder = '{{ _('XX:XX:XX:XX:XX:XX-MyPhone (comma or space separated for multiple)') }}';
 		aliasInp.style.cssText = 'flex:1;padding:7px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.3);font-size:13px;background:var(--pb-input-bg);color:inherit';
 		aliasInp.className = 'pushbot-alias-input';
 		var addBtn = document.createElement('button');
@@ -903,10 +903,32 @@ else
 		addBtn.addEventListener('click', function(e) {
 			e.preventDefault();
 			var val = aliasInp.value.trim();
-			if (val) { addTag(val); aliasInp.value = ''; }
+			if (val) {
+				// 支持逗号或空格分隔的多个别名
+				var aliases = val.split(/[,，\s]+/).filter(function(item) {
+					return item && item.indexOf('-') >= 0;
+				});
+				aliases.forEach(function(alias) {
+					addTag(alias.trim());
+				});
+				aliasInp.value = '';
+			}
 		});
 		aliasInp.addEventListener('keydown', function(e) {
-			if (e.key === 'Enter') { e.preventDefault(); var val = aliasInp.value.trim(); if (val) { addTag(val); aliasInp.value = ''; } }
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				var val = aliasInp.value.trim();
+				if (val) {
+					// 支持逗号或空格分隔的多个别名
+					var aliases = val.split(/[,，\s]+/).filter(function(item) {
+						return item && item.indexOf('-') >= 0;
+					});
+					aliases.forEach(function(alias) {
+						addTag(alias.trim());
+					});
+					aliasInp.value = '';
+				}
+			}
 		});
 
 		aliasBox.appendChild(tagContainer);
@@ -916,7 +938,7 @@ else
 		var desc = document.createElement('div');
 		desc.className = 'pushbot-inline-description';
 		desc.style.cssText = 'margin:6px 0 0 2px';
-		desc.textContent = '{{ _('Enter MAC-alias, e.g. XX:XX:XX:XX:XX:XX-MyPhone') }}';
+		desc.textContent = '{{ _('Enter MAC-alias, e.g. XX:XX:XX:XX:XX:XX-MyPhone. Multiple aliases supported, separated by comma or space') }}';
 		card.appendChild(desc);
 
 		var pushCard = document.getElementById('pushbot_pushmode_card');
@@ -2851,13 +2873,25 @@ function initMonitorCard() {
 				hb.appendChild(i2);
 			});
 		}
-		function addTag(v){v=v.trim().toUpperCase();if(!v||curVals.indexOf(v)>=0)return;curVals.push(v);renderTags();syncH();}
+		function addTag(v){
+			// 支持逗号或空格分隔的多个别名
+			var aliases = v.split(/[,，\s]+/).filter(function(item) {
+				return item && item.trim();
+			});
+			aliases.forEach(function(alias) {
+				alias = alias.trim().toUpperCase();
+				if(!alias || curVals.indexOf(alias) >= 0) return;
+				curVals.push(alias);
+			});
+			renderTags();
+			syncH();
+		}
 		addB.addEventListener('click',function(){addTag(inp.value);inp.value='';inp.focus();});
 		inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addTag(inp.value);inp.value='';}});
 		renderTags();
 		syncH();
 
-		var devDesc = '{{ _('Only runs when all devices in the list are offline<br/>After DND hours, watched devices with low traffic for 5 minutes (~100kb/m) are considered offline') }}';
+		var devDesc = '{{ _('Only runs when all devices in the list are offline<br/>After DND hours, watched devices with low traffic for 5 minutes (~100kb/m) are considered offline<br/>Multiple MACs supported, separated by comma or space') }}';
 		var d2 = document.createElement('div'); d2.className = 'pushbot-inline-description'; d2.innerHTML = devDesc; ec.appendChild(d2);
 	})();
 	ec.appendChild(document.createElement('hr')).style.cssText = 'border:none;border-top:1px solid rgba(148,163,184,0.2);margin:10px 0';
