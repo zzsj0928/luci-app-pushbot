@@ -671,10 +671,10 @@ else
 		};
 
 		function renderModeSettings() {
-			/* 渠道不支持表格化时自动关闭 table_format 并隐藏按钮(目前仅钉钉支持) */
+			/* 渠道不支持表格化时自动关闭 table_format 并隐藏按钮 */
 			var tfh = hiddenBox.querySelector('[name="cbid.pushbot.pushbot.table_format"]');
 			var tfBtn = document.getElementById('table_format_btn');
-			var supported = ['/usr/bin/pushbot/api/dingding.json'];
+			var supported = ['/usr/bin/pushbot/api/dingding.json', '/usr/bin/pushbot/api/wxpusher.json'];
 			if (supported.indexOf(modeHidden.value) < 0) {
 				/* 不支持表格化的渠道：关闭并隐藏 */
 				if (tfh) tfh.value = '0';

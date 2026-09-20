@@ -12,7 +12,7 @@
     "str_space": " ",
     "str_tab": "&nbsp;&nbsp;&nbsp;&nbsp;",
     "table_tab": "",
-    "table_enable": "0",
+    "table_enable": "1",
     "font_success": "<font color=#92D050>",
     "font_client": "<font color=#EAB308>",
     "font_fail": "<font color=#FF6666>",
@@ -22,6 +22,7 @@
     "font_end2": "</font>",
     "percentsym": "%",
     "boldstar": "<b>",
+    "boldend": "</b>",
     "type":
       {
         "appToken": "\"${wxpusher_app_token}\"",

@@ -622,10 +622,13 @@ return {
 			system(cmd);
 		}
 
-		/* 表格化仅钉钉渠道支持：非支持渠道强制关闭 table_format。
-		   前端虽已隐藏按钮并在切换渠道时归零，这里再兜底一次，
-		   避免旧配置残留或直接改 UCI 导致不支持表格化的渠道输出 MD 表格。 */
-		let TABLE_SUPPORTED = { "/usr/bin/pushbot/api/dingding.json": true };
+		/* 表格化仅支持的渠道可用：DingTalk(Markdown) / WxPusher(HTML)。
+		   非支持渠道强制关闭 table_format，前端虽已隐藏按钮并归零，
+		   这里再兜底一次，避免旧配置残留或直接改 UCI。 */
+		let TABLE_SUPPORTED = {
+			"/usr/bin/pushbot/api/dingding.json": true,
+			"/usr/bin/pushbot/api/wxpusher.json": true
+		};
 		let eff_jsonpath = ("jsonpath" in data) ? data.jsonpath : previous.jsonpath;
 		if (!(eff_jsonpath in TABLE_SUPPORTED))
 			data.table_format = "0";
