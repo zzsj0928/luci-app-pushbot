@@ -16,3 +16,5 @@ reasonix.toml
 # 本地备份/临时文件
 *.bak
 *.conf.bak
+# 临时编译产物目录
+.build-pkg/
