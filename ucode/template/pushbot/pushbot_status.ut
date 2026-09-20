@@ -4551,10 +4551,16 @@ window.addEventListener('DOMContentLoaded', function() {
    10 个渠道在手机宽度下正好排成两行、每行 5 个，不留空档也不孤行。
    文字始终完整显示，不省略、不裁切、不溢出卡片。 */
 @media (max-width: 768px) {
+	/* 参照物放在外层整行上：该行是普通块级元素，宽度由卡片决定，
+	   加 inline-size containment 不会像 flex item 那样按内容塌缩为 0。 */
+	.pushbot-pushmode-row {
+		container-type: inline-size;
+	}
 	.pushbot-choice-list.pushbot-pushmode-list {
 		display: flex;
 		flex-wrap: wrap;
-		container-type: inline-size;   /* 让按钮可用 cqw 参照本列表宽度 */
+		flex: 1 1 100%;   /* 独占整行，宽度由父级决定而非内容 */
+		min-width: 0;
 		gap: 3px;
 	}
 	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button {
