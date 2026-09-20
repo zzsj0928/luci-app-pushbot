@@ -572,6 +572,7 @@ else
 			{ v: '/usr/bin/pushbot/api/dingding.json', l: '{{ _('DingTalk') }}' },
 			{ v: '/usr/bin/pushbot/api/ent_wechat.json', l: '{{ _('WeCom') }}' },
 			{ v: '/usr/bin/pushbot/api/pushplus.json', l: '{{ _('PushPlus') }}' },
+			{ v: '/usr/bin/pushbot/api/wxpusher.json', l: '{{ _('WxPusher') }}' },
 			{ v: '/usr/bin/pushbot/api/feishu.json', l: '{{ _('Feishu') }}' },
 			{ v: '/usr/bin/pushbot/api/gotify.json', l: '{{ _('Gotify (debug)') }}' },
 			{ v: '/usr/bin/pushbot/api/ntfy.json', l: '{{ _('ntfy') }}' },
@@ -612,6 +613,20 @@ else
 			],
 			'/usr/bin/pushbot/api/ent_wechat.json': [
 				{ name: 'we_webhook', type: 'text', label: '{{ _('Webhook') }}', desc: '{{ _('WeCom bot Webhook, enter only the part after key=<br><a href="https://work.weixin.qq.com/api/doc/90000/90136/91770" target="_blank">Get the code</a><br><br>') }}'},
+			],
+			'/usr/bin/pushbot/api/pushplus.json': [
+				{ name: 'pp_token', type: 'text', label: '{{ _('PushPlus Token') }}', desc: '{{ _('Get the code') }} <a href=\'http://pushplus.plus/doc/\' target=\'_blank\'>{{ _('here') }}</a><br><br>'},
+				{ name: 'pp_channel', type: 'select', label: '{{ _('PushPlus Channel') }}', choices: [{v:'wechat',l:'{{ _('wechat: WeChat Official Account') }}'},{v:'app',l:'{{ _('app: PushPlus App') }}'},{v:'extension',l:'{{ _('extension: Browser extension / desktop') }}'},{v:'webhook',l:'{{ _('webhook: Third-party webhook') }}'},{v:'clawbot',l:'{{ _('clawbot: WeChat ClawBot') }}'},{v:'cp',l:'{{ _('cp: WeCom app') }}'},{v:'mail',l:'{{ _('mail: Email') }}'},{v:'sms',l:'{{ _('sms: SMS (paid)') }}'},{v:'voice',l:'{{ _('voice: Voice call (paid)') }}'}], desc: '{{ _('wechat/app/extension/clawbot: only token required<br>webhook/cp: also need Channel Code below<br>mail: Channel Code optional (default official email)<br>sms/voice: paid channels (deduct credits)<br>See <a href="http://www.pushplus.plus/doc/channel.html" target="_blank">here</a> for all channels<br><br>') }}'},
+				{ name: 'pp_webhook', type: 'text', label: '{{ _('PushPlus Channel Code') }}', showWhen: { field: 'pp_channel', values: ['webhook', 'cp', 'mail'] }, desc: '{{ _('Channel code configured in PushPlus console<br>webhook: third-party webhook code (WeCom/DingTalk/Feishu...)<br>cp: WeCom app code<br>mail: optional, email sender code (leave empty for official email)<br>See <a href="http://www.pushplus.plus/doc/guide/api.html" target="_blank">here</a> for details<br><br>') }}' },
+				{ name: 'pp_topic_enable', type: 'toggle', label: '{{ _('PushPlus group push') }}' },
+				{ name: 'pp_topic', type: 'text', label: '{{ _('PushPlus Topic') }}', depends: 'pp_topic_enable', desc: '{{ _('PushPlus group code<br>The group code used for group push<br>See <a href="http://www.pushplus.plus/push2.html" target="_blank">here</a> for details<br><br>') }}'},
+			],
+			'/usr/bin/pushbot/api/wxpusher.json': [
+				{ name: 'wxpusher_app_token', type: 'text', label: '{{ _('App Token') }}', desc: '{{ _('WxPusher app token<br><a href="https://wxpusher.zjiecode.com/docs/" target="_blank">Get the code</a><br><br>') }}'},
+				{ name: 'wxpusher_uids_enable', type: 'toggle', label: '{{ _('Send to Users') }}' },
+				{ name: 'wxpusher_uids', type: 'text', label: '{{ _('User IDs') }}', depends: 'wxpusher_uids_enable', desc: '{{ _('User UIDs (max 20)<br>e.g. UID_xxxx,UID_yyyy<br><br>') }}'},
+				{ name: 'wxpusher_topics_enable', type: 'toggle', label: '{{ _('Send to Topics') }}' },
+				{ name: 'wxpusher_topics', type: 'text', label: '{{ _('Topic IDs') }}', depends: 'wxpusher_topics_enable', desc: '{{ _('Topic IDs (max 20)<br>e.g. 123,456<br><br>') }}'},
 			],
 			'/usr/bin/pushbot/api/feishu.json': [
 				{ name: 'fs_webhook', type: 'text', label: '{{ _('WebHook') }}', desc: '{{ _('Feishu WebHook<br><a href="https://www.feishu.cn/hc/zh-CN/articles/360024984973" target="_blank">Get the code</a><br><br>') }}'},
@@ -4521,6 +4536,24 @@ window.addEventListener('DOMContentLoaded', function() {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
+}
+
+/* 移动端渠道按钮样式：每行最多显示4个 */
+@media (max-width: 768px) {
+	.pushbot-choice-list.pushbot-pushmode-list {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 8px;
+	}
+	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button {
+		padding: 8px 6px;
+		font-size: 12px;
+		gap: 4px;
+	}
+	.pushbot-choice-list.pushbot-pushmode-list .pushbot-choice-button svg {
+		width: 18px;
+		height: 18px;
+	}
 }
 
 .pushbot-choice-button {

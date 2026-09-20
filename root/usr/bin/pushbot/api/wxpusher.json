@@ -1,0 +1,36 @@
+{
+    "_api": "这是 Pushbot:WxPusher api 文件",
+    "_api": "【WxPusher推送】",
+    
+    "url": "https://wxpusher.zjiecode.com/api/send/message",
+    "data": "@${tempjsonpath}",
+    "content_type": "Content-Type:application/json",
+    "str_title_start": "## ",
+    "str_title_end": "",
+    "str_linefeed": "\n\n",
+    "str_splitline": "\n----\n",
+    "str_space": " ",
+    "str_tab": "    ",
+    "table_tab": "",
+    "font_success": "**",
+    "font_client": "",
+    "font_fail": "**",
+    "font_module": "**",
+    "font_title": "**",
+    "font_end": "**",
+    "font_end2": "",
+    "percentsym": "%",
+    "boldstar": "**",
+    "type":
+      {
+        "appToken": "\"${wxpusher_app_token}\"",
+        "content": "\"${2}\"",
+        "summary": "\"${1}\"",
+        "contentType": "3",
+        "topicIds": "[${wxpusher_topics}]",
+        "uids": "[${wxpusher_uids}]",
+        "url": "\"\"",
+        "verifyPay": "false",
+        "verifyPayType": "0"
+      }
+}
