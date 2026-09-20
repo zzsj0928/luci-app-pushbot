@@ -396,6 +396,8 @@ function diy_send(){
 		_card_src=$(printf '%s' "$_card_src" | sed 's|^<hr/>||; s|<hr/>$||')
 		# 其余分隔符转为卡片边界，整体首尾补卡片标签
 		local _card_body=$(printf '%s' "$_card_src" | sed "s|<hr/>|</div>${_card_open}|g")
+		# 标题后紧邻的 <br/> 在卡片布局中会形成多余空行，去掉
+		_card_body=$(printf '%s' "$_card_body" | sed "s|</div><br/>|</div>|g")
 		set -- "$1" "${_card_open}${_card_body}</div>" "${3}"
 	fi
 	( ! echo "$lite_enable"|grep -q "content" ) && ( ! echo "$lite_enable"|grep -q "nowtime" ) && local nowtime=`date "+%Y-%m-%d %H:%M:%S"`
