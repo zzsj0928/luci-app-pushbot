@@ -168,8 +168,33 @@ function pushbot_init(){
 	[ -z "${dd_webhook}${pp_token}${we_webhook}${fs_webhook}${bark_token}${pushdeer_key}" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】请填写正确的Token/Webhook " >> ${logfile} && return 1
 	local interfacelist=`getinterfacelist` && [ -z "$interfacelist" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】无法正确获取接口信息，请确认插件是否正常运行" >> ${logfile}
 	return 0
+}
 
-	return 0
+# ── Markdown 表格化辅助函数 ──
+# 生成 Markdown 表格分隔线
+md_table_sep() {
+	echo "| --- | --- |"
+}
+
+# 生成 Markdown 表格行
+# 用法: md_table_row "标签" "值"
+md_table_row() {
+	echo "| **${1}** | ${2} |"
+}
+
+# 生成 Markdown 表格内容
+# 用法: md_table "标题" "标签1" "值1" "标签2" "值2" ...
+md_table() {
+	local title="$1"
+	shift
+	local result=""
+	result="${result}${str_splitline}${str_title_start}${font_module} ${title}${font_end}${str_title_end}"
+	result="${result}\n$(md_table_sep)"
+	while [ $# -ge 2 ]; do
+		result="${result}\n$(md_table_row "$1" "$2")"
+		shift 2
+	done
+	echo -e "$result"
 }
 
 # 推送
