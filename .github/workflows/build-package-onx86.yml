@@ -119,6 +119,11 @@ jobs:
           limit-access-to-actor: true
           wait-timeout-minutes: 5
 
+      - name: Set npm cache to temp
+        run: |
+          mkdir -p /tmp/npm-cache
+          echo "npm_config_cache=/tmp/npm-cache" >> $GITHUB_ENV
+
       - name: Download and Compile
         run: |
           cd openwrt
