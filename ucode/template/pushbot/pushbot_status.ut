@@ -388,8 +388,6 @@ else
 				}
 
 				var result = showToast(msg, '📦 v' + local + '　☁️ v' + remote, cls, btns);
-				/* expose pauseAutohide for button callbacks */
-				touch.toast = result;
 			})
 			.catch(function(e) {
 				clearTimeout(timer);
