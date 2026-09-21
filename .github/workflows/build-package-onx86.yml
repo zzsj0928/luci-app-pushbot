@@ -191,16 +191,6 @@ jobs:
           echo "TAG=${TAG}" >> $GITHUB_ENV
           echo "=== 版本: ${TAG} ==="
 
-      - name: Set workflow run name
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh api \
-            --method PATCH \
-            "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            -f "name=${TAG}" \
-            --silent
-
       - name: Generate changelog
         id: changelog
         run: |
