@@ -83,7 +83,6 @@ jobs:
       - name: Restore OpenWrt cache
         id: cache
         uses: actions/cache/restore@v4
-        if: inputs.use_cache == true
         with:
           path: openwrt
           key: pushbot-${{ matrix.op_branch }}-${{ runner.os }}
@@ -132,7 +131,7 @@ jobs:
 
       - name: Save OpenWrt cache
         uses: actions/cache/save@v4
-        if: inputs.use_cache == true && success() && steps.cache.outputs.cache-hit != 'true'
+        if: success() && steps.cache.outputs.cache-hit != 'true'
         with:
           path: openwrt
           key: pushbot-${{ matrix.op_branch }}-${{ runner.os }}
