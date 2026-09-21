@@ -324,6 +324,7 @@ else
 								var xhr = new XMLHttpRequest();
 								xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download") }}?ver=' + encodeURIComponent(remoteVer) + '&rel=' + encodeURIComponent(remoteRel) + '&_=' + Date.now());
 								xhr.onload = function() {
+									var zeroCount = 0;
 									var pollId = setInterval(function() {
 										var px = new XMLHttpRequest();
 										px.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download_progress") }}?_=' + Date.now());
@@ -344,6 +345,14 @@ else
 													setTimeout(function() { btn.textContent = '{{ _('Pull NewPkg') }}'; }, 3000);
 												} else {
 													var num = parseInt(pct, 10) || 0;
+													if (num === 0) { zeroCount++; } else { zeroCount = 0; }
+													if (zeroCount >= 20) {
+														clearInterval(pollId);
+														btn.disabled = false;
+														btn.textContent = '{{ _('GitHub Release Unreachable') }}';
+														setTimeout(function() { btn.textContent = '{{ _('Pull NewPkg') }}'; }, 3000);
+														return;
+													}
 													btn.innerHTML = '<span class="pb-ota-progress-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-bg"/><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-fg" style="stroke-dasharray:' + num + ', 100"/></svg></span>' + num + '%';
 												}
 											} catch(e) {}
