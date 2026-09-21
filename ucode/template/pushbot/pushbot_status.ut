@@ -194,15 +194,23 @@ else
 		card.appendChild(ov);
 		/* 0.5s frosted fade-in */
 		setTimeout(function() { ov.classList.add('show'); }, 20);
-		/* auto-hide timer (4s) — returns handle so buttons can pause it */
-		var autoHideId = setTimeout(function() {
-			ov.classList.remove('show');
-			setTimeout(function() { ov.remove(); }, 550);
-		}, 4000);
+		/* auto-hide timer (4s): only for toasts without buttons (e.g. "already latest") */
+		var autoHideId = null;
+		if (!buttons || buttons.length === 0) {
+			autoHideId = setTimeout(function() {
+				ov.classList.remove('show');
+				setTimeout(function() { ov.remove(); }, 550);
+			}, 4000);
+		}
 		return {
 			ov: ov,
 			pauseAutohide: function() {
 				if (autoHideId) { clearTimeout(autoHideId); autoHideId = null; }
+			},
+			dismiss: function() {
+				if (autoHideId) { clearTimeout(autoHideId); autoHideId = null; }
+				ov.classList.remove('show');
+				setTimeout(function() { ov.remove(); }, 550);
 			}
 		};
 	}
@@ -244,90 +252,14 @@ else
 				if (c < 0) {
 					btns = [
 						{
-							label: '{{ _('Download Link') }}',
-							onClick: function(btn, ov) {
-								/* browser direct download for both app and i18n packages */
-								var baseUrl = 'https://github.com/zzsj0928/luci-app-pushbot/releases/download/luci-app-pushbot-v' + remoteVer + '-r' + remoteRel + '/';
-								/* detect pkg mgr to pick apk/ipk */
-								var isApk = false;
-								var xh = new XMLHttpRequest();
-								xh.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "detect_pkgmgr") }}?_=' + Date.now(), false);
-								xh.send();
-								if (xh.status === 200) {
-									try { var d = JSON.parse(xh.responseText); isApk = (d.pkgmgr === 'apk'); } catch(e) {}
-								}
-								var ext = isApk ? 'apk' : 'ipk';
-								var appFile = 'luci-app-pushbot_' + remoteVer + '-r' + remoteRel + '_all.' + ext;
-								var i18nFile = 'luci-i18n-pushbot-zh-cn_' + remoteVer + '-r' + remoteRel + '_all.' + ext;
-								/* open both download links */
-								window.open(baseUrl + appFile, '_blank');
-								setTimeout(function() { window.open(baseUrl + i18nFile, '_blank'); }, 500);
-								/* dismiss toast */
-								ov.classList.remove('show');
-								setTimeout(function() { ov.remove(); }, 550);
-							}
-						},
-						{
-							label: '{{ _('Download Update') }}',
-							id: 'pb_ota_dl_btn',
-							onClick: function(btn, ov) {
-								result.pauseAutohide();
-								btn.disabled = true;
-								/* start download on router */
-								var xhr = new XMLHttpRequest();
-								xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download") }}?ver=' + encodeURIComponent(remoteVer) + '&rel=' + encodeURIComponent(remoteRel) + '&_=' + Date.now());
-								xhr.onload = function() {
-									/* poll progress */
-									var pollId = setInterval(function() {
-										var px = new XMLHttpRequest();
-										px.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download_progress") }}?_=' + Date.now());
-										px.onload = function() {
-											try {
-												var pd = JSON.parse(px.responseText);
-												var pct = pd.progress || '0';
-												if (pct === 'done') {
-													clearInterval(pollId);
-													btn.disabled = false;
-													btn.textContent = '{{ _('Install Update') }}';
-													btn.classList.add('pb-ota-ready');
-													btn.setAttribute('data-ready', '1');
-												} else if (pct === 'fail') {
-													clearInterval(pollId);
-													btn.disabled = false;
-													btn.textContent = '{{ _('Download Failed') }}';
-													setTimeout(function() { btn.textContent = '{{ _('Download Update') }}'; }, 3000);
-												} else {
-													/* show circular progress */
-													var num = parseInt(pct, 10) || 0;
-													btn.innerHTML = '<span class="pb-ota-progress-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-bg"/><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-fg" style="stroke-dasharray:' + num + ', 100"/></svg></span>' + num + '%';
-												}
-											} catch(e) {}
-										};
-										px.send();
-									}, 1000);
-								};
-								xhr.send();
-							}
-						},
-						{
-							label: '{{ _('Ignore') }}',
-							onClick: function(btn, ov) {
-								ov.classList.remove('show');
-								setTimeout(function() { ov.remove(); }, 550);
-							}
-						},
-						{
 							label: '{{ _('One-Click Update') }}',
 							id: 'pb_ota_oneclick_btn',
 							onClick: function(btn, ov) {
-								result.pauseAutohide();
 								btn.disabled = true;
 								btn.textContent = '{{ _('Updating...') }}';
-								/* start download */
 								var xhr = new XMLHttpRequest();
 								xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download") }}?ver=' + encodeURIComponent(remoteVer) + '&rel=' + encodeURIComponent(remoteRel) + '&_=' + Date.now());
 								xhr.onload = function() {
-									/* poll download then install */
 									var pollId = setInterval(function() {
 										var px = new XMLHttpRequest();
 										px.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download_progress") }}?_=' + Date.now());
@@ -338,11 +270,9 @@ else
 												if (pct === 'done') {
 													clearInterval(pollId);
 													btn.textContent = '{{ _('Installing...') }}';
-													/* trigger install */
 													var ix = new XMLHttpRequest();
 													ix.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "install") }}?_=' + Date.now());
 													ix.onload = function() {
-														/* poll install progress */
 														var ipollId = setInterval(function() {
 															var ipx = new XMLHttpRequest();
 															ipx.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "install_progress") }}?_=' + Date.now());
@@ -354,7 +284,7 @@ else
 																		if (id.success) {
 																			btn.textContent = '{{ _('Update Complete') }}';
 																			btn.classList.add('pb-ota-success');
-																			setTimeout(function() { ov.remove(); }, 3000);
+																			setTimeout(function() { result.dismiss(); }, 3000);
 																		} else {
 																			btn.textContent = '{{ _('Install Failed') }}';
 																			btn.disabled = false;
@@ -382,6 +312,69 @@ else
 									}, 1000);
 								};
 								xhr.send();
+							}
+						},
+						{
+							label: '{{ _('Pull Update') }}',
+							id: 'pb_ota_dl_btn',
+							onClick: function(btn, ov) {
+								btn.disabled = true;
+								var xhr = new XMLHttpRequest();
+								xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download") }}?ver=' + encodeURIComponent(remoteVer) + '&rel=' + encodeURIComponent(remoteRel) + '&_=' + Date.now());
+								xhr.onload = function() {
+									var pollId = setInterval(function() {
+										var px = new XMLHttpRequest();
+										px.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download_progress") }}?_=' + Date.now());
+										px.onload = function() {
+											try {
+												var pd = JSON.parse(px.responseText);
+												var pct = pd.progress || '0';
+												if (pct === 'done') {
+													clearInterval(pollId);
+													btn.disabled = false;
+													btn.textContent = '{{ _('Install Update') }}';
+													btn.classList.add('pb-ota-ready');
+													btn.setAttribute('data-ready', '1');
+												} else if (pct === 'fail') {
+													clearInterval(pollId);
+													btn.disabled = false;
+													btn.textContent = '{{ _('Download Failed') }}';
+													setTimeout(function() { btn.textContent = '{{ _('Pull Update') }}'; }, 3000);
+												} else {
+													var num = parseInt(pct, 10) || 0;
+													btn.innerHTML = '<span class="pb-ota-progress-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-bg"/><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-fg" style="stroke-dasharray:' + num + ', 100"/></svg></span>' + num + '%';
+												}
+											} catch(e) {}
+										};
+										px.send();
+									}, 1000);
+								};
+								xhr.send();
+							}
+						},
+						{
+							label: '{{ _('Download Link') }}',
+							onClick: function(btn, ov) {
+								var baseUrl = 'https://github.com/zzsj0928/luci-app-pushbot/releases/download/luci-app-pushbot-v' + remoteVer + '-r' + remoteRel + '/';
+								var isApk = false;
+								var xh = new XMLHttpRequest();
+								xh.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "detect_pkgmgr") }}?_=' + Date.now(), false);
+								xh.send();
+								if (xh.status === 200) {
+									try { var d = JSON.parse(xh.responseText); isApk = (d.pkgmgr === 'apk'); } catch(e) {}
+								}
+								var ext = isApk ? 'apk' : 'ipk';
+								var appFile = 'luci-app-pushbot_' + remoteVer + '-r' + remoteRel + '_all.' + ext;
+								var i18nFile = 'luci-i18n-pushbot-zh-cn_' + remoteVer + '-r' + remoteRel + '_all.' + ext;
+								window.open(baseUrl + appFile, '_blank');
+								setTimeout(function() { window.open(baseUrl + i18nFile, '_blank'); }, 500);
+								result.dismiss();
+							}
+						},
+						{
+							label: '{{ _('Ignore') }}',
+							onClick: function(btn, ov) {
+								result.dismiss();
 							}
 						}
 					];
