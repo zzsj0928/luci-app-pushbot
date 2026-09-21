@@ -11,9 +11,11 @@
 name: OpenWrt-Plugins-Build-x86
 
 on:
-  repository_dispatch:
-    schedule:
-      - cron: "0 0 1 * *"
+  push:
+    paths:
+      - 'Makefile'
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       use_cache:
@@ -33,40 +35,29 @@ on:
           - ubuntu-20.04
           - ubuntu-22.04
           - ubuntu-24.04
+
 permissions:
   contents: write
-  # 删除 workflow runs 需要 actions: write（GitRML/delete-workflow-runs 依赖）
   actions: write
 
 env:
-  UPLOAD_PACKAGE: true
-  UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
+  PLUGIN_NAME: luci-app-pushbot
+  REPO_URL: https://github.com/zzsj0928/luci-app-pushbot.git
 
 jobs:
   build:
-    runs-on: ${{ inputs.chosen-os || 'ubuntu-24.04'}}
+    runs-on: ${{ inputs.chosen-os || 'ubuntu-24.04' }}
     strategy:
       fail-fast: false
       matrix:
-        plugin:
-          - name: luci-app-pushbot
-            repo: https://github.com/zzsj0928/luci-app-pushbot.git
-            op_repo: https://github.com/openwrt/openwrt
-            op_branch: main
-          - name: luci-app-pushbot
-            repo: https://github.com/zzsj0928/luci-app-pushbot.git
-            op_repo: https://github.com/openwrt/openwrt
-            op_branch: openwrt-23.05
+        include:
+          - op_branch: main
+            pkg_type: APK
+          - op_branch: openwrt-23.05
+            pkg_type: IPK
 
     steps:
-      - name: Before freeing up disk space
-        run: |
-          echo "Before freeing up disk space"
-          echo "=============================================================================="
-          df -hT
-          echo "=============================================================================="
-
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
         with:
@@ -79,20 +70,12 @@ jobs:
           remove-codeql: 'true'
           remove-docker-images: 'true'
 
-      - name: Free up disk space complete
-        run: |
-          echo "Free up disk space complete"
-          echo "=============================================================================="
-          df -hT
-          echo "=============================================================================="
-
       - name: Initialization environment
         env:
           DEBIAN_FRONTEND: noninteractive
-          CHOSEN_OS: ${{ github.event.inputs.chosen-os }}
+          CHOSEN_OS: ${{ inputs.chosen-os }}
         run: |
           sudo -E apt -qq update -y
-          #sudo -E apt -qq upgrade -y
           sudo -E apt -qq install $(curl -fsSL https://raw.githubusercontent.com/zouyq/openwrt-build-action/main/dep/${CHOSEN_OS}) -y
           sudo timedatectl set-timezone "$TZ"
 
@@ -101,183 +84,218 @@ jobs:
         uses: actions/cache/restore@v4
         if: inputs.use_cache == true
         with:
-          # 缓存整个 openwrt/（源码 + dl 下载 + staging_dir 工具链 +
-          # build_dir 编译缓存），命中后跳过 clone，直接增量编译
           path: openwrt
-          key: pushbot-openwrt-${{ matrix.plugin.op_branch }}-${{ runner.os }}
+          key: pushbot-${{ matrix.op_branch }}-${{ runner.os }}
           restore-keys: |
-            pushbot-openwrt-${{ matrix.plugin.op_branch }}-
+            pushbot-${{ matrix.op_branch }}-
 
       - name: Clone source code
         if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          pwd && df -hT $PWD
-          git clone ${{ matrix.plugin.op_repo }} -b ${{ matrix.plugin.op_branch }} openwrt
+        run: git clone https://github.com/openwrt/openwrt.git -b ${{ matrix.op_branch }} openwrt
 
       - name: Update and Install feeds
         run: |
           cd openwrt
-          ./scripts/feeds update -a 
+          ./scripts/feeds update -a
           ./scripts/feeds install -a
 
       - name: Load custom configuration
         run: |
           cd openwrt
-          # 缓存命中时 .config / package 源码为上次残留，先清空再写入当前包
           rm -f .config
-          rm -rf package/${{ matrix.plugin.name }}
-          git clone ${{ matrix.plugin.repo }} package/${{ matrix.plugin.name }}
+          rm -rf package/${{ env.PLUGIN_NAME }}
+          git clone ${{ env.REPO_URL }} package/${{ env.PLUGIN_NAME }}
           echo CONFIG_TARGET_x86=y >> .config
           echo CONFIG_TARGET_x86_64=y >> .config
           echo CONFIG_TARGET_x86_64_DEVICE_generic=y >> .config
-          echo CONFIG_PACKAGE_${{ matrix.plugin.name }}=y >> .config
+          echo CONFIG_PACKAGE_${{ env.PLUGIN_NAME }}=y >> .config
           echo CONFIG_PACKAGE_luci-i18n-pushbot-zh-cn=y >> .config
           echo CONFIG_LUCI_LANG_zh_Hans=y >> .config
 
       - name: SSH connection to Actions
         uses: lhotari/action-upterm@v1
-        if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+        if: github.event.inputs.ssh == 'true'
         with:
           limit-access-to-actor: true
           wait-timeout-minutes: 5
 
-      - name: Download package
-        id: package
+      - name: Download and Compile
         run: |
           cd openwrt
           make defconfig
           make download -j8
           find dl -size -1024c -exec ls -l {} \;
           find dl -size -1024c -exec rm -f {} \;
-
-      - name: Compile the Package
-        id: compile
-        run: |
-          cd openwrt
           echo -e "$(nproc) thread compile"
           make -j$(nproc) || make -j1 V=s
-          echo "status=success" >> $GITHUB_OUTPUT
-          echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
-
-      - name: Check space usage
-        if: (!cancelled())
-        run: |
-          echo "Free up disk space complete"
-          echo "=============================================================================="
-          df -hT
-          echo "=============================================================================="
 
       - name: Save OpenWrt cache
         uses: actions/cache/save@v4
         if: inputs.use_cache == true && success() && steps.cache.outputs.cache-hit != 'true'
         with:
-          # 首次（缓存未命中）编译成功后保存；之后命中固定 key 不再覆盖，
-          # 工具链/源码随 op_branch 固定复用
           path: openwrt
-          key: pushbot-openwrt-${{ matrix.plugin.op_branch }}-${{ runner.os }}
+          key: pushbot-${{ matrix.op_branch }}-${{ runner.os }}
 
-      - name: Organize files
-        id: organize
-        if: steps.compile.outputs.status == 'success' && env.UPLOAD_PACKAGE == 'true' && !cancelled()
+      - name: Organize and upload artifacts
+        if: success() && !cancelled()
         run: |
-          mkdir openwrt/${{ matrix.plugin.name }}-package
-          mv openwrt/bin/packages/*/luci/${{ matrix.plugin.name }}* openwrt/${{ matrix.plugin.name }}-package || true
-          mv openwrt/bin/packages/*/base/${{ matrix.plugin.name }}* openwrt/${{ matrix.plugin.name }}-package || true
-          mv openwrt/bin/packages/*/luci/luci-i18n-pushbot-zh-cn* openwrt/${{ matrix.plugin.name }}-package || true
-          mv openwrt/bin/packages/*/base/luci-i18n-pushbot-zh-cn* openwrt/${{ matrix.plugin.name }}-package || true
-          cd openwrt/${{ matrix.plugin.name }}-package
-          # 检测第一个匹配的包文件的扩展名
-          pkg_file=$(ls ${{ matrix.plugin.name }}* 2>/dev/null | head -n1)
-          if [ -n "$pkg_file" ]; then
-            ext="${pkg_file##*.}"
-            # 统一转为大写便于显示
-            echo "PKG_EXT=$(echo $ext | tr '[:lower:]' '[:upper:]')" >> $GITHUB_ENV
+          # 收集所有产物（主包 + i18n）
+          mkdir -p pkgs
+          find openwrt/bin/packages -name "luci-app-pushbot*" -exec cp {} pkgs/ \;
+          find openwrt/bin/packages -name "luci-i18n-pushbot*" -exec cp {} pkgs/ \;
+          echo "=== 产物 ==="
+          ls -lh pkgs/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: success() && !cancelled()
+        with:
+          name: pkgs-${{ matrix.pkg_type }}
+          path: pkgs/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always() && needs.build.result == 'success'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: pkgs-*
+
+      - name: Collect packages
+        id: collect
+        run: |
+          mkdir -p release-pkgs
+          # 合并所有 artifact 目录中的文件
+          find artifacts -type f \( -name "*.apk" -o -name "*.ipk" \) -exec cp {} release-pkgs/ \;
+          echo "=== 最终产物 ==="
+          ls -lh release-pkgs/
+
+          # 从 Makefile 提取版本号
+          VER=$(grep '^PKG_VERSION' Makefile | head -1 | cut -d= -f2)
+          REL=$(grep '^PKG_RELEASE' Makefile | head -1 | cut -d= -f2)
+          TAG="luci-app-pushbot-v${VER}-r${REL}"
+          echo "VERSION=v${VER}-r${REL}" >> $GITHUB_ENV
+          echo "TAG=${TAG}" >> $GITHUB_ENV
+          echo "=== 版本: ${TAG} ==="
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # 找到上一个同名前缀的 tag
+          PREV_TAG=$(git tag -l "luci-app-pushbot-v*" --sort=-v:refname | head -n1)
+          echo "上一个 tag: ${PREV_TAG:-无}"
+
+          {
+            echo "# ${TAG}"
+            echo ""
+            if [ -n "$PREV_TAG" ]; then
+              echo "## 变更 (${PREV_TAG} → ${TAG})"
+              echo ""
+              # commit subject 列表
+              git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges
+              echo ""
+              echo ""
+              # 产物信息
+              echo "## 产物"
+              echo ""
+              echo "| 文件 | 说明 |"
+              echo "|------|------|"
+              find release-pkgs -type f -printf "| %f | |\n" | sort
+            else
+              echo "## 首次发布"
+              echo ""
+              git log --pretty=format:"- %s" --no-merges -20
+              echo ""
+            fi
+          } > release-body.md
+
+          echo "=== release-body.md ==="
+          cat release-body.md
+
+      - name: Create tag and release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 检查 tag 是否已存在
+          if git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "tag ${TAG} 已存在，跳过创建（更新产物到已有 Release）"
           else
-            echo "PKG_EXT=UNKNOWN" >> $GITHUB_ENV
+            echo "创建 tag: ${TAG}"
+            git tag "${TAG}"
+            git push origin "${TAG}"
           fi
-          echo "PACKAGE=$PWD" >> $GITHUB_ENV
-          echo "PLUGIN_NAME=${{ matrix.plugin.name }}" >> $GITHUB_ENV
-          echo "status=success" >> $GITHUB_OUTPUT
 
-      - name: Upload Package directory
-        uses: actions/upload-artifact@main
-        if: steps.organize.outputs.status == 'success' && !cancelled()
-        with:
-          name: ${{ matrix.plugin.name }}_${{ env.PKG_EXT }}${{ env.FILE_DATE }}
-          path: ${{ env.PACKAGE }}
+          # 创建/更新 Release（idempotent：已存在则更新）
+          gh release delete "${TAG}" --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "${TAG}" \
+            --repo "${{ github.repository }}" \
+            --title "${TAG}" \
+            --notes-file release-body.md \
+            release-pkgs/*
 
-      - name: Generate release tag
-        id: tag
-        if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
-        run: |
-          echo "release_tag=$(date +"%Y.%m.%d-%H%M")_x64_${{ env.PKG_EXT }}" >> $GITHUB_OUTPUT
-          touch release.txt
-          echo "status=success" >> $GITHUB_OUTPUT
-
-      - name: Upload firmware to release
-        uses: softprops/action-gh-release@v1
-        if: steps.tag.outputs.status == 'success' && !cancelled()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ matrix.plugin.name }}_${{ steps.tag.outputs.release_tag }}
-          body_path: release.txt
-          files: ${{ env.PACKAGE }}/*
-
-      # ── 清理：编译成功后执行 ──────────────────────────
-      # 删除 workflow run 记录（OR 语义）：
-      #   - 总数超过 8 个：删除最旧的（保留最新 8 个）
-      #   - 或 超过 180 天：删除
-      # （GitRML/delete-workflow-runs 是 AND 语义 —— 只删"既超过
-      #   180天又不在最新8个内"的，无法满足"超过8个就删"，故用脚本）
-      - name: Delete workflow runs
-        if: steps.tag.outputs.status == 'success' && !cancelled()
+      - name: Clean old tags (keep 80)
+        if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          repo="${{ github.repository }}"
-          now=$(date +%s)
-          curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$repo/actions/runs?per_page=100&status=completed" \
+          TAGS=$(git tag -l "luci-app-pushbot-v*" --sort=-v:refname)
+          COUNT=$(echo "$TAGS" | grep -c . || echo 0)
+          echo "当前 tag 数: ${COUNT}"
+          if [ "$COUNT" -gt 80 ]; then
+            echo "$TAGS" | tail -n +81 | while read -r t; do
+              echo "删除旧 tag: ${t}"
+              git push --delete origin "${t}" 2>/dev/null || true
+              gh release delete "${t}" --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
+            done
+          fi
+
+      - name: Clean old releases (keep 20)
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release list --repo "${{ github.repository }}" --limit 100 \
+            --json tagName,createdAt --jq '.[] | "\(.createdAt) \(.tagName)"' \
+            | sort -r > /tmp/releases.txt
+          TOTAL=$(wc -l < /tmp/releases.txt)
+          echo "当前 release 数: ${TOTAL}"
+          if [ "$TOTAL" -gt 20 ]; then
+            tail -n +21 /tmp/releases.txt | while read -r line; do
+              TAG=$(echo "$line" | cut -d' ' -f2-)
+              # 不删除刚创建的 tag
+              [ "$TAG" = "${{ env.TAG }}" ] && continue
+              echo "删除旧 release: ${TAG}"
+              gh release delete "${TAG}" --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
+            done
+          fi
+
+      - name: Clean old workflow runs (keep 8)
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          NOW=$(date +%s)
+          curl -s -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/${REPO}/actions/runs?per_page=100&status=completed" \
             > /tmp/runs.json
-          total=$(jq '.workflow_runs | length' /tmp/runs.json)
-          echo "completed runs: $total"
-          self="${{ github.run_id }}"
-          # 跳过自己；索引>=8（最新8个之外）或 年龄>180天 则删
-          jq -r --argjson now "$now" --arg self "$self" '
+          SELF="${{ github.run_id }}"
+          jq -r --argjson now "$NOW" --arg self "$SELF" '
             .workflow_runs | to_entries[] |
             select(.value.id != ($self|tonumber)) |
-            .key as $i |
-            .value.id as $id |
+            .key as $i | .value.id as $id |
             (.value.created_at | fromdateiso8601) as $ct |
-            (($now - $ct) / 86400 > 180 or $i >= 8) as $del |
-            if $del then "\($id)" else empty end
-          ' /tmp/runs.json | while read -r rid; do
-            echo "删除 run: $rid"
-            curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" \
-              "https://api.github.com/repos/$repo/actions/runs/$rid" \
-              -o /dev/null -w "%{http_code}\n"
+            if (($now - $ct) / 86400 > 180) or ($i >= 8) then "\($id)" else empty end
+          ' /tmp/runs.json | while read -r RID; do
+            echo "删除 run: ${RID}"
+            curl -s -X DELETE -H "Authorization: ${GITHUB_TOKEN}" \
+              "https://api.github.com/repos/${REPO}/actions/runs/${RID}" -o /dev/null
           done
-
-      # 删除超过 20 个的 release（保留最新 20 个）
-      - name: Clean old releases
-        if: steps.tag.outputs.status == 'success' && !cancelled()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # 获取当前仓库所有 release，按创建时间倒序，删除第 21 个及之后
-          # 显式指定 --repo（runner 工作目录可能不是 git 仓库根，gh 无法自动推断）
-          echo "=== 列出所有 releases ==="
-          gh release list --repo "${{ github.repository }}" --limit 100 --json tagName,createdAt --jq '.[] | "\(.createdAt) \(.tagName)"' > /tmp/releases.txt
-          total=$(wc -l < /tmp/releases.txt)
-          echo "当前 release 数: $total"
-          if [ "$total" -gt 20 ]; then
-            # 跳过前 20 个（最新），删除其余
-            tail -n +21 /tmp/releases.txt | while read -r line; do
-              tag=$(echo "$line" | cut -d' ' -f2-)
-              echo "删除旧 release: $tag"
-              gh release delete --repo "${{ github.repository }}" "$tag" --yes --cleanup-tag || echo "跳过删除失败: $tag"
-            done
-          else
-            echo "release 数量未超过 20，无需清理"
-          fi
