@@ -330,48 +330,47 @@ pb_ota_showCountdown(ov);
 									pb_ota_showCountdown(ov);
 									return;
 								}
-								/* show 0% ring immediately */
+								/* show 0% ring + start polling immediately (don't wait for xhr.onload) */
 								btn.disabled = true;
 								btn.innerHTML = '<span class="pb-ota-progress-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-bg"/><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-fg" style="stroke-dasharray:0, 100"/></svg></span>0%';
+								var zeroCount = 0;
+								var pollId = setInterval(function() {
+									var px = new XMLHttpRequest();
+									px.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download_progress") }}?_=' + Date.now());
+									px.onload = function() {
+										try {
+											var pd = JSON.parse(px.responseText);
+											var pct = pd.progress || '0';
+											if (pct === 'done') {
+												clearInterval(pollId);
+												btn.disabled = false;
+												btn.textContent = '{{ _('Install Update') }}';
+												btn.classList.add('pb-ota-ready');
+												btn.setAttribute('data-ready', '1');
+											} else if (pct === 'fail') {
+												clearInterval(pollId);
+												btn.disabled = false;
+												btn.textContent = '{{ _('Download Failed') }}';
+												setTimeout(function() { btn.textContent = '{{ _('Pull NewPkg') }}'; }, 3000);
+											} else {
+												var num = parseInt(pct, 10) || 0;
+												if (num === 0) { zeroCount++; } else { zeroCount = 0; }
+												if (zeroCount >= 20) {
+													clearInterval(pollId);
+													btn.disabled = false;
+													btn.textContent = '{{ _('GitHub Release Unreachable') }}';
+													setTimeout(function() { btn.textContent = '{{ _('Pull NewPkg') }}'; }, 3000);
+													return;
+												}
+												btn.innerHTML = '<span class="pb-ota-progress-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-bg"/><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-fg" style="stroke-dasharray:' + num + ', 100"/></svg></span>' + num + '%';
+											}
+										} catch(e) {}
+									};
+									px.send();
+								}, 1000);
+								/* trigger download (fire and forget) */
 								var xhr = new XMLHttpRequest();
 								xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download") }}?ver=' + encodeURIComponent(remoteVer) + '&rel=' + encodeURIComponent(remoteRel) + '&_=' + Date.now());
-								xhr.onload = function() {
-									var zeroCount = 0;
-									var pollId = setInterval(function() {
-										var px = new XMLHttpRequest();
-										px.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "download_progress") }}?_=' + Date.now());
-										px.onload = function() {
-											try {
-												var pd = JSON.parse(px.responseText);
-												var pct = pd.progress || '0';
-												if (pct === 'done') {
-													clearInterval(pollId);
-													btn.disabled = false;
-													btn.textContent = '{{ _('Install Update') }}';
-													btn.classList.add('pb-ota-ready');
-													btn.setAttribute('data-ready', '1');
-												} else if (pct === 'fail') {
-													clearInterval(pollId);
-													btn.disabled = false;
-													btn.textContent = '{{ _('Download Failed') }}';
-													setTimeout(function() { btn.textContent = '{{ _('Pull NewPkg') }}'; }, 3000);
-												} else {
-													var num = parseInt(pct, 10) || 0;
-													if (num === 0) { zeroCount++; } else { zeroCount = 0; }
-													if (zeroCount >= 20) {
-														clearInterval(pollId);
-														btn.disabled = false;
-														btn.textContent = '{{ _('GitHub Release Unreachable') }}';
-														setTimeout(function() { btn.textContent = '{{ _('Pull NewPkg') }}'; }, 3000);
-														return;
-													}
-													btn.innerHTML = '<span class="pb-ota-progress-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-bg"/><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-fg" style="stroke-dasharray:' + num + ', 100"/></svg></span>' + num + '%';
-												}
-											} catch(e) {}
-										};
-										px.send();
-									}, 1000);
-								};
 								xhr.send();
 							}
 						},
@@ -398,6 +397,19 @@ pb_ota_showCountdown(ov);
 								window.open(baseUrl + appFile, '_blank');
 								setTimeout(function() { window.open(baseUrl + i18nFile, '_blank'); }, 500);
 								result.dismiss();
+							}
+						},
+						{
+							label: '{{ _('Clear Packages') }}',
+							onClick: function(btn, ov) {
+								var xhr = new XMLHttpRequest();
+								xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "clear_packages") }}?_=' + Date.now());
+								xhr.onload = function() {
+									btn.textContent = '{{ _('Cleared') }}';
+									btn.disabled = true;
+									setTimeout(function() { result.dismiss(); }, 1500);
+								};
+								xhr.send();
 							}
 						},
 						{
@@ -4167,6 +4179,9 @@ window.addEventListener('DOMContentLoaded', function() {
 	box-shadow: 0 14px 34px rgba(15, 23, 42, 0.35);
 	transform: scale(0.92) translateY(6px);
 	transition: transform 0.5s ease;
+}
+@media (min-width: 481px) {
+	.pushbot-ver-toast { max-width: 460px; }
 }
 .pushbot-ver-overlay.show .pushbot-ver-toast { transform: scale(1) translateY(0); }
 /* status colors: beta=violet, latest=green, update=orange, error=red */
