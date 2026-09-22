@@ -756,8 +756,8 @@ return {
 		let files;
 		if (mgr == "apk") {
 			files = [
-				"luci-app-pushbot_" + ver + "-r" + rel + "_all.apk",
-				"luci-i18n-pushbot-zh-cn_" + ver + "-r" + rel + "_all.apk"
+				"luci-app-pushbot-" + ver + "-r" + rel + ".apk",
+				"luci-i18n-pushbot-zh-cn-" + ver + "-r" + rel + ".apk"
 			];
 		} else {
 			files = [
