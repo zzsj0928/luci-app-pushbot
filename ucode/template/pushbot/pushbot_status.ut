@@ -5072,10 +5072,15 @@ window.addEventListener('DOMContentLoaded', function() {
 .pushbot-save-row {
 	margin-top: 28px;
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: flex-end;
 	align-items: center;
-	gap: 12px;
+	gap: 10px;
 	padding: 0 4px;
+}
+.pushbot-save-row .pushbot-preview-btn,
+.pushbot-save-row .pushbot-save-btn {
+	white-space: nowrap;
 }
 .pushbot-save-btn {
 	display: inline-flex;
