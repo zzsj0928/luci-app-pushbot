@@ -42,12 +42,14 @@ define Package/$(PKG_NAME)/postinst
 	[ -f /tmp/pushbot/wlan_interface ] && rm -f /tmp/pushbot/wlan_interface
 	[ -f /tmp/pushbot/wireless_ifs ] && rm -f /tmp/pushbot/wireless_ifs
 }
-# 备份插件默认文件（供"配置管理"恢复使用）
+# 备份插件默认文件（仅首次安装时创建，供"配置管理"恢复使用）
 DESDIR="$${IPKG_INSTROOT}/usr/share/pushbot/defaults"
-mkdir -p "$${DESDIR}"
-for f in /etc/config/pushbot /usr/bin/pushbot/api/ipv4.list /usr/bin/pushbot/api/ipv6.list /usr/bin/pushbot/api/diy.json; do
-	[ -f "$${f}" ] && cp -f "$${f}" "$${DESDIR}/"
-done
+if [ ! -d "$${DESDIR}" ]; then
+	mkdir -p "$${DESDIR}"
+	for f in /etc/config/pushbot /usr/bin/pushbot/api/ipv4.list /usr/bin/pushbot/api/ipv6.list /usr/bin/pushbot/api/diy.json; do
+		[ -f "$${f}" ] && /bin/cp -f "$${f}" "$${DESDIR}/"
+	done
+fi
 exit 0
 endef
 

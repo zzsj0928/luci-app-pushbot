@@ -130,11 +130,11 @@ function pbCmConfirm(parentOv, apiPath, label, desc) {
 		+ '</div>';
 	box.querySelector('#pb_cm_no').addEventListener('click', function() { parentOv.remove(); });
 	box.querySelector('#pb_cm_yes').addEventListener('click', function() {
-		box.innerHTML = '<div style="text-align:center;padding:24px 0;color:#64748b;font-size:13px">{{ _('Resetting...') }}</div>';
+		box.innerHTML = '<div style="text-align:center;padding:24px 0">{{ _('Resetting...') }}</div>';
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", apiPath) }}?_=' + Date.now());
 		xhr.onload = function(){
-			box.innerHTML = '<div style="text-align:center;padding:24px 0"><div style="font-size:28px;color:#10b981;margin-bottom:8px">✓</div><div style="font-size:14px;font-weight:700;color:#0f172a">{{ _('Configuration has been reset. Page will reload.') }}</div></div>';
+			box.innerHTML = '<div style="text-align:center;padding:24px 0"><div style="font-size:28px;margin-bottom:8px">✓</div><div style="font-size:14px;font-weight:700">{{ _('Configuration has been reset. Page will reload.') }}</div></div>';
 			setTimeout(function(){ location.reload(); }, 2000);
 		};
 		xhr.send();
