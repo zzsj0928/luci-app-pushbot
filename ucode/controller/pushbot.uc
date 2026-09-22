@@ -874,6 +874,88 @@ return {
 		http.write_json({ ok: true });
 	},
 
+	/* ── 配置管理：重置全部配置 ── */
+	act_reset_config: function() {
+		let defaults = "/usr/share/pushbot/defaults";
+		if (!access(defaults)) {
+			http.prepare_content("application/json");
+			http.write_json({ ok: false, error: "defaults dir missing" });
+			return;
+		}
+		/* 备份当前渠道 token，供 keep_token 使用 */
+		let u = cursor();
+		let section = u.get_all("pushbot", "pushbot") ?? {};
+		let tokens = {};
+		let channel_toggles = {
+			dd_webhook: true, we_webhook: true, fs_webhook: true, pushdeer_key: true,
+			pp_token: true, bark_token: true, ntfy_token: true, gotify_token: true,
+			wxpusher_app_token: true,
+		};
+		for (let k in channel_toggles) if (section[k] && section[k] != "") tokens[k] = section[k];
+		let token_file = "/tmp/pushbot/pending_tokens.json";
+		let tf = open(token_file, "w");
+		if (tf) { tf.write(json(tokens)); tf.close(); }
+		http.prepare_content("application/json");
+		http.write_json({ ok: true, tokens_saved: true });
+	},
+
+	/* ── 配置管理：重置并保留已启用渠道的 token ── */
+	act_reset_config_keep_token: function() {
+		let defaults = "/usr/share/pushbot/defaults";
+		if (!access(defaults)) {
+			http.prepare_content("application/json");
+			http.write_json({ ok: false, error: "defaults dir missing" });
+			return;
+		}
+		let token_file = "/tmp/pushbot/pending_tokens.json";
+		let tokens = {};
+		let tf = popen("cat " + token_file + " 2>/dev/null", "r");
+		if (tf) { let raw = tf.read("all"); tf.close(); try { tokens = json(raw); } catch {} }
+		system("rm -f " + token_file + " 2>/dev/null");
+
+		/* 重置 UCI 配置为默认 */
+		system("cp -f " + defaults + "/pushbot /etc/config/pushbot 2>/dev/null");
+		system("cp -f " + defaults + "/ipv4.list /usr/bin/pushbot/api/ipv4.list 2>/dev/null");
+		system("cp -f " + defaults + "/ipv6.list /usr/bin/pushbot/api/ipv6.list 2>/dev/null");
+		system("cp -f " + defaults + "/diy.json /usr/bin/pushbot/api/diy.json 2>/dev/null");
+
+		/* 写回已启用渠道的 token */
+		let u = cursor();
+		let section = u.get_all("pushbot", "pushbot") ?? {};
+		/* 判断哪些渠道是启用的 */
+		let channel_enable = {
+			pp_token: "pp_token", bark_token: "bark_token",
+			ntfy_token: "ntfy_token", gotify_token: "gotify_token",
+			wxpusher_app_token: "wxpusher_app_token", fs_webhook: "fs_webhook",
+			dd_webhook: "dd_webhook", we_webhook: "we_webhook", pushdeer_key: "pushdeer_key",
+		};
+		/* 启用开关与 token 的映射 */
+		let enable_keys = {
+			pp_token: null, bark_token: "bark_srv_enable",
+			ntfy_token: "ntfy_token_enable", gotify_token: null,
+			wxpusher_app_token: "wxpusher_uids_enable", fs_webhook: null,
+			dd_webhook: null, we_webhook: null, pushdeer_key: "pushdeer_srv_enable",
+		};
+		let keep = {};
+		for (let tk in tokens) {
+			let en = enable_keys[tk];
+			/* 如果没有独立 enable 开关，只要 token 非空就保留 */
+			if (en == null) { if (tokens[tk] != "") keep[tk] = tokens[tk]; }
+			else {
+				/* 有 enable 开关：检查当前（重置后）enable 是否为 1 */
+				let ev = u.get("pushbot", "pushbot", en) ?? "";
+				if (ev == "1") keep[tk] = tokens[tk];
+			}
+		}
+		/* 写回保留的 token */
+		for (let k in keep) {
+			system("/sbin/uci -q set pushbot.pushbot." + k + "=" + sq(keep[k]));
+		}
+		if (length(keep) > 0) system("/sbin/uci -q commit pushbot");
+		http.prepare_content("application/json");
+		http.write_json({ ok: true, restored_tokens: keep });
+	},
+
 	/* compatibility: index — no-op, menu registration is handled by menu.d JSON */
 	index: function() {}
 };
