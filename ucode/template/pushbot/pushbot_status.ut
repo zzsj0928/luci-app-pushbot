@@ -375,8 +375,14 @@ else
 									try { var d = JSON.parse(xh.responseText); isApk = (d.pkgmgr === 'apk'); } catch(e) {}
 								}
 								var ext = isApk ? 'apk' : 'ipk';
-								var appFile = 'luci-app-pushbot_' + remoteVer + '-r' + remoteRel + '_all.' + ext;
-								var i18nFile = 'luci-i18n-pushbot-zh-cn_' + remoteVer + '-r' + remoteRel + '_all.' + ext;
+								var appFile, i18nFile;
+								if (isApk) {
+									appFile = 'luci-app-pushbot-' + remoteVer + '-r' + remoteRel + '.apk';
+									i18nFile = 'luci-i18n-pushbot-zh-cn-' + remoteVer + '-r' + remoteRel + '.apk';
+								} else {
+									appFile = 'luci-app-pushbot_' + remoteVer + '-r' + remoteRel + '_all.ipk';
+									i18nFile = 'luci-i18n-pushbot-zh-cn_' + remoteVer + '-r' + remoteRel + '_all.ipk';
+								}
 								window.open(baseUrl + appFile, '_blank');
 								setTimeout(function() { window.open(baseUrl + i18nFile, '_blank'); }, 500);
 								result.dismiss();
