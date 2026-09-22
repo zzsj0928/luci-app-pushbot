@@ -284,6 +284,7 @@ else
 																		if (id.success) {
 																			btn.textContent = '{{ _('Update Complete') }}';
 																			btn.classList.add('pb-ota-success');
+																			setTimeout(function() { location.reload(); }, 30000);
 																			setTimeout(function() { result.dismiss(); }, 3000);
 																		} else {
 																			btn.textContent = '{{ _('Install Failed') }}';
