@@ -136,6 +136,27 @@ if (document.readyState === 'complete')
 else
 	window.addEventListener('load', PB_bootstrap);
 
+/* install countdown — toast-sized card, same as version check toast */
+function pb_ota_showCountdown(ov) {
+	var cdOv = document.createElement('div');
+	cdOv.className = 'pushbot-ver-toast is-latest';
+	cdOv.style.cssText = 'position:absolute;right:18px;bottom:18px;z-index:99999;display:inline-block;width:auto;max-width:220px;padding:12px 16px;border-radius:12px;color:#fff;text-align:center;box-shadow:0 8px 24px rgba(15,23,42,0.3);background:linear-gradient(135deg,#10b981,#059669);border:1px solid rgba(52,211,153,0.45)';
+	cdOv.innerHTML = '<div style="font-size:12px;font-weight:600">{{ _('Installing update…') }}</div>'
+		+ '<div style="margin-top:6px;font-size:26px;font-weight:800;font-family:Menlo,Consolas,monospace" id="pb_ota_countdown">30</div>'
+		+ '<div style="font-size:11px;opacity:0.7">{{ _('Auto-refresh in') }} <span id="pb_ota_sec_label">30</span>{{ _('s') }}</div>'
+		+ '<button onclick="location.reload()" style="margin-top:6px;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:600;cursor:pointer">{{ _('Refresh Now') }}</button>';
+	var card = (ov && ov.parentNode) ? ov.parentNode : document.querySelector('.pushbot-header-card');
+	if (card) card.appendChild(cdOv);
+	var cdSec = 30;
+	var cdTimer = setInterval(function() {
+		cdSec--;
+		var el = document.getElementById('pb_ota_countdown');
+		var lb = document.getElementById('pb_ota_sec_label');
+		if (el) el.textContent = cdSec;
+		if (lb) lb.textContent = cdSec;
+		if (cdSec <= 0) { clearInterval(cdTimer); location.reload(); }
+	}, 1000);
+}
 /* click version badge → fetch upstream GitHub Makefile from browser (8s timeout), frosted toast */
 (function() {
 	function bindVersionCheck() {
@@ -274,25 +295,7 @@ else
 													ix.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "install") }}?_=' + Date.now());
 													ix.send();
 													/* install kills self-process, can't wait for response — start countdown immediately */
-													var cdOv = document.createElement('div');
-													cdOv.className = 'pushbot-ver-overlay show';
-													cdOv.style.zIndex = '99999';
-													var cdToast = document.createElement('div');
-													cdToast.className = 'pushbot-ver-toast is-latest';
-													cdToast.innerHTML = '<div style="font-size:14px;font-weight:700">{{ _('Installing update…') }}</div>'
-														+ '<div style="margin-top:10px;font-size:32px;font-weight:800;font-family:Menlo,Consolas,monospace" id="pb_ota_countdown">30</div>'
-														+ '<div style="margin-top:8px;font-size:12px;opacity:0.8">{{ _('Page will auto-refresh') }}</div>'
-														+ '<button onclick="location.reload()" style="margin-top:12px;padding:6px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.18);color:#fff;font-size:12px;font-weight:600;cursor:pointer">{{ _('Refresh Now') }}</button>';
-													cdOv.appendChild(cdToast);
-													var card = ov.parentNode || document.querySelector('.pushbot-header-card') || document.body;
-													card.appendChild(cdOv);
-													var cdSec = 30;
-													var cdTimer = setInterval(function() {
-														cdSec--;
-														var el = document.getElementById('pb_ota_countdown');
-														if (el) el.textContent = cdSec;
-														if (cdSec <= 0) { clearInterval(cdTimer); location.reload(); }
-													}, 1000);
+pb_ota_showCountdown(ov);
 												} else if (pct === 'fail') {
 													clearInterval(pollId);
 													btn.textContent = '{{ _('Download Failed') }}';
@@ -322,26 +325,8 @@ else
 									ix.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", "install") }}?_=' + Date.now());
 									ix.onload = function() {};
 									ix.send();
-									/* show frosted countdown overlay immediately (install kills self, can't wait for response) */
-									var cdOv = document.createElement('div');
-									cdOv.className = 'pushbot-ver-overlay show';
-									cdOv.style.zIndex = '99999';
-									var cdToast = document.createElement('div');
-									cdToast.className = 'pushbot-ver-toast is-latest';
-									cdToast.innerHTML = '<div style="font-size:14px;font-weight:700">{{ _('Installing update…') }}</div>'
-										+ '<div style="margin-top:10px;font-size:32px;font-weight:800;font-family:Menlo,Consolas,monospace" id="pb_ota_countdown">30</div>'
-										+ '<div style="margin-top:8px;font-size:12px;opacity:0.8">{{ _('Page will auto-refresh') }}</div>'
-										+ '<button onclick="location.reload()" style="margin-top:12px;padding:6px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.18);color:#fff;font-size:12px;font-weight:600;cursor:pointer">{{ _('Refresh Now') }}</button>';
-									cdOv.appendChild(cdToast);
-									var card = ov.parentNode || document.querySelector('.pushbot-header-card') || document.body;
-									card.appendChild(cdOv);
-									var cdSec = 30;
-									var cdTimer = setInterval(function() {
-										cdSec--;
-										var el = document.getElementById('pb_ota_countdown');
-										if (el) el.textContent = cdSec;
-										if (cdSec <= 0) { clearInterval(cdTimer); location.reload(); }
-									}, 1000);
+									/* install kills self-process, start countdown immediately */
+									pb_ota_showCountdown(ov);
 									return;
 								}
 								/* show 0% ring immediately */
