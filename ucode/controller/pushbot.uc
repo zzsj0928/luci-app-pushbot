@@ -785,7 +785,7 @@ return {
 			+ "  while [ $ATTEMPT -lt $MAX_RETRY ]; do\n"
 			+ "    ATTEMPT=$((ATTEMPT+1))\n"
 			+ "    curl -k -L --connect-timeout 15 --max-time 120 -o \"${DEST}\" \"${URL}\" 2>/dev/null\n"
-			+ "    if [ $? -eq 0 ] && [ -s \"${DEST}\" ]; then\n"
+			+ "    if [ $? -eq 0 ] && [ -s \"${DEST}\" ] && [ $(wc -c < \"${DEST}\") -gt 10000 ]; then\n"
 			+ "      OK=$((OK+1))\n"
 			+ "      echo \"$((OK * 100 / TOTAL))\" > \"${PFILE}\"\n"
 			+ "      [ $OK -lt $TOTAL ] && sleep 1\n"
