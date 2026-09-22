@@ -101,12 +101,12 @@ function pbShowConfigMgmt() {
 	btnReset.type = 'button'; btnReset.className = 'pb-preview-btn pb-preview-btn-conf';
 	btnReset.style.cssText = 'background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:rgba(248,113,113,0.5);';
 	btnReset.textContent = '{{ _('Reset Config') }}';
-	btnReset.addEventListener('click', function(){ pbCmConfirm(ov, 'reset_config', '{{ _('Reset Config') }}'); });
+	btnReset.addEventListener('click', function(){ pbCmConfirm(ov, 'reset_config', '{{ _('Reset Config') }}', '{{ _('This will reset all configurations to factory defaults. This action is irreversible.') }}'); });
 	var btnKeep = document.createElement('button');
 	btnKeep.type = 'button'; btnKeep.className = 'pb-preview-btn';
 	btnKeep.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;border-color:rgba(251,146,60,0.5);';
 	btnKeep.textContent = '{{ _('Reset Config (Keep Token)') }}';
-	btnKeep.addEventListener('click', function(){ pbCmConfirm(ov, 'reset_config_keep_token', '{{ _('Reset Config (Keep Token)') }}'); });
+	btnKeep.addEventListener('click', function(){ pbCmConfirm(ov, 'reset_config_keep_token', '{{ _('Reset Config (Keep Token)') }}', '{{ _('This will reset all configurations to factory defaults, but keep enabled channel tokens and their related settings.') }}'); });
 	btns.appendChild(btnReset); btns.appendChild(btnKeep);
 	body.appendChild(btns); box.appendChild(body);
 	var disc = document.createElement('button');
@@ -120,10 +120,10 @@ function pbShowConfigMgmt() {
 	document.body.appendChild(ov);
 	setTimeout(function() { ov.classList.add('show'); }, 10);
 }
-function pbCmConfirm(parentOv, apiPath, label) {
+function pbCmConfirm(parentOv, apiPath, label, desc) {
 	var box = parentOv.querySelector('.pb-preview-box');
 	box.innerHTML = '<div class="pb-preview-title">{{ _('Confirm Reset') }}</div>'
-		+ '<div style="text-align:center;color:#64748b;font-size:13px;margin:16px 0;line-height:1.6">{{ _('This will reset all configurations. This action is irreversible.') }}</div>'
+		+ '<div style="text-align:center;color:#64748b;font-size:13px;margin:16px 0;line-height:1.6">' + desc + '</div>'
 		+ '<div style="display:flex;justify-content:center;gap:10px">'
 		+ '<button id="pb_cm_yes" class="pb-preview-btn pb-preview-btn-conf" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:rgba(248,113,113,0.5);">' + label + '</button>'
 		+ '<button id="pb_cm_no" class="pb-preview-btn pb-preview-btn-disc">{{ _('Cancel') }}</button>'
