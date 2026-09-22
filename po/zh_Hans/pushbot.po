@@ -1381,7 +1381,7 @@ msgid "Gotify"
 msgstr "Gotify"
 
 msgid "Auto-refresh in"
-msgstr "自动刷新（{s} 秒后）"
+msgstr "自动刷新"
 
 msgid "s"
 msgstr " 秒"
