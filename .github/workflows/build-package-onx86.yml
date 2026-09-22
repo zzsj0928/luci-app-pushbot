@@ -78,6 +78,7 @@ jobs:
         run: |
           sudo -E apt -qq update -y
           sudo -E apt -qq install $(curl -fsSL https://raw.githubusercontent.com/zouyq/openwrt-build-action/main/dep/${CHOSEN_OS}) -y
+          sudo -E apt -qq install gettext -y
           sudo timedatectl set-timezone "$TZ"
 
       - name: Restore OpenWrt cache
