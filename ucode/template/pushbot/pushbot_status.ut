@@ -401,12 +401,6 @@ pb_ota_showCountdown(ov);
 							}
 						},
 						{
-							label: '{{ _('Ignore') }}',
-							onClick: function(btn, ov) {
-								result.dismiss();
-							}
-						},
-						{
 							label: '{{ _('Clear Packages') }}',
 							onClick: function(btn, ov) {
 								var xhr = new XMLHttpRequest();
@@ -417,6 +411,12 @@ pb_ota_showCountdown(ov);
 									setTimeout(function() { result.dismiss(); }, 1500);
 								};
 								xhr.send();
+							}
+						},
+						{
+							label: '{{ _('Ignore') }}',
+							onClick: function(btn, ov) {
+								result.dismiss();
 							}
 						}
 					];

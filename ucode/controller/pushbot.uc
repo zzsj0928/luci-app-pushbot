@@ -795,6 +795,7 @@ return {
 			+ "  done\n"
 			+ "done\n"
 			+ "if [ $OK -eq $TOTAL ]; then\n"
+			+ "  sleep 1\n"
 			+ "  echo 'done' > \"${PFILE}\"\n"
 			+ "else\n"
 			+ "  echo 'fail' > \"${PFILE}\"\n"
