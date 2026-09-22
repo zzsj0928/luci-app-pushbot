@@ -122,17 +122,21 @@ function pbShowConfigMgmt() {
 }
 function pbCmConfirm(parentOv, apiPath, label, desc) {
 	var box = parentOv.querySelector('.pb-preview-box');
+	/* 保留 token 的按钮用橙色，全量重置用红色 */
+	var btnStyle = (apiPath === 'reset_config_keep_token')
+		? 'background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;border-color:rgba(251,146,60,0.5);'
+		: 'background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:rgba(248,113,113,0.5);';
 	box.innerHTML = '<div class="pb-preview-title">{{ _('Confirm Reset') }}</div>'
 		+ '<div style="text-align:center;color:#64748b;font-size:13px;margin:16px 0;line-height:1.6">' + desc + '</div>'
 		+ '<div style="display:flex;justify-content:center;gap:10px">'
-		+ '<button id="pb_cm_yes" class="pb-preview-btn pb-preview-btn-conf" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:rgba(248,113,113,0.5);">' + label + '</button>'
+		+ '<button id="pb_cm_yes" class="pb-preview-btn pb-preview-btn-conf" style="' + btnStyle + '">' + label + '</button>'
 		+ '<button id="pb_cm_no" class="pb-preview-btn pb-preview-btn-disc">{{ _('Cancel') }}</button>'
 		+ '</div>';
 	box.querySelector('#pb_cm_no').addEventListener('click', function() { parentOv.remove(); });
 	box.querySelector('#pb_cm_yes').addEventListener('click', function() {
 		box.innerHTML = '<div style="text-align:center;padding:24px 0">{{ _('Resetting...') }}</div>';
 		var xhr = new XMLHttpRequest();
-		xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", apiPath) }}?_=' + Date.now());
+		xhr.open('GET', '/cgi-bin/luci/admin/services/pushbot/' + apiPath + '?_=' + Date.now());
 		xhr.onload = function(){
 			box.innerHTML = '<div style="text-align:center;padding:24px 0"><div style="font-size:28px;margin-bottom:8px">✓</div><div style="font-size:14px;font-weight:700">{{ _('Configuration has been reset. Page will reload.') }}</div></div>';
 			setTimeout(function(){ location.reload(); }, 2000);

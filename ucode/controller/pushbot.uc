@@ -874,86 +874,95 @@ return {
 		http.write_json({ ok: true });
 	},
 
-	/* ── 配置管理：重置全部配置 ── */
+	/* ── 配置管理：全部重置（不保留 token） ── */
 	act_reset_config: function() {
 		let defaults = "/usr/share/pushbot/defaults";
+		system("echo `date '+%%Y-%%m-%%d %%H:%%M:%%S'` 【OTA】act_reset_config called >> /tmp/pushbot/pushbot.log");
 		if (!access(defaults)) {
 			http.prepare_content("application/json");
 			http.write_json({ ok: false, error: "defaults dir missing" });
 			return;
 		}
-		/* 备份当前渠道 token，供 keep_token 使用 */
-		let u = cursor();
-		let section = u.get_all("pushbot", "pushbot") ?? {};
-		let tokens = {};
-		let channel_toggles = {
-			dd_webhook: true, we_webhook: true, fs_webhook: true, pushdeer_key: true,
-			pp_token: true, bark_token: true, ntfy_token: true, gotify_token: true,
-			wxpusher_app_token: true,
-		};
-		for (let k in channel_toggles) if (section[k] && section[k] != "") tokens[k] = section[k];
-		let token_file = "/tmp/pushbot/pending_tokens.json";
-		let tf = open(token_file, "w");
-		if (tf) { tf.write(json(tokens)); tf.close(); }
+		/* 重置 UCI 配置 */
+		system("/bin/cp -f " + defaults + "/pushbot /etc/config/pushbot 2>/dev/null");
+		system("/bin/cp -f " + defaults + "/ipv4.list /usr/bin/pushbot/api/ipv4.list 2>/dev/null");
+		system("/bin/cp -f " + defaults + "/ipv6.list /usr/bin/pushbot/api/ipv6.list 2>/dev/null");
+		system("/bin/cp -f " + defaults + "/diy.json /usr/bin/pushbot/api/diy.json 2>/dev/null");
 		http.prepare_content("application/json");
-		http.write_json({ ok: true, tokens_saved: true });
+		http.write_json({ ok: true });
 	},
 
-	/* ── 配置管理：重置并保留已启用渠道的 token ── */
+	/* ── 配置管理：重置并保留当前渠道的所有相关配置 ── */
 	act_reset_config_keep_token: function() {
 		let defaults = "/usr/share/pushbot/defaults";
+		system("echo `date '+%%Y-%%m-%%d %%H:%%M:%%S'` 【OTA】act_reset_config_keep_token called >> /tmp/pushbot/pushbot.log");
 		if (!access(defaults)) {
 			http.prepare_content("application/json");
 			http.write_json({ ok: false, error: "defaults dir missing" });
 			return;
 		}
-		let token_file = "/tmp/pushbot/pending_tokens.json";
-		let tokens = {};
-		let tf = popen("cat " + token_file + " 2>/dev/null", "r");
-		if (tf) { let raw = tf.read("all"); tf.close(); try { tokens = json(raw); } catch {} }
-		system("rm -f " + token_file + " 2>/dev/null");
 
-		/* 重置 UCI 配置为默认 */
-		system("cp -f " + defaults + "/pushbot /etc/config/pushbot 2>/dev/null");
-		system("cp -f " + defaults + "/ipv4.list /usr/bin/pushbot/api/ipv4.list 2>/dev/null");
-		system("cp -f " + defaults + "/ipv6.list /usr/bin/pushbot/api/ipv6.list 2>/dev/null");
-		system("cp -f " + defaults + "/diy.json /usr/bin/pushbot/api/diy.json 2>/dev/null");
-
-		/* 写回已启用渠道的 token */
 		let u = cursor();
 		let section = u.get_all("pushbot", "pushbot") ?? {};
-		/* 判断哪些渠道是启用的 */
-		let channel_enable = {
-			pp_token: "pp_token", bark_token: "bark_token",
-			ntfy_token: "ntfy_token", gotify_token: "gotify_token",
-			wxpusher_app_token: "wxpusher_app_token", fs_webhook: "fs_webhook",
-			dd_webhook: "dd_webhook", we_webhook: "we_webhook", pushdeer_key: "pushdeer_key",
+
+		/* 根据当前 jsonpath 确定渠道前缀 */
+		let jsonpath = section.jsonpath ?? "";
+		/* jsonpath → 前缀映射 */
+		let prefix_map = {
+			"dingding.json": "dd_",
+			"ent_wechat.json": "we_",
+			"pushplus.json": "pp_",
+			"feishu.json": "fs_",
+			"pushdeer.json": "pushdeer",
+			"bark.json": "bark",
+			"ntfy.json": "ntfy",
+			"gotify.json": "gotify",
+			"wxpusher.json": "wxpusher",
 		};
-		/* 启用开关与 token 的映射 */
-		let enable_keys = {
-			pp_token: null, bark_token: "bark_srv_enable",
-			ntfy_token: "ntfy_token_enable", gotify_token: null,
-			wxpusher_app_token: "wxpusher_uids_enable", fs_webhook: null,
-			dd_webhook: null, we_webhook: null, pushdeer_key: "pushdeer_srv_enable",
-		};
+		let prefix = "";
+		for (let fname, pfx in prefix_map) {
+			/* ucode 无 indexOf/match(对含点字符串)，用 substr 循环查找子串 */
+			let found = false;
+			for (let i = 0; i <= length(jsonpath) - length(fname); i++) {
+				if (substr(jsonpath, i, length(fname)) == fname) { found = true; break; }
+			}
+			if (found) { prefix = pfx; break; }
+		}
+		if (prefix == "") {
+			http.prepare_content("application/json");
+			http.write_json({ ok: false, error: "no current channel" });
+			return;
+		}
+
+		/* 保留当前渠道的所有参数（前缀匹配 + jsonpath 本身）。
+		   ucode 无 startsWith/endsWith，统一用 indexOf(prefix)==0 判断前缀 */
 		let keep = {};
-		for (let tk in tokens) {
-			let en = enable_keys[tk];
-			/* 如果没有独立 enable 开关，只要 token 非空就保留 */
-			if (en == null) { if (tokens[tk] != "") keep[tk] = tokens[tk]; }
-			else {
-				/* 有 enable 开关：检查当前（重置后）enable 是否为 1 */
-				let ev = u.get("pushbot", "pushbot", en) ?? "";
-				if (ev == "1") keep[tk] = tokens[tk];
+		for (let k in section) {
+			/* ucode 无 indexOf/startsWith，用 substr 判断前缀 */
+			if (k == prefix || substr(k, 0, length(prefix)) == prefix) {
+				keep[k] = section[k];
 			}
 		}
-		/* 写回保留的 token */
+		keep.jsonpath = jsonpath;
+		system("echo keep_keys=" + join(",", keys(keep)) + " >> /tmp/pushbot/pushbot.log");
+
+		/* 重置 UCI 配置为默认 */
+		system("/bin/cp -f " + defaults + "/pushbot /etc/config/pushbot 2>/dev/null");
+		system("/bin/cp -f " + defaults + "/ipv4.list /usr/bin/pushbot/api/ipv4.list 2>/dev/null");
+		system("/bin/cp -f " + defaults + "/ipv6.list /usr/bin/pushbot/api/ipv6.list 2>/dev/null");
+		system("/bin/cp -f " + defaults + "/diy.json /usr/bin/pushbot/api/diy.json 2>/dev/null");
+		system("echo after_cp_lines=$(wc -l < /etc/config/pushbot) >> /tmp/pushbot/pushbot.log");
+
+		/* 写回保留的参数 */
 		for (let k in keep) {
-			system("/sbin/uci -q set pushbot.pushbot." + k + "=" + sq(keep[k]));
+			let v = "" + keep[k];
+			system("echo uci_set_" + k + " >> /tmp/pushbot/pushbot.log");
+			system("/sbin/uci -q set pushbot.pushbot." + k + "='" + v + "'");
 		}
-		if (length(keep) > 0) system("/sbin/uci -q commit pushbot");
+		system("/sbin/uci -q commit pushbot");
+		system("echo after_commit_lines=$(wc -l < /etc/config/pushbot) >> /tmp/pushbot/pushbot.log");
 		http.prepare_content("application/json");
-		http.write_json({ ok: true, restored_tokens: keep });
+		http.write_json({ ok: true, prefix: prefix, restored_keys: Object.keys(keep) });
 	},
 
 	/* compatibility: index — no-op, menu registration is handled by menu.d JSON */
