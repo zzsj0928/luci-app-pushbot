@@ -138,15 +138,21 @@ else
 
 /* install countdown — toast-sized card, same as version check toast */
 function pb_ota_showCountdown(ov) {
+	var card = document.querySelector('.pushbot-header-card');
+	if (!card) return;
 	var cdOv = document.createElement('div');
-	cdOv.className = 'pushbot-ver-toast is-latest';
-	cdOv.style.cssText = 'position:absolute;right:18px;bottom:18px;z-index:99999;display:inline-block;width:auto;max-width:220px;padding:12px 16px;border-radius:12px;color:#fff;text-align:center;box-shadow:0 8px 24px rgba(15,23,42,0.3);background:linear-gradient(135deg,#10b981,#059669);border:1px solid rgba(52,211,153,0.45)';
-	cdOv.innerHTML = '<div style="font-size:12px;font-weight:600">{{ _('Installing update…') }}</div>'
-		+ '<div style="margin-top:6px;font-size:26px;font-weight:800;font-family:Menlo,Consolas,monospace" id="pb_ota_countdown">30</div>'
-		+ '<div style="font-size:11px;opacity:0.7">{{ _('Auto-refresh in') }} <span id="pb_ota_sec_label">30</span>{{ _('s') }}</div>'
-		+ '<button onclick="location.reload()" style="margin-top:6px;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:600;cursor:pointer">{{ _('Refresh Now') }}</button>';
-	var card = (ov && ov.parentNode) ? ov.parentNode : document.querySelector('.pushbot-header-card');
-	if (card) card.appendChild(cdOv);
+	cdOv.className = 'pushbot-ver-overlay';
+	cdOv.style.zIndex = '99999';
+	var cdToast = document.createElement('div');
+	cdToast.className = 'pushbot-ver-toast is-latest';
+	cdToast.style.cssText = 'min-width:180px;max-width:260px;padding:14px 20px;border-radius:12px;text-align:center;';
+	cdToast.innerHTML = '<div style="font-size:13px;font-weight:700">{{ _('Installing update…') }}</div>'
+		+ '<div style="margin-top:8px;font-size:28px;font-weight:800;font-family:Menlo,Consolas,monospace" id="pb_ota_countdown">30</div>'
+		+ '<div style="margin-top:4px;font-size:11px;opacity:0.8">{{ _('Auto-refresh in') }} <span id="pb_ota_sec_label">30</span>{{ _('s') }}</div>'
+		+ '<button onclick="location.reload()" style="margin-top:8px;padding:5px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:600;cursor:pointer">{{ _('Refresh Now') }}</button>';
+	cdOv.appendChild(cdToast);
+	card.appendChild(cdOv);
+	setTimeout(function() { cdOv.classList.add('show'); }, 20);
 	var cdSec = 30;
 	var cdTimer = setInterval(function() {
 		cdSec--;
@@ -157,6 +163,26 @@ function pb_ota_showCountdown(ov) {
 		if (cdSec <= 0) { clearInterval(cdTimer); location.reload(); }
 	}, 1000);
 }
+/* OTA error toast — covers the version card with red frosted overlay, auto-dismiss after 4s */
+function pb_ota_showError(ov, msg) {
+	var card = document.querySelector('.pushbot-header-card');
+	if (!card) return;
+	var errOv = document.createElement('div');
+	errOv.className = 'pushbot-ver-overlay';
+	errOv.style.zIndex = '99999';
+	var errToast = document.createElement('div');
+	errToast.className = 'pushbot-ver-toast is-err';
+	errToast.style.cssText = 'min-width:180px;max-width:280px;padding:14px 20px;border-radius:12px;text-align:center;color:#fff;font-size:13px;font-weight:600;';
+	errToast.innerHTML = '⚠️ ' + msg;
+	errOv.appendChild(errToast);
+	card.appendChild(errOv);
+	setTimeout(function() { errOv.classList.add('show'); }, 20);
+	setTimeout(function() {
+		errOv.classList.remove('show');
+		setTimeout(function() { errOv.remove(); }, 550);
+	}, 4000);
+}
+
 /* click version badge → fetch upstream GitHub Makefile from browser (8s timeout), frosted toast */
 (function() {
 	function bindVersionCheck() {
@@ -299,9 +325,9 @@ function pb_ota_showCountdown(ov) {
 pb_ota_showCountdown(ov);
 												} else if (pct === 'fail') {
 													clearInterval(pollId);
-													btn.textContent = '{{ _('Download Failed') }}';
 													btn.disabled = false;
-													setTimeout(function() { btn.textContent = '{{ _('One-Click Update') }}'; }, 3000);
+													btn.textContent = '{{ _('One-Click Update') }}';
+													pb_ota_showError(ov, '{{ _('Download Failed') }}');
 												} else {
 													var num = parseInt(pct, 10) || 0;
 													btn.innerHTML = '<span class="pb-ota-progress-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-bg"/><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-fg" style="stroke-dasharray:' + num + ', 100"/></svg></span>' + num + '%';
@@ -350,16 +376,16 @@ pb_ota_showCountdown(ov);
 											} else if (pct === 'fail') {
 												clearInterval(pollId);
 												btn.disabled = false;
-												btn.textContent = '{{ _('Download Failed') }}';
-												setTimeout(function() { btn.textContent = '{{ _('Pull NewPkg') }}'; }, 3000);
+												btn.textContent = '{{ _('Pull NewPkg') }}';
+												pb_ota_showError(ov, '{{ _('Download Failed') }}');
 											} else {
 												var num = parseInt(pct, 10) || 0;
 												if (num === 0) { zeroCount++; } else { zeroCount = 0; }
 												if (zeroCount >= 20) {
 													clearInterval(pollId);
 													btn.disabled = false;
-													btn.textContent = '{{ _('GitHub Release Unreachable') }}';
-													setTimeout(function() { btn.textContent = '{{ _('Pull NewPkg') }}'; }, 3000);
+													btn.textContent = '{{ _('Pull NewPkg') }}';
+													pb_ota_showError(ov, '{{ _('GitHub Release Unreachable') }}');
 													return;
 												}
 												btn.innerHTML = '<span class="pb-ota-progress-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-bg"/><circle cx="18" cy="18" r="15.9" class="pb-ota-ring-fg" style="stroke-dasharray:' + num + ', 100"/></svg></span>' + num + '%';

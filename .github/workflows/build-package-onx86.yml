@@ -283,7 +283,7 @@ jobs:
             done
           fi
 
-      - name: Clean old workflow runs (keep 8)
+      - name: Clean old workflow runs (keep 10)
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -299,7 +299,7 @@ jobs:
             select(.value.id != ($self|tonumber)) |
             .key as $i | .value.id as $id |
             (.value.created_at | fromdateiso8601) as $ct |
-            if (($now - $ct) / 86400 > 180) or ($i >= 8) then "\($id)" else empty end
+            if (($now - $ct) / 86400 > 180) or ($i >= 10) then "\($id)" else empty end
           ' /tmp/runs.json | while read -r RID; do
             echo "删除 run: ${RID}"
             curl -s -X DELETE -H "Authorization: ${GITHUB_TOKEN}" \
