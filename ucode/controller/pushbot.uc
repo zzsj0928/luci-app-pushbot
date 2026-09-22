@@ -788,6 +788,7 @@ return {
 			+ "    if [ $? -eq 0 ] && [ -s \"${DEST}\" ]; then\n"
 			+ "      OK=$((OK+1))\n"
 			+ "      echo \"$((OK * 100 / TOTAL))\" > \"${PFILE}\"\n"
+			+ "      [ $OK -lt $TOTAL ] && sleep 1\n"
 			+ "      break\n"
 			+ "    fi\n"
 			+ "    rm -f \"${DEST}\"\n"
