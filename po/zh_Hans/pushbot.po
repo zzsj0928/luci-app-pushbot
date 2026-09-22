@@ -1427,3 +1427,27 @@ msgstr "清除下载包"
 
 msgid "Cleared"
 msgstr "已清除"
+
+msgid "Config Management"
+msgstr "配置管理"
+
+msgid "Reset Config"
+msgstr "重置配置"
+
+msgid "Reset Config (Keep Token)"
+msgstr "重置配置（保留 TOKEN）"
+
+msgid "This will reset all configurations. This action is irreversible."
+msgstr "这将重置所有配置，此操作不可撤销。"
+
+msgid "Configuration has been reset. Page will reload."
+msgstr "配置已重置，页面即将刷新。"
+
+msgid "Choose a reset option. This action is irreversible."
+msgstr "请选择重置方式，此操作不可撤销。"
+
+msgid "Confirm Reset"
+msgstr "确认重置"
+
+msgid "Resetting..."
+msgstr "重置中…"

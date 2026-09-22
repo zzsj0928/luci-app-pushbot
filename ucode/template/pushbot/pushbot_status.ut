@@ -79,61 +79,71 @@ pollStatus();
 //]]></script>
 
 <script type="text/javascript">//<![CDATA[
-/* ── 配置管理按钮 ── */
-(function(){
-	function init(){
-		var btn = document.getElementById('pushbot_config_mgmt_btn');
-		if(!btn){ setTimeout(init, 200); return; }
-		btn.addEventListener('click', function(){
-			/* 创建浮层 */
-			var ov = document.createElement('div');
-			ov.className = 'pushbot-ver-overlay';
-			var toast = document.createElement('div');
-			toast.className = 'pushbot-ver-toast';
-			toast.style.cssText = 'max-width:320px;padding:18px 20px;border-radius:12px;text-align:center;background:linear-gradient(135deg,#334155,#1e293b);border:1px solid rgba(148,163,184,0.3);color:#fff;box-shadow:0 12px 30px rgba(15,23,42,0.35);';
-			toast.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:14px">{{ _('Config Management') }}</div>'
-				+ '<div id="pb_cm_btns" style="display:flex;flex-direction:column;gap:8px">'
-				+ '<button id="pb_cm_reset" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(248,113,113,0.5);background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:12px;font-weight:600;cursor:pointer">{{ _('Reset Config') }}</button>'
-				+ '<button id="pb_cm_reset_keep" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(251,146,60,0.5);background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-size:12px;font-weight:600;cursor:pointer">{{ _('Reset Config (Keep Token)') }}</button>'
-				+ '<button id="pb_cm_cancel" style="padding:6px 12px;border-radius:6px;border:1px solid rgba(148,163,184,0.3);background:rgba(148,163,184,0.1);color:#94a3b8;font-size:11px;font-weight:500;cursor:pointer">{{ _('Cancel') }}</button>'
-				+ '</div>';
-			ov.appendChild(toast);
-			document.querySelector('.pushbot-header-card').appendChild(ov);
-			setTimeout(function(){ ov.classList.add('show'); }, 20);
-
-			function dismiss(){ ov.classList.remove('show'); setTimeout(function(){ ov.remove(); }, 550); }
-
-			document.getElementById('pb_cm_cancel').onclick = dismiss;
-
-			function confirmReset(keepToken, apiPath, label){
-				/* 二次确认 */
-				var btns = document.getElementById('pb_cm_btns');
-				btns.innerHTML = '<div style="font-size:12px;line-height:1.6;margin-bottom:12px">{{ _('This will reset all configurations. This action is irreversible.') }}</div>'
-					+ '<button id="pb_cm_confirm_yes" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(248,113,113,0.5);background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:12px;font-weight:600;cursor:pointer">' + label + '</button>'
-					+ '<button id="pb_cm_confirm_no" style="padding:6px 12px;border-radius:6px;border:1px solid rgba(148,163,184,0.3);background:rgba(148,163,184,0.1);color:#94a3b8;font-size:11px;cursor:pointer">{{ _('Cancel') }}</button>';
-				document.getElementById('pb_cm_confirm_no').onclick = dismiss;
-				document.getElementById('pb_cm_confirm_yes').onclick = function(){
-					var xhr = new XMLHttpRequest();
-					xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", apiPath) }}?_=' + Date.now());
-					xhr.onload = function(){
-						btns.innerHTML = '<div style="font-size:13px;font-weight:600;color:#10b981">✓ {{ _('Configuration has been reset. Page will reload.') }}</div>';
-						setTimeout(function(){ location.reload(); }, 2000);
-					};
-					xhr.send();
-				};
-			}
-
-			document.getElementById('pb_cm_reset').onclick = function(){
-				confirmReset(false, 'reset_config', '{{ _('Reset Config') }}');
-			};
-			document.getElementById('pb_cm_reset_keep').onclick = function(){
-				confirmReset(true, 'reset_config_keep_token', '{{ _('Reset Config (Keep Token)') }}');
-			};
-		});
-	}
-	if (document.readyState === 'complete') init();
-	else window.addEventListener('load', init);
-})();
+/* ── 配置管理按钮（复用预览弹窗的 overlay + box 风格） ── */
+function pbShowConfigMgmt() {
+	var oldOv = document.querySelector('.pb-preview-overlay');
+	if (oldOv) { oldOv.remove(); return; }
+	var ov = document.createElement('div');
+	ov.className = 'pb-preview-overlay';
+	var box = document.createElement('div');
+	box.className = 'pb-preview-box';
+	var tit = document.createElement('div');
+	tit.className = 'pb-preview-title'; tit.textContent = '{{ _('Config Management') }}';
+	box.appendChild(tit);
+	/* 内容：说明 + 按钮 */
+	var body = document.createElement('div');
+	body.style.cssText = 'flex:1;overflow-y:auto;';
+	body.innerHTML = '<div style="text-align:center;color:#64748b;font-size:13px;margin-bottom:16px">{{ _('Choose a reset option. This action is irreversible.') }}</div>';
+	var btns = document.createElement('div');
+	btns.id = 'pb_cm_btns';
+	btns.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+	var btnReset = document.createElement('button');
+	btnReset.type = 'button'; btnReset.className = 'pb-preview-btn pb-preview-btn-conf';
+	btnReset.style.cssText = 'background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:rgba(248,113,113,0.5);';
+	btnReset.textContent = '{{ _('Reset Config') }}';
+	btnReset.addEventListener('click', function(){ pbCmConfirm(ov, 'reset_config', '{{ _('Reset Config') }}'); });
+	var btnKeep = document.createElement('button');
+	btnKeep.type = 'button'; btnKeep.className = 'pb-preview-btn';
+	btnKeep.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;border-color:rgba(251,146,60,0.5);';
+	btnKeep.textContent = '{{ _('Reset Config (Keep Token)') }}';
+	btnKeep.addEventListener('click', function(){ pbCmConfirm(ov, 'reset_config_keep_token', '{{ _('Reset Config (Keep Token)') }}'); });
+	btns.appendChild(btnReset); btns.appendChild(btnKeep);
+	body.appendChild(btns); box.appendChild(body);
+	var disc = document.createElement('button');
+	disc.type = 'button'; disc.className = 'pb-preview-btn pb-preview-btn-disc'; disc.textContent = '{{ _('Cancel') }}';
+	disc.addEventListener('click', function() { ov.remove(); });
+	var discWrap = document.createElement('div');
+	discWrap.style.cssText = 'margin-top:12px;display:flex;justify-content:center;';
+	discWrap.appendChild(disc);
+	box.appendChild(discWrap);
+	ov.appendChild(box);
+	document.body.appendChild(ov);
+	setTimeout(function() { ov.classList.add('show'); }, 10);
+}
+function pbCmConfirm(parentOv, apiPath, label) {
+	var box = parentOv.querySelector('.pb-preview-box');
+	box.innerHTML = '<div class="pb-preview-title">{{ _('Confirm Reset') }}</div>'
+		+ '<div style="text-align:center;color:#64748b;font-size:13px;margin:16px 0;line-height:1.6">{{ _('This will reset all configurations. This action is irreversible.') }}</div>'
+		+ '<div style="display:flex;justify-content:center;gap:10px">'
+		+ '<button id="pb_cm_yes" class="pb-preview-btn pb-preview-btn-conf" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:rgba(248,113,113,0.5);">' + label + '</button>'
+		+ '<button id="pb_cm_no" class="pb-preview-btn pb-preview-btn-disc">{{ _('Cancel') }}</button>'
+		+ '</div>';
+	box.querySelector('#pb_cm_no').addEventListener('click', function() { parentOv.remove(); });
+	box.querySelector('#pb_cm_yes').addEventListener('click', function() {
+		box.innerHTML = '<div style="text-align:center;padding:24px 0;color:#64748b;font-size:13px">{{ _('Resetting...') }}</div>';
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', '{{ dispatcher.build_url("admin", "services", "pushbot", apiPath) }}?_=' + Date.now());
+		xhr.onload = function(){
+			box.innerHTML = '<div style="text-align:center;padding:24px 0"><div style="font-size:28px;color:#10b981;margin-bottom:8px">✓</div><div style="font-size:14px;font-weight:700;color:#0f172a">{{ _('Configuration has been reset. Page will reload.') }}</div></div>';
+			setTimeout(function(){ location.reload(); }, 2000);
+		};
+		xhr.send();
+	});
+}
+window.addEventListener('DOMContentLoaded', function(){
+	var btn = document.getElementById('pushbot_config_mgmt_btn');
+	if (btn) btn.addEventListener('click', pbShowConfigMgmt);
+});
 var PB_CONFIG = null;
 var PB_READY = [];
 var PB_BLACK_BASE = null, PB_BLACK_SHOWN = null;
