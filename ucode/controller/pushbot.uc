@@ -858,6 +858,20 @@ return {
 		http.write_json({ done: done, success: success, output: output });
 	},
 
+	/* ── OTA: clear downloaded packages ── */
+	act_clear_packages: function() {
+		/* remove all possible package files from /tmp, no error if absent */
+		let patterns = [
+			"/tmp/luci-app-pushbot-*.apk",
+			"/tmp/luci-i18n-pushbot-zh-cn-*.apk",
+			"/tmp/luci-app-pushbot_*_all.ipk",
+			"/tmp/luci-i18n-pushbot-zh-cn_*_all.ipk"
+		];
+		system("rm -f " + join(" ", patterns) + " 2>/dev/null");
+		http.prepare_content("application/json");
+		http.write_json({ ok: true });
+	},
+
 	/* compatibility: index — no-op, menu registration is handled by menu.d JSON */
 	index: function() {}
 };
