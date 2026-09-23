@@ -302,6 +302,6 @@ jobs:
             if (($now - $ct) / 86400 > 180) or ($i >= 10) then "\($id)" else empty end
           ' /tmp/runs.json | while read -r RID; do
             echo "删除 run: ${RID}"
-            curl -s -X DELETE -H "Authorization: ${GITHUB_TOKEN}" \
+            curl -s -X DELETE -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               "https://api.github.com/repos/${REPO}/actions/runs/${RID}" -o /dev/null
           done
