@@ -18,3 +18,5 @@ reasonix.toml
 *.conf.bak
 # 临时编译产物目录
 .build-pkg/
+# 构建时自动生成的出厂默认值备份（Makefile $(shell) 生成，单一源在 root/etc 与 root/usr/bin/pushbot/api）
+root/usr/share/pushbot/defaults/
