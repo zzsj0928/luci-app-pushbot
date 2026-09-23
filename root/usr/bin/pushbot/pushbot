@@ -174,12 +174,15 @@ function pushbot_init(){
 	[ -f "/usr/sbin/wrtbwmon" ] || command -v nlbw >/dev/null 2>&1 || echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】未安装 wrtbwmon 且 nlbwmon 不可用，流量统计不可用" >> ${logfile}
 	[ -z "$ip_version" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】无法获取依赖项 iputils-arping 版本号，请确认插件是否正常运行" >> ${logfile}
 	[ -z "$cu_version" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】无法获取依赖项 curl 版本号，请确认插件是否正常运行" >> ${logfile}
-	# 推送渠道配置检查：所有渠道的凭据全空才报错（漏检 WxPusher/ntfy/Gotify 会让纯 WxPusher 用户误报且插件退出）。
-	# 字段按各渠道必填项取：ntfy/gotify 查 server（其 token 可选/另存），Bark 查 token，DIY 渠道凭据在 diy.json 内（无固定 UCI 字段）故跳过。
+	# 推送渠道配置检查：所有渠道的凭据全空才报错（漏检 WxPusher/Gotify 会让纯 WxPusher 用户误报且插件退出）。
+	# 字段只取"非空即已配置、且无历史默认残留"的：ntfy 的 server 有存量配置残留 https://ntfy.sh，
+	# 不参与拼接，改用启用标志 ntfy_srv_enable=1 单独判断；DIY 渠道凭据在 diy.json 内（无固定 UCI 字段）故跳过。
 	case "$jsonpath" in
 	*diy.json) : ;;
 	*)
-		[ -z "${dd_webhook}${pp_token}${we_webhook}${fs_webhook}${bark_token}${pushdeer_key}${wxpusher_app_token}${ntfy_server}${gotify_server}" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】请填写正确的Token/Webhook " >> ${logfile} && return 1
+		local _tok="${dd_webhook}${pp_token}${we_webhook}${fs_webhook}${bark_token}${pushdeer_key}${wxpusher_app_token}${gotify_server}"
+		[ "$ntfy_srv_enable" = "1" ] && _tok="${_tok}1"
+		[ -z "$_tok" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】请填写正确的Token/Webhook " >> ${logfile} && return 1
 		;;
 	esac
 	local interfacelist=`getinterfacelist` && [ -z "$interfacelist" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】无法正确获取接口信息，请确认插件是否正常运行" >> ${logfile}
