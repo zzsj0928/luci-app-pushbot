@@ -949,7 +949,9 @@ function pushbot_cron(){
 		/etc/init.d/cron start
 	}
 	del_cron
-	if [ -z "$pushbot_enable" ]; then
+	# 总开关关闭(=0)/空/异常值都不注册定时任务：
+	# 旧代码只判 [ -z ]（"0" 非空→false），导致关闭后 crontab 照常注册、cron 继续 send
+	if [ -z "$pushbot_enable" ] || [ "$pushbot_enable" != "1" ]; then
 		re_cron
 		return
 	fi
@@ -2543,6 +2545,12 @@ function add_ip_black(){
 
 # 发送定时数据
 function send(){
+	# 运行时兜底：非测试模式下每次发送前再查一次总开关（uci 直读最新值）。
+	# 防御：残留 crontab、用户自写 crontab、以及未来绕过分发的新调用路径。
+	# send test（渠道测试）不拦，允许总开关关闭时主动测试。
+	if [ -z "$1" ]; then
+		[ "`uci -q get pushbot.pushbot.pushbot_enable`" = "1" ] || return 0
+	fi
 	[ ! -z "$1" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【测试】开始测试渠道" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` 【定时数据】创建定时任务" >> ${logfile}
 	pushbot_disturb;local send_disturb=$?
 	get_config "send_title" "router_status" "router_temp" "router_wan" "client_list" "google_check_count"
@@ -2854,7 +2862,12 @@ if [ "$1" ] ;then
 		fi
 		exit
 	fi
-	[ $1 == "send" ] && send
+	# 定时任务(crontab)入口：总开关关闭时拒绝发送（兜底残留 crontab；test 主动测试不拦）
+	if [ "$1" = "send" ]; then
+		get_config pushbot_enable
+		[ "$pushbot_enable" = "1" ] || exit 0
+		send
+	fi
 	[ $1 == "soc" ] && echo `soc_temp` > ${dir}soc_tmp
 	[ $1 == "client" ] && get_client
 	[ $1 == "test" ] && send test
