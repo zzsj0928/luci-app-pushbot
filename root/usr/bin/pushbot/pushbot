@@ -949,7 +949,9 @@ function pushbot_cron(){
 		/etc/init.d/cron start
 	}
 	del_cron
-	if [ -z "$pushbot_enable" ]; then
+	# 总开关关闭(=0)/空/异常值都不注册定时任务：
+	# 旧代码只判 [ -z ]（"0" 非空→false），导致关闭后 crontab 照常注册、cron 继续 send
+	if [ -z "$pushbot_enable" ] || [ "$pushbot_enable" != "1" ]; then
 		re_cron
 		return
 	fi
@@ -2854,7 +2856,12 @@ if [ "$1" ] ;then
 		fi
 		exit
 	fi
-	[ $1 == "send" ] && send
+	# 定时任务(crontab)入口：总开关关闭时拒绝发送（兜底残留 crontab；test 主动测试不拦）
+	if [ "$1" = "send" ]; then
+		get_config pushbot_enable
+		[ "$pushbot_enable" = "1" ] || exit 0
+		send
+	fi
 	[ $1 == "soc" ] && echo `soc_temp` > ${dir}soc_tmp
 	[ $1 == "client" ] && get_client
 	[ $1 == "test" ] && send test
