@@ -3983,6 +3983,25 @@ function pbFmtVal(v) {
 	if (v === '0' || v === false) return '<span class="pb-pv-off">{{ _('Disabled') }}</span>';
 	return '<span class="pb-pv-str">' + String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>';
 }
+/* 归一化后再比较：后端 lists（PB_CONFIG.lists.x）返回数组，表单 hidden input 是字符串
+   （空白/逗号分隔），直接 JSON.stringify 比较永不相等 —— 明明没改也误报"有变动"，
+   且预览前后显示还一样（如忽略列表）。统一：拆分(空白/逗号/换行)→去重→排序→join；
+   列表的顺序与分隔符无语义，归一化相等即视为无变动。 */
+function pbNorm(v) {
+	var arr;
+	if (Array.isArray(v)) arr = v;
+	else if (typeof v === 'string') arr = v.split(/[\s,,]+/);
+	else if (v == null) arr = [];
+	else return JSON.stringify(v);
+	var seen = {}, out = [];
+	arr.forEach(function(x) {
+		var s = String(x).trim();
+		if (s && !seen[s]) { seen[s] = 1; out.push(s); }
+	});
+	out.sort();
+	return out.join('\n');
+}
+
 /* 收集当前前端表单相对基线(PB_CONFIG)的配置变动 —— 预览与"测试前判断是否需保存"共用 */
 function pbDiffChanges() {
 	var pend = window.__pbCollectData();
@@ -3993,7 +4012,7 @@ function pbDiffChanges() {
 			: (PB_CONFIG && PB_CONFIG.config && PB_CONFIG.config[k] !== undefined) ? PB_CONFIG.config[k]
 			: (PB_CONFIG && PB_CONFIG.files && PB_CONFIG.files[k] !== undefined) ? PB_CONFIG.files[k] : undefined;
 		var newV = pend[k];
-		if (JSON.stringify(oldV) === JSON.stringify(newV)) continue;
+		if (pbNorm(oldV) === pbNorm(newV)) continue;
 		if (!oldV && (!newV || (Array.isArray(newV) && !newV.length))) continue;
 		changes.push({ opt: k, label: PB_LABELS[k] || k, old: oldV, new: newV });
 	}
