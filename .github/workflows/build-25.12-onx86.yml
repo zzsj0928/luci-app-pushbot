@@ -1,28 +1,23 @@
 #
-# Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
-#
-# This is free software, licensed under the MIT License.
-# See /LICENSE for more information.
-#
-# https://github.com/P3TERX/Actions-OpenWrt
-# Description: Build OpenWrt using GitHub Actions
-#
+# 25.12 源手动编译（与 build-package-onx86.yml 完全独立，不并入）：
+#   - 触发：仅 workflow_dispatch 手动点击 —— 不感知 Makefile/版本号 push
+#   - 不限制仓库：zzsj0928 主仓库与任意 fork 均可运行（构建克隆触发者
+#     自己仓库的代码，changelog 也是该仓库的 commit）
+#   - 不读取也不存储 OpenWrt 缓存：每次全新 clone openwrt-25.12 + 全新编译
+#   - 独立 Release：tag = OpenWRT25.12-luci-app-pushbot-v{PKG_VERSION}
+#     （读 Makefile 的 PKG_VERSION，不带日期；同版本重跑则复用同 tag
+#     并刷新 Release 内容），与版本号 Release(luci-app-pushbot-v*)互不干扰；
+#     changelog 取上一个同前缀 tag..HEAD 的 commit（与现有 release 同机制），
+#     正文第一行固定附适用范围说明
+#   - 清理策略：tag 保留本前缀 80 个；release/run 不按名字过滤
+#     （push 触发的 run 名就是 commit 名，无法按名字区分），
+#     按仓库总数保留 30 个 release / 15 次 run —— 与现有 workflow 同配额
 
-name: OpenWrt-Plugins-Build-x86
+name: OpenWrt-Plugins-Build-25.12
 
 on:
-  push:
-    paths:
-      - 'Makefile'
-    branches:
-      - master
   workflow_dispatch:
     inputs:
-      use_cache:
-        description: '使用 OpenWrt 源码/工具链缓存加速编译（默认开启；关闭则全新构建）'
-        required: false
-        default: true
-        type: boolean
       ssh:
         description: 'SSH connection to Actions'
         required: false
@@ -43,20 +38,11 @@ permissions:
 env:
   TZ: Asia/Shanghai
   PLUGIN_NAME: luci-app-pushbot
-  REPO_URL: https://github.com/zzsj0928/luci-app-pushbot.git
+  OP_BRANCH: openwrt-25.12
 
 jobs:
   build:
-    if: github.repository == 'zzsj0928/luci-app-pushbot'
     runs-on: ${{ inputs.chosen-os || 'ubuntu-24.04' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - op_branch: main
-            pkg_type: APK
-          - op_branch: openwrt-23.05
-            pkg_type: IPK
 
     steps:
       - name: Maximize build space
@@ -81,18 +67,9 @@ jobs:
           sudo -E apt -qq install gettext -y
           sudo timedatectl set-timezone "$TZ"
 
-      - name: Restore OpenWrt cache
-        id: cache
-        uses: actions/cache/restore@v4
-        with:
-          path: openwrt
-          key: pushbot-${{ matrix.op_branch }}-${{ runner.os }}
-          restore-keys: |
-            pushbot-${{ matrix.op_branch }}-
-
+      # 无缓存设计：每次全新克隆 25.12 源
       - name: Clone source code
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: git clone https://github.com/openwrt/openwrt.git -b ${{ matrix.op_branch }} openwrt
+        run: git clone https://github.com/openwrt/openwrt.git -b ${{ env.OP_BRANCH }} openwrt
 
       - name: Update and Install feeds
         run: |
@@ -105,7 +82,8 @@ jobs:
           cd openwrt
           rm -f .config
           rm -rf package/${{ env.PLUGIN_NAME }}
-          git clone ${{ env.REPO_URL }} package/${{ env.PLUGIN_NAME }}
+          # 克隆触发者自己的仓库（fork 也编译 fork 的代码）
+          git clone https://github.com/${{ github.repository }}.git package/${{ env.PLUGIN_NAME }}
           echo CONFIG_TARGET_x86=y >> .config
           echo CONFIG_TARGET_x86_64=y >> .config
           echo CONFIG_TARGET_x86_64_DEVICE_generic=y >> .config
@@ -135,17 +113,10 @@ jobs:
           echo -e "$(nproc) thread compile"
           make -j$(nproc) || make -j1 V=s
 
-      - name: Save OpenWrt cache
-        uses: actions/cache/save@v4
-        if: success() && steps.cache.outputs.cache-hit != 'true'
-        with:
-          path: openwrt
-          key: pushbot-${{ matrix.op_branch }}-${{ runner.os }}
-
       - name: Organize and upload artifacts
         if: success() && !cancelled()
         run: |
-          # 收集所有产物（主包 + i18n）
+          # 收集主包 + i18n（25.12 分支产物可能为 .apk 或 .ipk）
           mkdir -p pkgs
           find openwrt/bin/packages -name "luci-app-pushbot*" -exec cp {} pkgs/ \;
           find openwrt/bin/packages -name "luci-i18n-pushbot*" -exec cp {} pkgs/ \;
@@ -156,13 +127,14 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success() && !cancelled()
         with:
-          name: pkgs-${{ matrix.pkg_type }}
+          name: pkgs-25.12
           path: pkgs/
 
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: always() && needs.build.result == 'success' && github.repository == 'zzsj0928/luci-app-pushbot'
+    # 不限制 zzsj0928 仓库：任何运行本 workflow 的仓库都发自己的 Release
+    if: always() && needs.build.result == 'success'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -179,37 +151,36 @@ jobs:
         id: collect
         run: |
           mkdir -p release-pkgs
-          # 合并所有 artifact 目录中的文件
           find artifacts -type f \( -name "*.apk" -o -name "*.ipk" \) -exec cp {} release-pkgs/ \;
           echo "=== 最终产物 ==="
           ls -lh release-pkgs/
 
-          # 从 Makefile 提取版本号
+          # 版本号 tag（无日期）：OpenWRT25.12-luci-app-pushbot-vX.Y，读 Makefile
           VER=$(grep '^PKG_VERSION' Makefile | head -1 | cut -d= -f2)
-          REL=$(grep '^PKG_RELEASE' Makefile | head -1 | cut -d= -f2)
-          TAG="luci-app-pushbot-v${VER}-r${REL}"
-          echo "VERSION=v${VER}-r${REL}" >> $GITHUB_ENV
+          TAG="OpenWRT25.12-luci-app-pushbot-v${VER}"
           echo "TAG=${TAG}" >> $GITHUB_ENV
-          echo "=== 版本: ${TAG} ==="
+          echo "=== tag: ${TAG} ==="
 
       - name: Generate changelog
         id: changelog
         run: |
-          # 找到上一个同名前缀的 tag
-          PREV_TAG=$(git tag -l "luci-app-pushbot-v*" --sort=-v:refname | head -n1)
+          # 本命名空间上一个 tag（同前缀）
+          PREV_TAG=$(git tag -l "OpenWRT25.12-*" --sort=-creatordate | head -n1)
           echo "上一个 tag: ${PREV_TAG:-无}"
 
           {
+            # 固定第一行：适用范围说明（每个 25.12 release 都带）
+            echo "只建议25.12版本Luci环境，或本地安装提示用户环境版本低时采用。"
+            echo ""
             echo "# ${TAG}"
             echo ""
             if [ -n "$PREV_TAG" ]; then
               echo "## 变更 (${PREV_TAG} → ${TAG})"
               echo ""
-              # commit subject 列表
+              # 这段时间的 commit
               git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges
               echo ""
               echo ""
-              # 产物信息
               echo "## 产物"
               echo ""
               echo "| 文件 | 说明 |"
@@ -230,16 +201,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 检查 tag 是否已存在
+          # 同版本重跑：复用同 tag（不重建）但刷新 Release 内容与产物
           if git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
-            echo "tag ${TAG} 已存在，跳过创建（更新产物到已有 Release）"
+            echo "tag ${TAG} 已存在，复用并刷新 Release 内容"
           else
             echo "创建 tag: ${TAG}"
             git tag "${TAG}"
             git push origin "${TAG}"
           fi
 
-          # 创建/更新 Release（idempotent：已存在则更新）
           gh release delete "${TAG}" --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
           gh release create "${TAG}" \
             --repo "${{ github.repository }}" \
@@ -247,14 +217,14 @@ jobs:
             --notes-file release-body.md \
             release-pkgs/*
 
-      - name: Clean old tags (keep 80)
+      - name: Clean old tags (keep 80, 仅本前缀)
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAGS=$(git tag -l "luci-app-pushbot-v*" --sort=-v:refname)
+          TAGS=$(git tag -l "OpenWRT25.12-*" --sort=-creatordate)
           COUNT=$(echo "$TAGS" | grep -c . || echo 0)
-          echo "当前 tag 数: ${COUNT}"
+          echo "本前缀 tag 数: ${COUNT}"
           if [ "$COUNT" -gt 80 ]; then
             echo "$TAGS" | tail -n +81 | while read -r t; do
               echo "删除旧 tag: ${t}"
@@ -263,27 +233,27 @@ jobs:
             done
           fi
 
-      - name: Clean old releases (keep 30)
+      - name: Clean old releases (keep 30, 不限名字按总数)
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release list --repo "${{ github.repository }}" --limit 100 \
-            --json tagName,createdAt --jq '.[] | "\(.createdAt) \(.tagName)"' \
+            --json tagName,createdAt \
+            --jq '.[] | "\(.createdAt) \(.tagName)"' \
             | sort -r > /tmp/releases.txt
           TOTAL=$(wc -l < /tmp/releases.txt)
-          echo "当前 release 数: ${TOTAL}"
+          echo "release 总数: ${TOTAL}"
           if [ "$TOTAL" -gt 30 ]; then
             tail -n +31 /tmp/releases.txt | while read -r line; do
               TAG=$(echo "$line" | cut -d' ' -f2-)
-              # 不删除刚创建的 tag
-              [ "$TAG" = "${{ env.TAG }}" ] && continue
+              [ "$TAG" = "${{ env.TAG}}" ] && continue
               echo "删除旧 release: ${TAG}"
               gh release delete "${TAG}" --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
             done
           fi
 
-      - name: Clean old workflow runs (keep 15)
+      - name: Clean old workflow runs (keep 15, 不限名字按总数)
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
