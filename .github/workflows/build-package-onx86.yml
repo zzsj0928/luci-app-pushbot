@@ -125,6 +125,24 @@ jobs:
           mkdir -p /tmp/npm-cache
           echo "npm_config_cache=/tmp/npm-cache" >> $GITHUB_ENV
 
+      # 签名策略：有 Secret（作者仓库）→ 用固定私钥签名，产物可被设备端
+      # /etc/apk/keys/zed-openwrt-apk.pem 信任、安装免 --allow-untrusted；
+      # 无 Secret（fork）→ 显式关闭逐包签名（SIGN_EACH_PACKAGE 默认 y，
+      # 不关会用自动生成 key 签名）—— 不替 fork 的构建承担签名维护责任。
+      - name: Sign packages with Zed key (only with Secret)
+        run: |
+          if [ -n "${{ secrets.Zed_OpenWRT_APK_PRIVATE_KEY }}" ]; then
+            cat > openwrt/private-key.pem <<'ZEDKEY'
+          ${{ secrets.Zed_OpenWRT_APK_PRIVATE_KEY }}
+          ZEDKEY
+            openssl pkey -in openwrt/private-key.pem -pubout -out openwrt/public-key.pem
+            echo "CONFIG_SIGN_EACH_PACKAGE=y" >> openwrt/.config
+            echo "=== 已配置 Zed 固定私钥签名 ==="
+            head -1 openwrt/private-key.pem
+          else
+            echo "CONFIG_SIGN_EACH_PACKAGE=n" >> openwrt/.config
+            echo "=== 无 Secret（fork 构建），不签名 ==="
+          fi
       - name: Download and Compile
         run: |
           cd openwrt
