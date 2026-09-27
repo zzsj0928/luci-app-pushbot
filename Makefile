@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-pushbot
 PKG_VERSION:=6.00
-PKG_RELEASE:=33
+PKG_RELEASE:=34
 
 PKG_MAINTAINER:=tty228 <tty228@yeah.net>  zzsj0928
 
@@ -46,6 +46,16 @@ endef
 
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
+# 条件部署 Zed 自签 APK 公钥（已有则跳过 —— 添加不覆盖）：
+# 不用包内文件方案：apk 严格追踪文件归属，pushbot 与主题等多包同时携带
+# 同一 /etc/apk/keys 文件会报 "trying to overwrite ... owned by" 冲突；
+# 本脚本创建的文件不在包 manifest 内，多包共存各写一次、后者检测跳过，无冲突。
+# 路径带 IPKG_INSTROOT：交叉编译（第三方固件）时写进 staging rootfs → 随固件带入。
+KEYFILE="$${IPKG_INSTROOT}/etc/apk/keys/zed-openwrt-apk.pem"
+if [ ! -f "$${KEYFILE}" ]; then
+	mkdir -p "`dirname "$${KEYFILE}"`"
+	printf '%s\n' '-----BEGIN PUBLIC KEY-----' 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE16+nzzY9Lx5wvzZoWs/18vZxsNZD' 'jv+CqECJLUj+fA7J228Iu13DVUO8CK9jQyLHtqkw0f4/X2bKLlLiz281zQ==' '-----END PUBLIC KEY-----' > "$${KEYFILE}"
+fi
 [ -n "$${IPKG_INSTROOT}" ] || {
 	[ -f /tmp/pushbot/traffic_source ] && rm -f /tmp/pushbot/traffic_source
 	[ -f /tmp/pushbot/nlbw_check_round ] && rm -f /tmp/pushbot/nlbw_check_round
