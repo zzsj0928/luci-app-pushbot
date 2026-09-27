@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-pushbot
 PKG_VERSION:=6.00
-PKG_RELEASE:=34
+PKG_RELEASE:=35
 
 PKG_MAINTAINER:=tty228 <tty228@yeah.net>  zzsj0928
 
@@ -46,16 +46,11 @@ endef
 
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
-# 条件部署 Zed 自签 APK 公钥（已有则跳过 —— 添加不覆盖）：
-# 不用包内文件方案：apk 严格追踪文件归属，pushbot 与主题等多包同时携带
-# 同一 /etc/apk/keys 文件会报 "trying to overwrite ... owned by" 冲突；
-# 本脚本创建的文件不在包 manifest 内，多包共存各写一次、后者检测跳过，无冲突。
-# 路径带 IPKG_INSTROOT：交叉编译（第三方固件）时写进 staging rootfs → 随固件带入。
-KEYFILE="$${IPKG_INSTROOT}/etc/apk/keys/zed-openwrt-apk.pem"
-if [ ! -f "$${KEYFILE}" ]; then
-	mkdir -p "`dirname "$${KEYFILE}"`"
-	printf '%s\n' '-----BEGIN PUBLIC KEY-----' 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE16+nzzY9Lx5wvzZoWs/18vZxsNZD' 'jv+CqECJLUj+fA7J228Iu13DVUO8CK9jQyLHtqkw0f4/X2bKLlLiz281zQ==' '-----END PUBLIC KEY-----' > "$${KEYFILE}"
-fi
+# 公钥信任不在此处写（去冗余，同 luci-theme-liquid v0.9-r9）：
+# 固件构建带 --no-scripts 不跑本脚本，故 IPKG_INSTROOT 分支是死代码；
+# 公钥统一由包内 etc/uci-defaults/99-zed-apk-key-pushbot 写入 ——
+# 固件场景随镜像首启执行、在线装机由 default_postinst 当次执行；
+# OTA 老设备由 controller act_install 装前自举兜底。
 [ -n "$${IPKG_INSTROOT}" ] || {
 	[ -f /tmp/pushbot/traffic_source ] && rm -f /tmp/pushbot/traffic_source
 	[ -f /tmp/pushbot/nlbw_check_round ] && rm -f /tmp/pushbot/nlbw_check_round
