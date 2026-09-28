@@ -4207,7 +4207,9 @@ window.addEventListener('DOMContentLoaded', function() {
 	box-shadow:
 			/* 底部主投影（最重） */
 			0 10px 28px rgba(15, 23, 42, 0.14),
-			/* 上左右环绕轻投影（很淡，仅一点浮起感） */
+			/* 上方小而淡的投影 */
+			0 -2px 6px rgba(15, 23, 42, 0.045),
+			/* 左右环绕轻投影 */
 			0 0 7px rgba(15, 23, 42, 0.035);
 }
 
@@ -4217,7 +4219,9 @@ window.addEventListener('DOMContentLoaded', function() {
 	box-shadow:
 			/* 底部主投影（最重） */
 			0 10px 28px rgba(15, 23, 42, 0.14),
-			/* 上左右环绕轻投影（很淡，仅一点浮起感） */
+			/* 上方小而淡的投影 */
+			0 -2px 6px rgba(15, 23, 42, 0.045),
+			/* 左右环绕轻投影 */
 			0 0 7px rgba(15, 23, 42, 0.035);
 }
 
