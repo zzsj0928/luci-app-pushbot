@@ -4562,18 +4562,18 @@ window.addEventListener('DOMContentLoaded', function() {
 			background: rgba(10, 10, 18, 0.75) !important;
 			border-color: rgba(255, 255, 255, 0.08) !important;
 			box-shadow:
-				0 16px 44px rgba(0, 0, 0, 0.62),
-				0 -5px 14px rgba(0, 0, 0, 0.38),
-				5px 0 14px rgba(0, 0, 0, 0.38),
-				-5px 0 14px rgba(0, 0, 0, 0.38);
+				0 16px 44px rgba(46, 62, 96, 0.55),
+				0 -5px 14px rgba(58, 76, 112, 0.26),
+				5px 0 14px rgba(58, 76, 112, 0.26),
+				-5px 0 14px rgba(58, 76, 112, 0.26);
 		}
 
 		.pushbot-dk .pushbot-header-card {
 			box-shadow:
-				0 16px 44px rgba(0, 0, 0, 0.62),
-				0 -5px 14px rgba(0, 0, 0, 0.38),
-				5px 0 14px rgba(0, 0, 0, 0.38),
-				-5px 0 14px rgba(0, 0, 0, 0.38);
+				0 16px 44px rgba(46, 62, 96, 0.55),
+				0 -5px 14px rgba(58, 76, 112, 0.26),
+				5px 0 14px rgba(58, 76, 112, 0.26),
+				-5px 0 14px rgba(58, 76, 112, 0.26);
 		}
 
 		.pushbot-dk .pushbot-card-title {
