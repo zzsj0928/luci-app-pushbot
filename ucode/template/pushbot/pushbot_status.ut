@@ -4204,12 +4204,13 @@ window.addEventListener('DOMContentLoaded', function() {
 	border: 1px solid rgba(148, 163, 184, 0.22);
 	border-radius: 16px;
 	background: #ffffff;
-	box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
 .pushbot-header-card {
 	margin: 0 0 16px 0;
 	padding: 18px 20px;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
 .pushbot-pushmode-card {
