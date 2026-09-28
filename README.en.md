@@ -24,6 +24,15 @@
 
 ## 📝 Changelog
 
+- **2026-09-27** (v6.01): Online update fixes & config management
+  - Fixed+Improved: **Online update** — fixed IPK update failure, lost translations (English UI) after update, and occasional hangs; wait 30s → 10s with instant refresh after install; added Clear Packages button; "untrusted" prompt no longer appears after one install (APK signature trust)
+  - Added: **Config Management** — one-click factory reset, or reset system options only while keeping the current channel's Token/UID/topics
+  - Fixed+Improved: **Master switch** — no residual pushes after turning off; the Enabled toggle now saves and starts/stops the service on click, no need to press Save & Apply
+  - Fixed: **Channel validation** — WxPusher/ntfy/Gotify-only setups no longer falsely report a missing Token; preview no longer flags unchanged lists; test buttons prompt to save first when settings changed
+  - Improved: **UI** — card elevation shadows (light/dark), extra top spacing, mobile save buttons wrap instead of squeezing; renamed "Traffic limit per interval" to **"Traffic alert threshold"**
+  - Added: **OpenWrt 25.12 manual build** — trigger from the Actions tab, artifacts published under `OpenWRT25.12-*` releases
+
+
 - **2026-09-22** (v6.00): Online update + event push fix
   - Added: **Online update** — one-click update (auto download & install) or manual pull (download with progress ring, click to install after completion); auto-refresh page 30s after installation; also supports browser direct download of APK/IPK
   - Fixed: **Device online/offline and login alerts were never sent** — a legacy bug silently broke all event notifications, now resolved
