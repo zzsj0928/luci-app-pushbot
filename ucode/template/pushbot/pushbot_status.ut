@@ -4207,10 +4207,8 @@ window.addEventListener('DOMContentLoaded', function() {
 	box-shadow:
 			/* 底部主投影（最重） */
 			0 10px 28px rgba(15, 23, 42, 0.14),
-			/* 上方轻投影 */
-			0 -4px 10px rgba(15, 23, 42, 0.06),
-			/* 左右环绕轻投影 */
-			0 0 10px rgba(15, 23, 42, 0.05);
+			/* 上左右环绕轻投影（很淡，仅一点浮起感） */
+			0 0 7px rgba(15, 23, 42, 0.035);
 }
 
 .pushbot-header-card {
@@ -4219,10 +4217,8 @@ window.addEventListener('DOMContentLoaded', function() {
 	box-shadow:
 			/* 底部主投影（最重） */
 			0 10px 28px rgba(15, 23, 42, 0.14),
-			/* 上方轻投影 */
-			0 -4px 10px rgba(15, 23, 42, 0.06),
-			/* 左右环绕轻投影 */
-			0 0 10px rgba(15, 23, 42, 0.05);
+			/* 上左右环绕轻投影（很淡，仅一点浮起感） */
+			0 0 7px rgba(15, 23, 42, 0.035);
 }
 
 .pushbot-pushmode-card {
