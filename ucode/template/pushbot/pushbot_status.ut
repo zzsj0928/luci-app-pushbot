@@ -4204,13 +4204,25 @@ window.addEventListener('DOMContentLoaded', function() {
 	border: 1px solid rgba(148, 163, 184, 0.22);
 	border-radius: 16px;
 	background: #ffffff;
-	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
+	box-shadow:
+			/* 底部主投影（最重） */
+			0 10px 28px rgba(15, 23, 42, 0.14),
+			/* 上方轻投影 */
+			0 -4px 10px rgba(15, 23, 42, 0.06),
+			/* 左右环绕轻投影 */
+			0 0 10px rgba(15, 23, 42, 0.05);
 }
 
 .pushbot-header-card {
 	margin: 0 0 16px 0;
 	padding: 18px 20px;
-	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
+	box-shadow:
+			/* 底部主投影（最重） */
+			0 10px 28px rgba(15, 23, 42, 0.14),
+			/* 上方轻投影 */
+			0 -4px 10px rgba(15, 23, 42, 0.06),
+			/* 左右环绕轻投影 */
+			0 0 10px rgba(15, 23, 42, 0.05);
 }
 
 .pushbot-pushmode-card {
