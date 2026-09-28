@@ -4190,10 +4190,6 @@ window.addEventListener('DOMContentLoaded', function() {
 //]]&gt;
 </script>
 <style>
-/* pushbot 页面内容整体下移 16px（仅本页面，data-page 前缀匹配覆盖所有子路由） */
-[data-page^="admin-services-pushbot"] #content {
-	margin-top: 16px;
-}
 
 /* CBI elements — hidden: pushbot uses custom JS UI, not CBI forms */
 .cbi-tabmenu { display: none !important; }
@@ -4219,7 +4215,8 @@ window.addEventListener('DOMContentLoaded', function() {
 }
 
 .pushbot-header-card {
-	margin: 0 0 16px 0;
+	/* 标题卡片及其下所有插件模块整体下移 16px */
+	margin: 16px 0 16px 0;
 	padding: 18px 20px;
 	box-shadow:
 			/* 底部主投影（最重） */
