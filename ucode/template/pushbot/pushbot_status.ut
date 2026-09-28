@@ -795,8 +795,62 @@ pb_ota_showCountdown(ov);
 
 		toggleButton.addEventListener('click', function(e) {
 			e.preventDefault();
-			enEl.value = enEl.value === '1' ? '0' : '1';
-			syncState();
+			if (toggleButton.disabled) return;
+			/* 点击意图：目标态（启用=应运行 / 禁用=应停止） */
+			var targetRun = enEl.value !== '1';
+			var newVal = targetRun ? '1' : '0';
+			/* UI 保持原样不做乐观翻转：提交配置（后端 uci commit +
+			   en=1 启动 / en=0 停止）后紧凑轮询真实运行状态，
+			   检测到目标态才翻转显示 —— 与页面状态驱动设计一致。 */
+			toggleButton.disabled = true;
+			var settled = false;
+			var watch = null;
+			var limit = null;
+			function finish() {
+				if (watch) clearInterval(watch);
+				if (limit) clearTimeout(limit);
+				toggleButton.disabled = false;
+			}
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', '{{ dispatcher.build_url('admin', 'services', 'pushbot', 'save_config') }}', true);
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.onload = function() {
+				var r = null;
+				try { r = JSON.parse(xhr.responseText); } catch (err) {}
+				if (!(r && r.ok === true)) { finish(); pbShowToast(false); return; }
+				/* 提交成功：轮询 act_status，真实状态匹配目标态才翻转 */
+				var check = function() {
+					if (settled) return;
+					var s = new XMLHttpRequest();
+					s.open('GET', '{{ dispatcher.build_url('admin', 'services', 'pushbot', 'status') }}?_=' + Date.now(), true);
+					s.onload = function() {
+						if (settled) return;
+						var d = null;
+						try { d = JSON.parse(s.responseText); } catch (err) {}
+						if (!d) return;
+						if (!!d.running === targetRun) {
+							settled = true;
+							enEl.value = newVal;
+							syncState();
+							if (PB_CONFIG && PB_CONFIG.config) PB_CONFIG.config.pushbot_enable = newVal;
+							finish();
+							pollStatus();
+						}
+					};
+					s.send();
+				};
+				watch = setInterval(check, 1500);
+				check();
+				/* 超时未达目标态 → 视为未生效：恢复按钮 + 提示 */
+				limit = setTimeout(function() {
+					if (settled) return;
+					settled = true;
+					finish();
+					pbShowToast(false);
+				}, 15000);
+			};
+			xhr.onerror = function() { finish(); pbShowToast(false); };
+			xhr.send(JSON.stringify({ pushbot_enable: newVal }));
 		});
 
 		liteChoiceBtns.forEach(function(b) {
