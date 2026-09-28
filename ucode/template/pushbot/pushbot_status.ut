@@ -4207,10 +4207,10 @@ window.addEventListener('DOMContentLoaded', function() {
 	box-shadow:
 			/* 底部主投影（最重） */
 			0 10px 28px rgba(15, 23, 42, 0.14),
-			/* 上方小而淡的投影 */
-			0 -2px 6px rgba(15, 23, 42, 0.045),
-			/* 左右环绕轻投影 */
-			0 0 7px rgba(15, 23, 42, 0.035);
+			/* 上 / 右 / 左：三向完全同参（3px 偏移、8px 模糊、0.05） */
+			0 -3px 8px rgba(15, 23, 42, 0.05),
+			3px 0 8px rgba(15, 23, 42, 0.05),
+			-3px 0 8px rgba(15, 23, 42, 0.05);
 }
 
 .pushbot-header-card {
@@ -4219,10 +4219,10 @@ window.addEventListener('DOMContentLoaded', function() {
 	box-shadow:
 			/* 底部主投影（最重） */
 			0 10px 28px rgba(15, 23, 42, 0.14),
-			/* 上方小而淡的投影 */
-			0 -2px 6px rgba(15, 23, 42, 0.045),
-			/* 左右环绕轻投影 */
-			0 0 7px rgba(15, 23, 42, 0.035);
+			/* 上 / 右 / 左：三向完全同参（3px 偏移、8px 模糊、0.05） */
+			0 -3px 8px rgba(15, 23, 42, 0.05),
+			3px 0 8px rgba(15, 23, 42, 0.05),
+			-3px 0 8px rgba(15, 23, 42, 0.05);
 }
 
 .pushbot-pushmode-card {
