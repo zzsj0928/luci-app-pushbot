@@ -217,7 +217,7 @@ return {
 					if (out != "") { ip = out; used_api = pick; break; }
 				}
 				/* 记录探测来源，成功结果后追加显示（全角括号，避免破坏前端半角 ( 的非公网判定） */
-				if (used_api != "") api_note = "（来自api：" + used_api + "）";
+				if (used_api != "") api_note = "（来自API：" + used_api + "）";
 			}
 		}
 
