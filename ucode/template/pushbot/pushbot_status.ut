@@ -3369,11 +3369,9 @@ function initModernTabs() {
 	var headerCard = document.querySelector('.pushbot-header-card');
 	if (!headerCard || !headerCard.parentNode) return;
 
-	/* wait for cards to exist before building tabs */
-	if (!document.getElementById('pushbot_mode_card') || !document.getElementById('pushbot_pushmode_card')) {
-		setTimeout(initModernTabs, 100);
-		return;
-	}
+	/* 注：此处原有"等卡片出现再建 tabs"的 guard —— 它是"先建卡再搬家"时代的遗物，
+	   与"建卡即入 pane"的新架构构成双向等待（pane等卡、卡等pane），靠定时器
+	   随机顺序碰运气，导致卡片偶发落回页面流。建 pane 不依赖卡片，直接建。 */
 
 	/* build tab bar */
 	var tabBar = document.createElement('div');
