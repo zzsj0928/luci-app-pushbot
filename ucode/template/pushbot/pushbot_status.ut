@@ -2038,7 +2038,9 @@ function initContentCard() {
 	var CT_IP_HINTS = PB_sys('ip_hints');
 	var CT_IPV4 = PB_val('pushbot_ipv4', '');
 	var CT_IPV4_IFACE = PB_val('ipv4_interface', '');
-	var CT_IPV6 = PB_val('pushbot_ipv6', 'disable');
+	/* 未配置默认'0'(停用)——与 iv6Opts 的停用 value 一致才可选中（原 'disable' 是无效残留值，不匹配任何选项导致未配置时无选中）；历史存量 'disable' 归一化为 '0' */
+	var CT_IPV6 = PB_val('pushbot_ipv6', '0');
+	if (CT_IPV6 === 'disable') CT_IPV6 = '0';
 	var CT_IPV6_IFACE = PB_val('ipv6_interface', '');
 	var CT_PUSH_UP = PB_bool('pushbot_up');
 	var CT_PUSH_DOWN = PB_bool('pushbot_down');
