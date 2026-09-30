@@ -891,6 +891,10 @@ pb_ota_showCountdown(ov);
 	function initPushModeCard() {
 		if (document.getElementById('pushbot_pushmode_card')) return;
 		if (!PB_CONFIG) { setTimeout(initPushModeCard, 200); return; }
+		/* 顺序 guard：必须等运行控制卡创建（与 terminal/disturb 同模式的依赖链，
+		   run→push→term→disturb 严格串行 = 视觉顺序，消除两条 200ms 轮询
+		   相位竞争导致的"运行控制偶尔排到下面"） */
+		if (!document.getElementById('pushbot_mode_card')) { setTimeout(initPushModeCard, 200); return; }
 
 		makeHidden('jsonpath', PB_val('jsonpath', '/usr/bin/pushbot/api/dingding.json'));
 		var modeHidden = hiddenBox.querySelector('[name="cbid.pushbot.pushbot.jsonpath"]');
