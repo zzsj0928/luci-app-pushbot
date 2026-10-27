@@ -1271,13 +1271,19 @@ pb_ota_showCountdown(ov);
 			});
 		}
 
-		/* 去重键：完整条目归一化（trim + 大小写不敏感，MAC 大小写混用常见） */
-		function normAlias(t) { return t.trim().toUpperCase(); }
+		/* 去重键：MAC（最后一个 '-' 前的部分，别名允许含 '-'）。
+		   同一设备（MAC）只允许一个别名——无论别名是否相同、大小写是否一致 */
+		function aliasMac(t) {
+			var s = t.replace('✕', '').trim();
+			var i = s.lastIndexOf('-');
+			return i < 0 ? '' : s.substring(0, i).trim().toUpperCase();
+		}
 		function aliasExists(text) {
-			var n = normAlias(text);
+			var m = aliasMac(text);
+			if (!m) return false;
 			var tags = tagContainer.querySelectorAll('.pushbot-alias-tag');
 			for (var i = 0; i < tags.length; i++) {
-				if (normAlias(tags[i].textContent.replace('✕', '')) === n) return true;
+				if (aliasMac(tags[i].textContent) === m) return true;
 			}
 			return false;
 		}
